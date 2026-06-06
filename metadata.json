@@ -1,0 +1,6 @@
+{
+  "name": "Ilm Naafi",
+  "description": "A comprehensive Islamic education platform featuring open-source K-12 curriculum, an AI-powered Quran recitation coach, daily supplications helper, and a global scholarships database.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
