@@ -45,6 +45,8 @@ import {
 import CurriculumView from './components/CurriculumView';
 import AICoachView from './components/AICoachView';
 import ScholarshipsView from './components/ScholarshipsView';
+import SavedScholarshipsView from './components/SavedScholarshipsView';
+import CommunityHubView from './components/CommunityHubView';
 import { ScholarlyView } from './components/ScholarlyView';
 import { DailyView } from './components/DailyView';
 import { ForumView } from './components/ForumView';
@@ -160,8 +162,8 @@ const ACTIVE_CIRCLES = [
 ];
 
 export default function App() {
-  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth'>('home');
+  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community'
+  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -362,6 +364,8 @@ export default function App() {
       webinarHeading: "Upcoming Seminars and Halaqas",
       registeredLabel: "RSVP Seat",
       registeredDone: "Seat Booked!",
+      savedHub: "Saved Opportunities",
+      openSource: "Open Source Hub",
       footerText: "Ilm Naafi Academy is built as an open consensus academy. Empowering pristine pronunciations and academic equity.",
       copyright: "All Rights Reserved."
     },
@@ -396,6 +400,8 @@ export default function App() {
       webinarHeading: "الحلقات الدراسية المباشرة والمحاضرات",
       registeredLabel: "حجز منبر",
       registeredDone: "تم حجز المقعد!",
+      savedHub: "ديوان المحفوظات",
+      openSource: "الرمز المفتوح",
       footerText: "تأسست منصة العلم النافع لتمكين المتعلمين من ضبط التلاوة وتسهيل سبل طلب العلم النافع عبر الأقطار والبحار.",
       copyright: "جميع الحقوق محفوظة."
     }
@@ -594,6 +600,28 @@ export default function App() {
             >
               {labels.scholarships}
             </button>
+            <button 
+              onClick={() => { setActiveTab('saved-scholarships'); }}
+              className={`px-3 py-2 rounded-xl transition-all ${
+                activeTab === 'saved-scholarships' 
+                  ? 'text-amber-900 bg-amber-50 font-bold' 
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
+              }`}
+              id="nav-saved-scholarships"
+            >
+              {labels.savedHub}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('community'); }}
+              className={`px-3 py-2 rounded-xl transition-all ${
+                activeTab === 'community' 
+                  ? 'text-amber-900 bg-amber-50 font-bold' 
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
+              }`}
+              id="nav-community"
+            >
+              {labels.openSource}
+            </button>
           </div>
         </div>
 
@@ -732,10 +760,24 @@ export default function App() {
           </button>
           <button
             onClick={() => { setActiveTab('scholarships'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 text-xs font-bold text-slate-800"
+            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
             style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
           >
             {labels.scholarships}
+          </button>
+          <button
+            onClick={() => { setActiveTab('saved-scholarships'); setMobileMenuOpen(false); }}
+            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
+            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
+          >
+            {labels.savedHub}
+          </button>
+          <button
+            onClick={() => { setActiveTab('community'); setMobileMenuOpen(false); }}
+            className="w-full text-left py-2 text-xs font-bold text-slate-800"
+            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
+          >
+            {labels.openSource}
           </button>
         </div>
       )}
@@ -2019,6 +2061,38 @@ export default function App() {
             <ScholarshipsView 
               progress={progress} 
               onToggleSaveScholarship={handleToggleSaveScholarship} 
+            />
+          </motion.div>
+        )}
+
+        {/* SAVED SCHOLARSHIPS WORKSPACE */}
+        {activeTab === 'saved-scholarships' && (
+          <motion.div
+            key="saved-scholarships"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <SavedScholarshipsView 
+              progress={progress} 
+              onToggleSaveScholarship={handleToggleSaveScholarship} 
+              lang={lang}
+            />
+          </motion.div>
+        )}
+
+        {/* OPEN SOURCE COMMUNITY HUB */}
+        {activeTab === 'community' && (
+          <motion.div
+            key="community"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <CommunityHubView 
+              lang={lang}
             />
           </motion.div>
         )}
