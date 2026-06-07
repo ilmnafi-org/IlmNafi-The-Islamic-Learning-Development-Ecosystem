@@ -184,7 +184,7 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setAppLoading(false);
-    }, 1800);
+    }, 4000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -474,7 +474,7 @@ export default function App() {
                   <motion.div 
                     initial={{ width: "0%" }}
                     animate={{ width: "100%" }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                    transition={{ duration: 3.6, ease: "easeInOut" }}
                     className="h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400"
                   />
                 </div>

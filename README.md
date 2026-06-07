@@ -1,200 +1,97 @@
-# IlmNafi
+# Nafi Platform 📖
 
-## Transforming Learning Through Faith, Knowledge, and Technology
+> **A Unified Traditional & AI-Supported Open-Source Academy for Quranic Science**
 
-Nafi is an open, community-driven Islamic learning ecosystem designed to empower students, educators, parents, and institutions worldwide.
+Nafi Platform is an open-source, global academic ecosystem engineered to make traditional Quranic sciences, authentic Adhkar recitation, Pronunciation (Makharij), and Tajweed education dynamically accessible and verifiable using cutting-edge audio processing, rule engines, and community-driven verification.
 
-The platform combines:
-
-* AI-powered Quran memorization and Tajweed coaching
-* K–12 Islamic curriculum management
-* Global scholarship discovery and tracking
-* Free coding bootcamp for Muslim youth
-* Adhkar and Tasbih tools
-* Teacher, parent, and student dashboards
-* Multilingual learning support
-* Offline-first accessibility
-
-Our mission is to make authentic Islamic knowledge, quality education, and career opportunities accessible to every Muslim regardless of geography, language, or financial status.
+Nafi leverages an interactive frontend, smart linguistic analysis, and a structured database of authentic texts to produce a masterfully crafted, eye-safe learning companion.
 
 ---
 
-## Core Platforms
+## 🏛️ Open-Source Path & Organization
 
-### 1. Islamic Curriculum Platform
+To foster a vibrant community of **developers, Arabic linguists, Quran teachers, and researchers**, the Nafi project is structured as a dedicated decentralized github organization: **[github.com/nafi-org](https://github.com/nafi-org)**. 
 
-A structured curriculum covering:
-
-* Quran
-* Arabic Language
-* Aqeedah
-* Fiqh
-* Seerah
-* Islamic History
-
-Features:
-
-* Grade-by-grade learning paths
-* Teacher dashboard
-* Parent dashboard
-* Assessments and certificates
-* Downloadable worksheets
-* Offline access
-* Community contributions and translations
+### Core Repositories
+*   **`nafi-platform`**: The central monorepo hosting the student portal, course administrator suite, and core API connectors.
+*   **`tajweed-engine`**: A specialized linguistic processing library and rule validator that parses Arabic texts to flag specific Tajweed characteristics (Madd, Ghunnah, Ikhfa, etc.).
+*   **`adhkar-service`**: Microservice hosting the authentic step-through daily protective remembrances database, complete with audio pronunciations, counters, and translations (English, Arabic, Urdu, Hausa) based on *Hisnul Muslim*.
 
 ---
 
-### 2. AI Quran Memorization & Tajweed Coach
+## 📁 Recommended Codebase Structure
 
-An intelligent Quran learning system that combines a deterministic Tajweed Rules Engine with AI-powered audio analysis.
+We employ a robust, production-grade monorepo structure for maximum component sharing and consistent deployment:
 
-Features:
-
-* Real-time recitation analysis
-* Tajweed error detection
-* Hifz progress tracking
-* Spaced repetition scheduling
-* Qiraat support
-* Makhraj visualizer
-* Madd beat counter
-* Weakness heatmaps
-* Teacher review tools
-
-Architecture:
-
-Tajweed Rules Engine → Audio Processing → AI Analysis → Feedback Layer
-
-The rules engine serves as the authoritative source of truth, ensuring consistent and explainable feedback.
-
----
-
-### 3. Global Islamic Scholarship Database
-
-A verified scholarship discovery platform.
-
-Features:
-
-* Country-based search
-* Degree-level filtering
-* Deadline alerts
-* Saved scholarships
-* Scholarship matching
-* Community reporting
-* Success stories
+```text
+nafi/
+├── apps/
+│   ├── web/                    # Next.js / Vite React Interactive Student Portal
+│   ├── mobile/                 # React Native / Flutter Cross-Platform Study App
+│   └── admin/                  # Scholarship, User Registry, and Scholar Review Dashboard
+│
+├── services/
+│   ├── tajweed-engine/         # Rust/TypeScript core Tajweed linguistic validator & rule output
+│   ├── scholarship-service/    # Academic registry & sponsorship matching engine
+│   ├── adhkar-service/         # Audio delivery, step-through remembrance tracking microservice
+│   └── auth-service/           # Decentralized OAuth & secure user roles verification
+│
+├── packages/
+│   ├── ui/                     # Shared polished Tailwind component catalog (Gilded Theme)
+│   ├── shared/                 # Core domain models, TypeScript interfaces, and schemas
+│   └── translations/           # Central localization registry (Arabic, English, Urdu, Hausa)
+│
+└── docs/                       # High-level architecture, research papers, and guides
+```
 
 ---
 
-### 4. Coding Bootcamp
+## 🎙️ The Tajweed & Pronunciation Engine
 
-A free technology education initiative for Muslim youth.
+The heart of Nafi's educational credibility is the **Tajweed Engine**. Rather than relying completely on black-box neural networks, the platform combines deterministic spelling parser algorithms with standard speech-path modeling:
 
-Tracks:
+```mermaid
+[Spelling / Unicode Parser] ➔ [Tajweed Grapheme Rule Matcher] ➔ [Scholar Review Dashboard] ➔ [Verified Master JSON]
+```
 
-* HTML & CSS
-* JavaScript
-* React
-* Backend Development
-* Databases
-* DevOps & Deployment
+### 1. Unified Rule Definitions
+Rules are written in structured, language-independent configurations:
+*   **Noon Sakinah & Tanween**: (Ith-har, Idghaam, Iqlab, Ikhfa').
+*   **Meem Sakinah**: (Ikhfa' Shafawi, Idghaam Shafawi, Ith-har Shafawi).
+*   **Madd (Lengthening)**: (Madd Tabi'ee, Muttasil, Munfasil, Laazim, 'Arid).
 
-Features:
-
-* Project-based learning
-* Mentorship
-* Portfolio builder
-* Career support
-* Internship opportunities
-* Alumni network
-
----
-
-### 5. Adhkar & Tasbih Hub
-
-Daily engagement and spiritual development tools.
-
-Features:
-
-* Morning and evening adhkar
-* Tasbih counters
-* Wird tracking
-* Streaks
-* Ruqyah mode
-* Reminder system
-* Offline functionality
+### 2. Scholar Review Process (Isnaad & Verification)
+To preserve the sacred trust of Quranic transmission, every rule change or parsed transcription undergoes a strict **Scholar Review Loop**:
+1.  **Linguistic Parsing**: Automated scripts parse rule sets or phonemes.
+2.  **QA Evaluation**: Unit test batteries check phonetic constraints.
+3.  **Lajnah Panel Auditing**: Certified scholars view pending updates through the `/admin` portal, verifying and officially signing off on rules.
+4.  **Cryptographic Seal**: Verified datasets are compiled into production-ready JSON and distributed.
 
 ---
 
-## Technology Stack
+## 🚀 Launch Strategy & Roadmap
 
-### Frontend
+Join us on our journey to democratize Quranic knowledge. Our complete launch sequence consists of:
 
-* React
-* React Native
-* TypeScript
-* Tailwind CSS
-
-### Backend
-
-* FastAPI
-* Python
-
-### Database
-
-* PostgreSQL
-
-### AI & Audio
-
-* Wav2Vec 2.0
-* Whisper
-* Custom Tajweed Classification Models
-
-### Infrastructure
-
-* Docker
-* Nginx
-* VPS Deployment
-* CI/CD Pipelines
+1.  **Launch the GitHub Organization**: Mapping out the repository boundaries on `github.com/nafi-org`.
+2.  **Open Source the Tajweed Engine**: Releasing the parser along with initial test scripts.
+3.  **Publish the Documentation Site**: Detailing makhraj articulation guides and scholarship guidelines.
+4.  **Vercel & Cloud Run Stable Deployment**: Continuous delivery pipelines for student testing environments.
+5.  **GitHub Student Developer Pack**: Applying for resources to support student development challenges and hackathons.
+6.  **Community Discord Server**: Launching a server to connect scholars, teachers, linguists, and developers.
+7.  **Public Project Board / Roadmap**: Tracking tasks and milestones transparently.
+8.  **Contributor Onboarding Guide**: Making first-time contributions simple and welcoming.
 
 ---
 
-## Core Principles
+## 🤝 Contribution Documents
 
-* Authentic Islamic sources
-* Scholar-reviewed content
-* Open-source development
-* Mobile-first design
-* Offline-first functionality
-* Accessibility for low-bandwidth regions
-* Privacy-focused architecture
-* No advertisements
+Please review our supplementary files to start contributing:
+*   See **`CONTRIBUTING.md`** for developer guidelines, rule schema setups, and pull request testing.
+*   See **`CODE_OF_CONDUCT.md`** for our community standard covenants.
+*   See **`ROADMAP.md`** for the full step-by-step active release plan.
+*   See **`LICENSE`** for terms of usage (Apache License 2.0).
 
 ---
 
-## Vision
-
-To create the world's most accessible Islamic learning ecosystem where a student can:
-
-Learn Quran → Improve Tajweed → Memorize Quran → Earn Scholarships → Learn Technology → Build a Career → Give Back to the Community
-
-All through one platform.
-
----
-
-## Contributing
-
-We welcome:
-
-* Developers
-* Islamic scholars
-* Translators
-* Teachers
-* Designers
-* Researchers
-
-Together, we can build a sustainable, global platform that benefits generations to come.
-
----
-
-## License
-
-Open-source and community-driven for the benefit of the Ummah.
+*“Whoever treads a path in search of knowledge, Allah will make easy for him the path to Paradise.”* (Sahih Muslim 2699)*
