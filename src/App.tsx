@@ -530,13 +530,13 @@ export default function App() {
           </button>
           
           {/* Desktop Navigation Links */}
-          <div className="hidden xl:flex gap-1 items-center font-medium text-xs">
+          <div className="hidden lg:flex gap-1 items-center font-medium text-[11px] xl:text-xs max-w-[440px] xl:max-w-[720px] 2xl:max-w-none overflow-x-auto scrollbar-none whitespace-nowrap py-1">
             {/* Split curriculum and coach first */}
             <button 
               onClick={() => { setActiveTab('curriculum'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'curriculum' 
-                  ? 'text-amber-900 bg-amber-55 bg-amber-50 font-bold' 
+                  ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-650 text-slate-600 hover:text-amber-900 hover:bg-slate-50'
               }`}
               id="nav-curriculum"
@@ -545,7 +545,7 @@ export default function App() {
             </button>
             <button 
               onClick={() => { setActiveTab('coach'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'coach' 
                   ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
@@ -558,7 +558,7 @@ export default function App() {
             {/* NEW APPLIED PAGES */}
             <button 
               onClick={() => { setActiveTab('daily'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'daily' 
                   ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
@@ -569,7 +569,7 @@ export default function App() {
             </button>
             <button 
               onClick={() => { setActiveTab('scholarly'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'scholarly' 
                   ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
@@ -580,7 +580,7 @@ export default function App() {
             </button>
             <button 
               onClick={() => { setActiveTab('forum'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'forum' 
                   ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
@@ -591,7 +591,7 @@ export default function App() {
             </button>
             <button 
               onClick={() => { setActiveTab('scholarships'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'scholarships' 
                   ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
@@ -602,7 +602,7 @@ export default function App() {
             </button>
             <button 
               onClick={() => { setActiveTab('saved-scholarships'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'saved-scholarships' 
                   ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
@@ -613,7 +613,7 @@ export default function App() {
             </button>
             <button 
               onClick={() => { setActiveTab('community'); }}
-              className={`px-3 py-2 rounded-xl transition-all ${
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
                 activeTab === 'community' 
                   ? 'text-amber-900 bg-amber-50 font-bold' 
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
@@ -712,7 +712,7 @@ export default function App() {
           {/* Trigger list and mobile navigation bar */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 xl:hidden focus:outline-none"
+            className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 lg:hidden focus:outline-none"
             id="mobile-nav-toggle"
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -722,63 +722,46 @@ export default function App() {
 
       {/* MOBILE EXPANDED MENU LIST */}
       {mobileMenuOpen && (
-        <div className="fixed top-20 left-[3%] right-[3%] bg-white border border-slate-200 shadow-xl rounded-2xl p-5 z-40 space-y-3 flex flex-col xl:hidden" id="mobile-dropdown-menu">
-          <button
-            onClick={() => { setActiveTab('curriculum'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.curriculum}
-          </button>
-          <button
-            onClick={() => { setActiveTab('coach'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.coach}
-          </button>
-          <button
-            onClick={() => { setActiveTab('daily'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.daily}
-          </button>
-          <button
-            onClick={() => { setActiveTab('scholarly'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.scholarly}
-          </button>
-          <button
-            onClick={() => { setActiveTab('forum'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.forum}
-          </button>
-          <button
-            onClick={() => { setActiveTab('scholarships'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.scholarships}
-          </button>
-          <button
-            onClick={() => { setActiveTab('saved-scholarships'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 border-b border-slate-100 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.savedHub}
-          </button>
-          <button
-            onClick={() => { setActiveTab('community'); setMobileMenuOpen(false); }}
-            className="w-full text-left py-2 text-xs font-bold text-slate-800"
-            style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-          >
-            {labels.openSource}
-          </button>
+        <div 
+          className="fixed top-20 left-[3%] right-[3%] max-h-[calc(100vh-100px)] overflow-y-auto bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl rounded-2xl p-4 md:p-6 z-40 flex flex-col lg:hidden animate-scaleIn" 
+          id="mobile-dropdown-menu"
+        >
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3.5 pb-1 border-b border-slate-100" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+            {lang === 'en' ? "Academy Navigation" : "فهرس منارة العلم والمنصات"}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {[
+              { id: 'curriculum', label: labels.curriculum, icon: BookOpen, color: 'text-amber-800 bg-amber-500/10' },
+              { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
+              { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
+              { id: 'scholarly', label: labels.scholarly, icon: Compass, color: 'text-purple-800 bg-purple-500/10' },
+              { id: 'forum', label: labels.forum, icon: MessageSquare, color: 'text-sky-800 bg-sky-500/10' },
+              { id: 'scholarships', label: labels.scholarships, icon: Award, color: 'text-rose-800 bg-rose-500/10' },
+              { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, color: 'text-yellow-800 bg-yellow-500/10' },
+              { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
+            ].map(item => {
+              const IconComponent = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 p-3 rounded-xl border text-xs font-bold transition-all text-left w-full cursor-pointer ${
+                    isActive 
+                      ? 'border-amber-600 bg-amber-50/70 text-amber-950 font-black shadow-inner' 
+                      : 'border-slate-150 bg-slate-50 hover:bg-slate-100 text-slate-705 hover:border-slate-300'
+                  }`}
+                  style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row', textAlign: lang === 'ar' ? 'right' : 'left' }}
+                >
+                  <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}>
+                    <IconComponent className="w-4 h-4" />
+                  </span>
+                  <span className="truncate leading-tight block">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
