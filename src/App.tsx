@@ -178,13 +178,17 @@ export default function App() {
   const [rsvps, setRsvps] = useState<{[key: number]: number}>({ 0: 42, 1: 18, 2: 29 });
   const [userRsvped, setUserRsvped] = useState<{[key: number]: boolean}>({});
 
+  // Dynamic Salah Reminder State & Salah Lesson State
+  const [selectedSalah, setSelectedSalah] = useState<'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha'>('fajr');
+  const [activeSalahLesson, setActiveSalahLesson] = useState<number>(0);
+
   // Scroll tracking and smooth-scroll navigation effects
   const [showScrollTop, setShowScrollTop] = useState(false);
   
   useEffect(() => {
     const timer = setTimeout(() => {
       setAppLoading(false);
-    }, 4000);
+    }, 6200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -474,7 +478,7 @@ export default function App() {
                   <motion.div 
                     initial={{ width: "0%" }}
                     animate={{ width: "100%" }}
-                    transition={{ duration: 3.6, ease: "easeInOut" }}
+                    transition={{ duration: 5.8, ease: "easeInOut" }}
                     className="h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400"
                   />
                 </div>
@@ -985,76 +989,347 @@ export default function App() {
                     <span className="text-amber-800 text-[11px] font-bold uppercase mt-4 block">{lang === 'en' ? "Converse Forums" : "ادخل غرف النقاش"} →</span>
                   </div>
 
+                  {/* TILE 6: SCHOLARSHIPS HUB (NEW ADDED TILE) */}
+                  <div 
+                    onClick={() => { setActiveTab('scholarships'); }}
+                    className="md:col-span-12 bg-gradient-to-r from-amber-900/10 via-emerald-900/15 to-[#faf8f5] rounded-3xl border border-amber-900/15 p-6 md:p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-850 border border-amber-200/60 shadow-xs">
+                          <Award className="w-4 h-4 text-amber-700" />
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-900 uppercase font-mono tracking-wider">
+                          {lang === 'en' ? "Global Ivy Seminary Registry" : "بوابة المنح والبعثات الدراسية العالمية"}
+                        </span>
+                      </div>
+                      <h4 className="text-base font-extrabold text-slate-900 font-sans leading-none">
+                        {lang === 'en' ? "Academics & Financial Aid Center" : "منبر التمويل وصندوق رعاية المتفوقين"}
+                      </h4>
+                      <p className="text-slate-600 text-xs leading-relaxed max-w-xl">
+                        {lang === 'en' 
+                          ? "Apply to fully funded undergraduate, graduate, and research grants worldwide. Filter live opportunities and curate your personal academic record history in-memory." 
+                          : "استعرض وحلّل منحة دراسية وبحثية ممولة بالكامل لدى الجامعات الشريكة. احفظ المباحث العلمية المفضلة لديك لفرزها لاحقاً وتوثيق التقديم الفقهي الميسر."}
+                      </p>
+                    </div>
+                    <div className="shrink-0 flex flex-wrap items-center gap-3">
+                      <div className="bg-white/75 border border-amber-200 py-2.5 px-4 rounded-xl text-center text-slate-800 font-bold text-xs shadow-inner">
+                        <span className="text-amber-850 font-black">{progress.savedScholarships.length}</span> {lang === 'en' ? " Saved Opportunities" : " أبحاث ومنح محفوظة"}
+                      </div>
+                      <span className="bg-emerald-800 hover:bg-emerald-900 text-white font-bold tracking-wider text-[11px] uppercase px-5 py-3 rounded-xl transition shadow-md whitespace-nowrap cursor-pointer">
+                        {lang === 'en' ? "Registry Portal" : "دخول ديوان المنح"} →
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </section>
 
-            {/* SECTION 2: MEET OUR ACADEMIC BOARD OF TRUSTEES (NEW ADDED SECTION) */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-6">
-              <div className="text-center mb-12">
-                <span className="inline-block text-[10px] font-bold uppercase text-amber-800 bg-amber-50 border border-amber-200 py-1 px-3 rounded-full mb-2">
-                  {lang === 'en' ? "Global Mentorship network" : "شيوخ وعلماء مجلس الإشراف والتعليم"}
-                </span>
-                <h3 className="text-2xl font-bold text-slate-900 font-sans">
-                  {labels.facultyTitle}
-                </h3>
+            {/* NEW SECTION 2: DYNAMIC SALAH TIMES & DEEN & AKHIRA DAILY REMINDERS */}
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-10" id="salah-reminders-panel">
+              <div className="bg-gradient-to-br from-[#0c1b18] to-[#040c0b] text-white rounded-3rem p-6 md:p-10 border border-emerald-950/60 shadow-xl relative overflow-hidden">
+                {/* Geometrics */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  
+                  {/* Left explanation block */}
+                  <div className="lg:col-span-5 space-y-4">
+                    <span className="inline-flex items-center gap-1.5 text-[9px] font-extrabold text-amber-400 bg-amber-400/10 py-1.5 px-3 rounded-full border border-amber-400/20 font-mono uppercase tracking-wider">
+                      <Clock className="w-3.5 h-3.5" />
+                      {lang === 'en' ? "Active Salah Spiritual Watch" : "اليقظة الروحية ومواقيت التذكير"}
+                    </span>
+                    <h3 className="text-xl md:text-2xl font-extrabold font-serif tracking-tight text-white leading-tight">
+                      {lang === 'en' ? "Deen & Akhira Temporal Reminders" : "تذكيرات الدين والآخرة المتعاقبة"}
+                    </h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {lang === 'en'
+                        ? "Nafi binds spiritual discipline with learning. Access morning, afternoon, evening, and night whispers of wisdom calibrated to keep your heart anchored."
+                        : "تربط منصة العلم النافع التحصيل العلمي بالانضباط الإيماني المنهجي. تنقل بين أوقات الصلاة لاستعراض تذكيرات رقيقة تدفع عنك ران الغفلة وتذكرك بالآخرة."}
+                    </p>
+
+                    {/* Desktop Salah selectors */}
+                    <div className="grid grid-cols-5 gap-1.5 pt-4 font-sans">
+                      {(['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const).map((salah) => {
+                        const labelMap = {
+                          fajr: { en: "Fajr", ar: "الفجر" },
+                          dhuhr: { en: "Dhuhr", ar: "الظهر" },
+                          asr: { en: "Asr", ar: "العصر" },
+                          maghrib: { en: "Maghrib", ar: "المغرب" },
+                          isha: { en: "Isha", ar: "العشاء" }
+                        };
+                        return (
+                          <button
+                            key={salah}
+                            onClick={() => setSelectedSalah(salah)}
+                            className={`p-2.5 rounded-xl text-[10px] font-bold transition-all text-center border cursor-pointer ${
+                              selectedSalah === salah
+                                ? 'bg-amber-500/15 border-amber-500 text-amber-300 font-extrabold shadow-inner scale-102'
+                                : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'
+                            }`}
+                          >
+                            {lang === 'en' ? labelMap[salah].en : labelMap[salah].ar}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Right interactive showcase card */}
+                  <div className="lg:col-span-7 bg-white/[0.03] border border-white/10 rounded-2xl p-5 md:p-8 backdrop-blur-md relative">
+                    <div className="absolute right-4 top-4">
+                      <Sparkles className="w-5 h-5 text-amber-400 opacity-60 animate-bounce" />
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={selectedSalah}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.25 }}
+                        className="space-y-4"
+                      >
+                        <div className="flex gap-2 items-center text-xs font-mono text-emerald-400">
+                          <Activity className="w-4 h-4 animate-pulse" />
+                          <span className="uppercase tracking-widest font-extrabold font-mono">
+                            {selectedSalah === 'fajr' && (lang === 'en' ? "Morning Reminder (Fajr)" : "ذِكْرُ الصَّبَاحِ البَاكِرِ (الفَجْرِ)")}
+                            {selectedSalah === 'dhuhr' && (lang === 'en' ? "Afternoon Reminder (Dhuhr)" : "ذِكْرُ زَوَالِ النَّهَارِ (الظُّهْرِ)")}
+                            {selectedSalah === 'asr' && (lang === 'en' ? "Late Afternoon Reminder (Asr)" : "تَذْكِيرُ تَعَاقُبِ العَصْرِ (العَصْرِ)")}
+                            {selectedSalah === 'maghrib' && (lang === 'en' ? "Evening Sanctuary (Maghrib)" : "ذِكْرُ غُرُوبِ شَمْسِ اليَوْمِ (المَغْرِبِ)")}
+                            {selectedSalah === 'isha' && (lang === 'en' ? "Night Vigil Sanctuary (Isha)" : "ذِكْرُ هَدْأَةِ اللَّيْلِ وَآخِرِهِ (العِشَاءِ)")}
+                          </span>
+                        </div>
+
+                        <p className="text-xl md:text-2xl font-bold font-serif leading-relaxed text-[#f7f5ef] pt-1" dir="rtl">
+                          {selectedSalah === 'fajr' && "إِنَّ قُرْآنَ الْفَجْرِ كَانَ مَشْهُودًا. استفتح يومك بعهد الطاعة والذكر الواعي، وتذكر أن ركعتي الفجر خير من الدنيا وما فيها من زائلات المتاع."}
+                          {selectedSalah === 'dhuhr' && "أقم صلاتك تسعد برضى الله. تنهى الصلاة عن الفحشاء والمنكر ولذكر الله أكبر. ترياق هجير المشاغل الدنيوية وجذوات السعي الدائب."}
+                          {selectedSalah === 'asr' && "حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ. لا تدع ثمار السعي وساعات الكسب تعيقك عن الاستجابة لنداء ربك الوفير الجميل."}
+                          {selectedSalah === 'maghrib' && "عند غروب الشمس وهدأة الكون يسجد غيب السماوات لخالقه العظيم. جدّد توبتك، واطرح أعباء الرزق جانباً لوجه بارئك المفيض."}
+                          {selectedSalah === 'isha' && "الصلاة معراج المؤمن وقرّة عينه. اختم ليلتك بقلب سليم تائب مستغفر، فر من ظلمات الغفلة الباطنة إلى معارج النور والهداية الحقة."}
+                        </p>
+
+                        <p className="text-xs text-slate-300 leading-relaxed italic border-t border-white/5 pt-4 font-sans">
+                          {selectedSalah === 'fajr' && '"Indeed, the recitation of dawn is ever witnessed. Greet your day with a conscious covenant of obedience. Remember, Fajr is superior to all standard world riches."'}
+                          {selectedSalah === 'dhuhr' && '"Establish your daily prayers to secure tranquility. Prayer protects against transgression, serving as the ultimate medicine amidst hectic pursuits of livelihood."'}
+                          {selectedSalah === 'asr' && '"Guard the prayers strictly, particularly the middle prayer (Asr). Let no commerce or temporal distraction blind you from receiving this high celestial reward."'}
+                          {selectedSalah === 'maghrib' && '"At sunset, the vast canvas of creation submit in silence to its Creator. Renew your remorse, shedding clean the weights of the day before your supportive Lord."'}
+                          {selectedSalah === 'isha' && '"The prayer serves as the believer\'s staircase to serenity. Secure your evening with an active heart seeking light and shield from inner distractions."'}
+                        </p>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                </div>
               </div>
+            </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 bg-white border border-slate-200/80 rounded-2xl flex flex-col items-center text-center space-y-4 shadow-sm hover:shadow-md transition">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 overflow-hidden border border-amber-700/20">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" alt="Dr. Azhari" className="w-full h-full object-cover" />
-                  </div>
+            {/* NEW SECTION 2B: THE ESSENTIAL LESSONS OF SALAH */}
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-6" id="salah-lessons-suite">
+              <div className="bg-white border border-slate-200/85 rounded-3rem p-6 md:p-10 shadow-sm">
+                
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-4 border-b border-slate-150 gap-4">
                   <div>
-                    <h4 className="font-bold text-sm text-slate-900">
-                      {lang === 'en' ? "Dr. Salim Al-Azhari" : "فضيلة الدكتور سالم الأزهري"}
-                    </h4>
-                    <p className="text-[10px] text-amber-800 font-bold mt-0.5">
-                      {lang === 'en' ? "Dean of Tajweed Science, Azhar University" : "عميد علوم القراءات والتجويد بالأزهر الشريف"}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-2.5 leading-relaxed font-sans">
-                      {lang === 'en' 
-                        ? "Specializes in verified recitation transmission tracks and makharij acoustics analysis." 
-                        : "مستشار دولي في تحقيق القراءات المتواترة، وضبط المخارج الصوتية للمتعلمين الجدد."}
-                    </p>
+                    <span className="text-[10px] uppercase font-bold text-amber-850 bg-amber-50 py-1.5 px-3 rounded-full border border-amber-200/50 inline-block mb-2 font-sans">
+                      {lang === 'en' ? "Essential Islamic Pillars" : "تعليم أركان العبادات ومبانيها"}
+                    </span>
+                    <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight leading-none">
+                      {lang === 'en' ? "The Core Lessons of Prayer" : "دروس ومحاور الصلاة الجوهرية"}
+                    </h3>
+                  </div>
+
+                  {/* Tabs */}
+                  <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-500 h-10 border border-slate-200/40 shrink-0 font-sans">
+                    {([0, 1, 2] as const).map((idx) => {
+                      const tabNames = [
+                        { en: "Pillars & Conditions", ar: "الأركان والشروط" },
+                        { en: "Khushu' & Flow", ar: "فقه الخشوع" },
+                        { en: "Fatihah Precision", ar: "مخارج الفاتحة" }
+                      ];
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => setActiveSalahLesson(idx)}
+                          className={`px-3 py-1 rounded-lg text-center font-bold transition-all outline-none cursor-pointer ${
+                            activeSalahLesson === idx ? 'bg-white text-emerald-900 shadow-sm font-extrabold' : 'hover:text-slate-850'
+                          }`}
+                        >
+                          {lang === 'en' ? tabNames[idx].en : tabNames[idx].ar}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="p-6 bg-white border border-slate-200/80 rounded-2xl flex flex-col items-center text-center space-y-4 shadow-sm hover:shadow-md transition">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 overflow-hidden border border-amber-700/20">
-                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150" alt="Dr. Qurashi" className="w-full h-full object-cover" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-900">
-                      {lang === 'en' ? "Dr. Fatimah Al-Qurashi" : "أ. د. فاطمة القرشي"}
-                    </h4>
-                    <p className="text-[10px] text-amber-800 font-bold mt-0.5">
-                      {lang === 'en' ? "Chairperson of Golden Age History, Damascus" : "رئيسة الدراسات التاريخية بدمشق الشام"}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-2.5 leading-relaxed font-sans">
-                      {lang === 'en'
-                        ? "Devoted to researching algebraic histories and House of Wisdom contributions."
-                        : "متخصصة في توثيق مؤلفات الخوارزمي، وتأثير تراجم بغداد في الثورة العلمية المعاصرة."}
-                    </p>
-                  </div>
+                {/* Tab contents */}
+                <div>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeSalahLesson}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center"
+                    >
+                      <div className="md:col-span-8 space-y-4">
+                        {activeSalahLesson === 0 && (
+                          <>
+                            <h4 className="text-base font-bold text-slate-900 font-sans">
+                              {lang === 'en' ? "Conditions & Canonical Pillars of Prayer" : "معرفة أركان الصلاة وشروطها المعتبرة"}
+                            </h4>
+                            <p className="text-xs text-slate-600 leading-relaxed font-sans">
+                              {lang === 'en'
+                                ? "Before initiating recitation, a scholar student must recognize the 9 Conditions (such as Cleanliness, facing Qiblah, and sanity) and the 14 essential Pillars (Arkan) of prayer. Neglecting any single pillar—like quietude (Tuma'ninah) or opening Takbeer—invalidates the movement."
+                                : "تبدأ الصلاة أولاً بضبط شروطها التسعة المفصلة التي تسبق الدخول فيها كستر العورة وموالاة الوقت وطهارة الموضع والبدن. ثم استعراض الأركان الأربعة عشر المفروضة التي تبدأ بتكبيرة الإحرام، وقراءة الفاتحة ركناً بركن، والطمأنينة التي هي سكون المفاصل ولو لبرهة."}
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-[11px] font-bold text-slate-700 font-sans">
+                              <div className="flex gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center shrink-0">1</span>
+                                <div>{lang === 'en' ? "The 9 Prior Conditions" : "الشروط التسعة المقررة قبل الصلاة"}</div>
+                              </div>
+                              <div className="flex gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center shrink-0">2</span>
+                                <div>{lang === 'en' ? "The 14 Pillars of Execution" : "الأركان الأربعة عشر لصلب الأداء"}</div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {activeSalahLesson === 1 && (
+                          <>
+                            <h4 className="text-base font-bold text-slate-900 font-sans">
+                              {lang === 'en' ? "Cultivating True Khushu' & Bodily Serenity" : "فقه الخشوع ورعاية الطمأنينة الحقة"}
+                            </h4>
+                            <p className="text-xs text-slate-600 leading-relaxed font-sans">
+                              {lang === 'en'
+                                ? "Prayer without focus is like a body without a soul. Practical methods to cultivate focus involve slow breathing, looking at the place of prostration (Sujud), pausing between ayahs, and contemplating the attributes of majesty."
+                                : "الصلاة الخالية من الخشوع جسد فارغ الروح. يدربك منهاج نافع على كبح وسادس الفكر عبر الإبطاء المتعمد في حركة الانتقال، وتطويل ركني الرفع والركوع، وجمع النظر وبذله موضع السجود مستجلياً المعاني العميقة لكلمات الفاتحة والتسبيح."}
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-[11px] font-bold text-slate-700 font-sans">
+                              <div className="flex gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black flex items-center justify-center shrink-0">✔</span>
+                                <div>{lang === 'en' ? "Visual anchors toward prostration" : "حصر النظر وقصر البصر في موضع السجود"}</div>
+                              </div>
+                              <div className="flex gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black flex items-center justify-center shrink-0">✔</span>
+                                <div>{lang === 'en' ? "Paced breathing during transfers" : "تنظيم التنفس وسكون المفاصل بين الأركان"}</div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {activeSalahLesson === 2 && (
+                          <>
+                            <h4 className="text-base font-bold text-slate-900 font-sans">
+                              {lang === 'en' ? "Surah Al-Fatihah Pronunciation Precision" : "تحقيق مخارج سورة الفاتحة وعلاج اللحن الجلي"}
+                            </h4>
+                            <p className="text-xs text-slate-600 leading-relaxed font-sans">
+                              {lang === 'en'
+                                ? "Because Surah Al-Fatihah is a vital pillar, dynamic spelling mistakes (Lahn Jali) that alter the meaning can invalidate the entire prayer. Use the Nafi Recitation Coach to practice the hard dental letters: Shad, Daad, and correct double consonant (Shaddah) timings."
+                                : "من فقه القرّاء والفقهاء أن اللحن الجلي (الخطأ المغيّر للمباني والمعاني) في سورة الفاتحة يبطل ركوع الصلاة وسجودها. احرص على تمرين مخارج الضاد المهملة والظاء المشالة وضبط مواضع همزة الوصل بالقرّاء عبر مصحح المخارج الفوري للحصول على قراءة محرّرة بالكامل."}
+                            </p>
+                            <div className="flex gap-3 justify-start pt-2">
+                              <button
+                                onClick={() => setActiveTab('coach')}
+                                className="px-4 py-2.5 bg-emerald-805 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-[10px] rounded-xl transition-colors cursor-pointer font-sans"
+                              >
+                                {lang === 'en' ? "Start Audio Coach Now" : "تجربة مصحح الفاتحة الصوتي في الحال"}
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="md:col-span-4 bg-slate-50 p-6 rounded-2xl border border-slate-150 relative overflow-hidden flex flex-col justify-between h-48 font-sans">
+                        <div className="absolute right-0 bottom-0 opacity-[0.03] scale-150 pointer-events-none">
+                          <BookOpen className="w-32 h-32 text-[#0c2420]" />
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-1">
+                            {lang === 'en' ? "Nafi Course Tracker" : "منهج السلسلة الفقهية"}
+                          </span>
+                          <h5 className="font-extrabold text-xs text-slate-900 leading-tight">
+                            {lang === 'en' ? "Interactive Prayer Guidebook" : "فصل الصلاة الشامل بالحديث النبوي"}
+                          </h5>
+                          <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+                            {lang === 'en' 
+                              ? "Expand your scholarly standing by practicing complete phonetics." 
+                              : "من كتاب عمدة الأحكام وصحيح الإمام البخاري متبوعة بوحدات اختبار صوتي شامل."}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setActiveTab('curriculum')}
+                          className="text-[10px] font-extrabold text-amber-800 text-left uppercase flex items-center gap-1 hover:underline cursor-pointer"
+                        >
+                          <span>{lang === 'en' ? "Read curriculum" : "اقرأ الشرح الكامل"}</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
 
-                <div className="p-6 bg-white border border-slate-200/80 rounded-2xl flex flex-col items-center text-center space-y-4 shadow-sm hover:shadow-md transition">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 overflow-hidden border border-amber-700/20">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" alt="Sh. Yusuf" className="w-full h-full object-cover" />
+              </div>
+            </section>
+
+            {/* NEW SECTION 2C: THE OPEN SOURCE CONTRIBUTORS HUB */}
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-6" id="open-source-contributors-hub">
+              <div className="bg-gradient-to-tr from-[#faf8f5] to-[#f5effa]/10 border-2 border-slate-200 rounded-3rem p-8 md:p-10 relative overflow-hidden shadow-sm">
+                <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 opacity-5 pointer-events-none scale-150">
+                  <Globe className="w-64 h-64 text-slate-900" />
+                </div>
+
+                <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+                  <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest bg-slate-105 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200 inline-block mb-1 font-sans">
+                    ✦ {lang === 'en' ? "Democratic Open Source Path (nafi-org)" : "المبادرة الجماعية المفتوحة - مؤسسة نافع"} ✦
+                  </span>
+
+                  <h3 className="text-2xl md:text-3xl font-extrabold text-slate-950 font-serif tracking-tight">
+                    {lang === 'en' ? "Help Shape the Future of Quranic Sciences" : "شارك في تطوير منهاج التجويد وفقه العبادات"}
+                  </h3>
+
+                  <p className="text-xs text-slate-600 max-w-2xl mx-auto leading-relaxed font-sans">
+                    {lang === 'en'
+                      ? "Nafi is a community-owned academy. Developers, Arabic linguists, Quran teachers, and researchers collaborate on GitHub to power makhraj audio analyses, compile authentic Adhkar, and review Tajweed code rules."
+                      : "نحن نؤمن بأن العلم الشريف يجب أن يتاح للجميع بلا حواجز مادية. يشارك المبرمجون ولغويو العربية في كتابة كود مفسر التجويد ومعالجة الصوتيات وتوثيق التراجم المعرفية لتسهيل العلم المستدام."}
+                  </p>
+
+                  {/* Code repositories mock grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left pt-2 font-sans" dir="ltr">
+                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1 hover:border-amber-500 hover:shadow-sm transition">
+                      <span className="text-[9px] font-extrabold text-amber-800 uppercase font-mono tracking-wider">GitHub Org Core</span>
+                      <h5 className="font-extrabold text-xs text-slate-900">nafi-org/nafi-platform</h5>
+                      <p className="text-[10px] text-slate-500 leading-relaxed font-normal">Next.js/React layout interactive portals and scholar dashboards.</p>
+                    </div>
+
+                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1 hover:border-amber-500 hover:shadow-sm transition">
+                      <span className="text-[9px] font-extrabold text-emerald-805 text-emerald-805 text-emerald-800 uppercase font-mono tracking-wider font-bold">Tajweed Parser</span>
+                      <h5 className="font-extrabold text-xs text-slate-900">nafi-org/tajweed-engine</h5>
+                      <p className="text-[10px] text-slate-500 leading-relaxed font-normal">Linguistic parsing scripts, sound wave math, and JSON schema rules validation.</p>
+                    </div>
+
+                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1 hover:border-amber-500 hover:shadow-sm transition">
+                      <span className="text-[9px] font-extrabold text-indigo-800 uppercase font-mono tracking-wider">Daily Microservice</span>
+                      <h5 className="font-extrabold text-xs text-slate-900">nafi-org/adhkar-service</h5>
+                      <p className="text-[10px] text-slate-500 leading-relaxed font-normal">Authentic step remembrance storage, audio recitation hosting & global translations CDN.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-900">
-                      {lang === 'en' ? "Sh. Yusuf Al-Hanafi" : "الشيخ يوسف الحنفي"}
-                    </h4>
-                    <p className="text-[10px] text-amber-800 font-bold mt-0.5">
-                      {lang === 'en' ? "Comparative Jurisprudence Trustee" : "أستاذ الفقه المقارن وأصول الشريعة"}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-2.5 leading-relaxed font-sans">
-                      {lang === 'en'
-                        ? "Facilitates structured analysis referencing classical consensus rulings for researchers."
-                        : "يشرف على صياغة وتقريب المسائل المقارنة من مراجع الشروح وكتب الإجماع الفقهي."}
-                    </p>
+
+                  {/* Call to action buttons */}
+                  <div className="pt-4 flex flex-wrap justify-center gap-3">
+                    <a
+                      href="https://github.com/nafi-org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-950 text-white font-extrabold text-xs transition-colors shadow-md flex items-center gap-2 font-sans"
+                    >
+                      <span className="font-mono">github.com/nafi-org</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
                   </div>
                 </div>
               </div>

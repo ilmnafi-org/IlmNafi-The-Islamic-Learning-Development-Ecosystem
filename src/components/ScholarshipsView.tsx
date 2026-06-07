@@ -29,7 +29,7 @@ interface ScholarshipsViewProps {
 
 export default function ScholarshipsView({ progress, onToggleSaveScholarship }: ScholarshipsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'All' | 'Undergraduate' | 'Postgraduate' | 'Research Grants'>('All');
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Undergraduate' | 'Postgraduate' | 'Research Grants' | 'Saved Only'>('All');
   
   // Custom filter helper
   const filteredScholarships = SCHOLARSHIPS_DATA.filter(sch => {
@@ -38,7 +38,11 @@ export default function ScholarshipsView({ progress, onToggleSaveScholarship }: 
                           sch.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           sch.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesLevel = activeFilter === 'All' || sch.level.includes(activeFilter);
+    const matchesLevel = activeFilter === 'All'
+      ? true
+      : activeFilter === 'Saved Only'
+        ? progress.savedScholarships.includes(sch.id)
+        : sch.level.includes(activeFilter);
     
     return matchesSearch && matchesLevel;
   });
@@ -97,17 +101,17 @@ export default function ScholarshipsView({ progress, onToggleSaveScholarship }: 
           <span className="text-[10px] text-slate-405 uppercase tracking-widest font-bold flex items-center gap-1.5 mr-1">
             <Filter className="w-3.5 h-3.5 text-amber-805" /> Filter levels:
           </span>
-          {(['All', 'Undergraduate', 'Postgraduate', 'Research Grants'] as const).map(level => (
+          {(['All', 'Undergraduate', 'Postgraduate', 'Research Grants', 'Saved Only'] as const).map(level => (
             <button
               key={level}
               onClick={() => setActiveFilter(level)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
                 activeFilter === level
                   ? 'bg-amber-800 border-amber-800 text-white shadow-md'
-                  : 'bg-white border-slate-150 text-slate-500 hover:text-slate-805'
+                  : 'bg-white border-slate-150 text-slate-500 hover:text-slate-855'
               }`}
             >
-              {level}
+              {level === 'Saved Only' ? `Saved Opportunities (${progress.savedScholarships.length})` : level}
             </button>
           ))}
         </div>
