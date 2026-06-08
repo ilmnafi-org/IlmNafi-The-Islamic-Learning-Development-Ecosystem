@@ -52,6 +52,7 @@ import { ScholarlyView } from './components/ScholarlyView';
 import { DailyView } from './components/DailyView';
 import { ForumView } from './components/ForumView';
 import AuthPage from './components/AuthPage';
+import { DeenSuite } from './components/DeenSuite';
 import StudentDashboard from './components/StudentDashboard';
 import { dbService } from './lib/supabase';
 
@@ -1207,6 +1208,12 @@ export default function App() {
                   </div>
 
                 </div>
+
+                {/* THE INTEGRATED DEEN TRACKER & QIBLAH FINDER SUITE */}
+                <div className="mt-8 pt-8 border-t border-emerald-950/40 relative z-10 text-slate-800">
+                  <DeenSuite lang={lang} />
+                </div>
+
               </div>
             </section>
 

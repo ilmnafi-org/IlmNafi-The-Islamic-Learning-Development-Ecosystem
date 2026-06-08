@@ -5,6 +5,7 @@
 
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
@@ -710,6 +711,22 @@ app.get("/api/health", (req, res) => {
 
 // Configure Vite integration
 async function startServer() {
+  // Synchronize generated PWA icon to the public folder if it doesn't already exist
+  try {
+    const publicDir = path.join(process.cwd(), "public");
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+    const sourceIcon = path.join(process.cwd(), "src", "assets", "images", "pwa_app_icon_1780897130746.png");
+    if (fs.existsSync(sourceIcon)) {
+      fs.copyFileSync(sourceIcon, path.join(publicDir, "icon-512.png"));
+      fs.copyFileSync(sourceIcon, path.join(publicDir, "icon-192.png"));
+      console.log("Successfully synchronized PWA launcher icons.");
+    }
+  } catch (err) {
+    console.warn("Could not copy PWA launcher icons, using soft fallback: ", err);
+  }
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

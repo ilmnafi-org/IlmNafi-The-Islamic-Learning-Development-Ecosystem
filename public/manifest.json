@@ -1,0 +1,24 @@
+{
+  "name": "Ilm Naafi Academy",
+  "short_name": "Ilm Naafi",
+  "description": "Comprehensive Islamic education platform, AI Quran recitation coach, daily supplications helper, and global scholarships database.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#064e3b",
+  "theme_color": "#064e3b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
