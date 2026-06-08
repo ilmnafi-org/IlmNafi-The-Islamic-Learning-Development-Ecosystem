@@ -45,6 +45,7 @@ import {
 
 import CurriculumView from './components/CurriculumView';
 import AICoachView from './components/AICoachView';
+import QuranExplorer from './components/QuranExplorer';
 import ScholarshipsView from './components/ScholarshipsView';
 import SavedScholarshipsView from './components/SavedScholarshipsView';
 import CommunityHubView from './components/CommunityHubView';
@@ -167,7 +168,7 @@ const ACTIVE_CIRCLES = [
 
 export default function App() {
   // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -385,6 +386,7 @@ export default function App() {
       ctaCurriculum: "Explore Curriculum",
       curriculum: "Curriculum",
       coach: "AI Reciter",
+      quran: "Quran Browser",
       daily: "Dhikr & Tasbih",
       scholarly: "Ask the Mufti",
       forum: "Class Forums",
@@ -421,6 +423,7 @@ export default function App() {
       ctaCurriculum: "تصفح المناهج العلمية",
       curriculum: "مناهج التعليم",
       coach: "مصحح التلاوة",
+      quran: "القرآن الكريم",
       daily: "الأوراد والتسابيح",
       scholarly: "استشر المفتي",
       forum: "مجلس الطلاب",
@@ -596,6 +599,17 @@ export default function App() {
               id="nav-coach"
             >
               {labels.coach}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('quran'); }}
+              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
+                activeTab === 'quran' 
+                  ? 'text-amber-905 bg-amber-50 font-bold' 
+                  : 'text-slate-600 hover:text-amber-905 hover:bg-slate-50'
+              }`}
+              id="nav-quran"
+            >
+              {labels.quran}
             </button>
             
             {/* NEW APPLIED PAGES */}
@@ -793,6 +807,7 @@ export default function App() {
             {[
               { id: 'curriculum', label: labels.curriculum, icon: BookOpen, color: 'text-amber-800 bg-amber-500/10' },
               { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
+              { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
               { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
               { id: 'scholarly', label: labels.scholarly, icon: Compass, color: 'text-purple-800 bg-purple-500/10' },
               { id: 'forum', label: labels.forum, icon: MessageSquare, color: 'text-sky-800 bg-sky-500/10' },
@@ -908,6 +923,206 @@ export default function App() {
                   </div>
                 </div>
 
+              </div>
+            </section>
+
+            {/* INTERACTIVE NAVIGATION TERMINAL (UX DIRECTION BLOCK) */}
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12" id="platform-navigation-terminal">
+              <div className="bg-[#FAF8F5] border-2 border-[#073327]/10 rounded-[2rem] p-6 md:p-10 shadow-xs space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#C59B32]/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-800/5 rounded-full blur-3xl pointer-events-none" />
+
+                {/* Section Header */}
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#073327]/5 pb-6">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-bold text-amber-800 uppercase tracking-widest bg-amber-100 px-3 py-1 rounded-md border border-amber-200" style={{ letterSpacing: '0.15em' }}>
+                      {lang === 'en' ? "🎓 DIRECT PORTAL SYSTEM" : "الأروقة التعليمية والربط السريع"}
+                    </span>
+                    <h2 className="text-xl md:text-2xl font-black text-slate-900 font-sans tracking-tight">
+                      {lang === 'en' ? "Where would you like to build your knowledge today?" : "ماذا تود أن تتعلم وتستكشف اليوم؟"}
+                    </h2>
+                    <p className="text-slate-500 text-xs">
+                      {lang === 'en' 
+                        ? "Select any department below to open its dedicated interactive workspace." 
+                        : "اضغط على أي منبر أدناه للانتقال الفوري إلى بيئة العمل والتحقق الفقهية والصوتية الخاصة به."}
+                    </p>
+                  </div>
+
+                  {/* Student ID badge indicator status sync */}
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 border border-slate-200 rounded-xl shadow-2xs shrink-0 select-none">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase text-slate-800">
+                      {progress.username 
+                        ? (lang === 'en' ? `Connected: ${progress.username}` : `مرحباً بك: ${progress.username}`) 
+                        : (lang === 'en' ? "Accessing as Guest Student" : "ولوج بصفة زائر")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Portals Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  
+                  {/* PORTAL 1: HOLY QURAN */}
+                  <div 
+                    onClick={() => setActiveTab('quran')}
+                    className="bg-white border border-[#C59B32]/30 hover:border-[#C59B32] hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all flex flex-col justify-between group relative overflow-hidden"
+                    id="terminal-portal-quran"
+                  >
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#C59B32]/5 rounded-bl-[2rem] pointer-events-none transition-all group-hover:bg-[#C59B32]/10" />
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-200">
+                        <BookOpen className="w-5 h-5 text-amber-800" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-amber-950 font-serif">
+                            {lang === 'en' ? "Holy Quran Explorer" : "المصحف الإلكتروني المتكامل"}
+                          </h3>
+                          <span className="bg-amber-100 text-[#C59B32] font-black text-[7px] tracking-widest px-1 py-0.5 rounded uppercase">NEW</span>
+                        </div>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          {lang === 'en' 
+                            ? "Complete Uthmani Arabic script, English Sahih translation, adjustable font sizes, dynamic ayah bookmarks, and audio recitations." 
+                            : "تصفح معتمد للقرآن آية آية وكلمة كلمة، مع قراءات صوتية، تعديل قياس الخطوط، وحفظ العلامات."}
+                        </p>
+                      </div>
+                    </div>
+                    <button className="mt-5 w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-2 rounded-xl text-[10px] tracking-wider uppercase transition shadow-2xs cursor-pointer">
+                      {lang === 'en' ? "Open Quran Reader" : "افتح المصحف الشريف"}
+                    </button>
+                  </div>
+
+                  {/* PORTAL 2: EDUCATION CURRICULUMS */}
+                  <div 
+                    onClick={() => setActiveTab('curriculum')}
+                    className="bg-white border border-slate-200 hover:border-[#073327] hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all flex flex-col justify-between group relative overflow-hidden"
+                    id="terminal-portal-curriculum"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-200">
+                        <GraduationCap className="w-5 h-5 text-[#073327]" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-[#073327]">
+                          {lang === 'en' ? "Academic Curriculums (K-12)" : "موسوعة المناهج العلمية"}
+                        </h3>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          {lang === 'en' 
+                            ? "Explore vetted, structured modules across Tajweed rules, pristine Islamic history studies, jurisprudence, and classical traditions." 
+                            : "مسارات منهجية شاملة ومفصلة من العقيدة والعبادات والتجويد الفقهي للمرحلة المدرسية وما بعدها."}
+                        </p>
+                      </div>
+                    </div>
+                    <button className="mt-5 w-full bg-[#073327] hover:bg-[#0c241f] text-teal-550 mr-0.5 text-white bg-[#004d3d] hover:bg-[#00362b] font-black py-2 rounded-xl text-[10px] tracking-wider uppercase transition shadow-2xs cursor-pointer">
+                      {lang === 'en' ? "Browse Lessons" : "تصفح المقررات"}
+                    </button>
+                  </div>
+
+                  {/* PORTAL 3: AI RECITATION COACH */}
+                  <div 
+                    onClick={() => setActiveTab('coach')}
+                    className="bg-white border border-slate-200 hover:border-emerald-600 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all flex flex-col justify-between group relative overflow-hidden"
+                    id="terminal-portal-coach"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/5 flex items-center justify-center border border-emerald-500/20">
+                        <Mic className="w-5 h-5 text-emerald-800" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-900">
+                          {lang === 'en' ? "AI Pronunciation Reciter" : "مصحح المخارج الفوري"}
+                        </h3>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          {lang === 'en' 
+                            ? "Practice oral pronunciation and correct letter articulation (Makhārij) using real-time audio analysis and feedback vectors." 
+                            : "سجل نطقك المباشر للحروف والآيات وقيم مهاراتك القرائية التجويدية مع معمل تحليل المخرج التشريحي للفم."}
+                        </p>
+                      </div>
+                    </div>
+                    <button className="mt-5 w-full bg-emerald-800 hover:bg-emerald-950 text-white font-black py-2 rounded-xl text-[10px] tracking-wider uppercase transition shadow-2xs cursor-pointer">
+                      {lang === 'en' ? "Launch Reciter Coach" : "ابدأ تصحيح النطق"}
+                    </button>
+                  </div>
+
+                  {/* PORTAL 4: IKHLAS DAILY TOOLS */}
+                  <div 
+                    onClick={() => setActiveTab('daily')}
+                    className="bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all flex flex-col justify-between group relative overflow-hidden"
+                    id="terminal-portal-daily"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-200">
+                        <Clock className="w-5 h-5 text-blue-850 text-blue-700" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-blue-900">
+                          {lang === 'en' ? "Daily Supplications & Dhikr" : "الأوراد وأدعية اليوم والليلة"}
+                        </h3>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          {lang === 'en' 
+                            ? "Interactive Tasbih tally counter, automatic high-accuracy Qiblah compass, and custom AI supplication assistants." 
+                            : "سبحة تفاعلية رقمية تحسب تسبيحاتك، مع بوصلة القبلة الذاتية بالاتجاهات ومؤلف الأدعية الشرعية."}
+                        </p>
+                      </div>
+                    </div>
+                    <button className="mt-5 w-full bg-blue-800 hover:bg-blue-955 text-white font-black py-2 rounded-xl text-[10px] tracking-wider uppercase transition shadow-2xs cursor-pointer">
+                      {lang === 'en' ? "Activate Dhikr Tools" : "المسبحة والقبلة"}
+                    </button>
+                  </div>
+
+                  {/* PORTAL 5: ASK THE MUFTI */}
+                  <div 
+                    onClick={() => setActiveTab('scholarly')}
+                    className="bg-white border border-slate-200 hover:border-purple-600 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all flex flex-col justify-between group relative overflow-hidden"
+                    id="terminal-portal-scholarly"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center border border-purple-200">
+                        <Compass className="w-5 h-5 text-purple-700" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-purple-900">
+                          {lang === 'en' ? "Ask the Mufti Center" : "منصة الإرشاد العلمي والفقهي"}
+                        </h3>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          {lang === 'en' 
+                            ? "Submit scholarly legal inquiries and sift authentic theological feedback rooted in verified canonical consensus." 
+                            : "اطرح مسائلك الدينية والمذهبية الفكرية مع مراجعة شاملة لآراء الأئمة ومحاضرات العلماء ومذاهب الفقه المعتبرة."}
+                        </p>
+                      </div>
+                    </div>
+                    <button className="mt-5 w-full bg-purple-800 hover:bg-purple-950 text-white font-black py-2 rounded-xl text-[10px] tracking-wider uppercase transition shadow-2xs cursor-pointer">
+                      {lang === 'en' ? "Ask Scholar" : "استشارة الفقهاء"}
+                    </button>
+                  </div>
+
+                  {/* PORTAL 6: IVY SCHOLARSHIPS REGISTRY */}
+                  <div 
+                    onClick={() => setActiveTab('scholarships')}
+                    className="bg-white border border-[#C59B32]/10 hover:border-amber-600 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all flex flex-col justify-between group relative overflow-hidden"
+                    id="terminal-portal-scholarships"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/5 flex items-center justify-center border border-amber-500/20">
+                        <Award className="w-5 h-5 text-amber-750 text-amber-700" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-amber-955">
+                          {lang === 'en' ? "Global Ivy Scholarships" : "بوابة المنح والتمويل العلمي"}
+                        </h3>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          {lang === 'en' 
+                            ? "Vetted directory of fully funded academic research aids and grants. Includes in-memory step tracking and custom draft notes." 
+                            : "قاعدة بيانات المنح البحثية والدراسية لدعم طلاب الدراسات العليا مجاناً مع مفكرة شخصية لتتبع طلباتك."}
+                        </p>
+                      </div>
+                    </div>
+                    <button className="mt-5 w-full bg-amber-700 hover:bg-amber-900 text-white font-black py-2 rounded-xl text-[10px] tracking-wider uppercase transition shadow-2xs cursor-pointer">
+                      {lang === 'en' ? "Search Scholarships" : "استكشف المنح"}
+                    </button>
+                  </div>
+
+                </div>
               </div>
             </section>
 
@@ -2056,6 +2271,19 @@ export default function App() {
               progress={progress} 
               onAddRecitation={handleAddRecitation} 
             />
+          </motion.div>
+        )}
+
+        {/* QURAN EXPLORER SCREEN */}
+        {activeTab === 'quran' && (
+          <motion.div
+            key="quran"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <QuranExplorer lang={lang} />
           </motion.div>
         )}
 
