@@ -29,7 +29,9 @@ import {
   Timer,
   CheckSquare,
   Info,
-  ChevronUp
+  ChevronUp,
+  Bell,
+  BellOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AUTHENTIC_ADHKAR_DB, DhikrItem, DAILY_WIRDS_PRESETS } from '../adhkarData';
@@ -172,11 +174,34 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
   const [heatmap, setHeatmap] = useState<{[key: string]: boolean}>({});
   const [tasbihTotalScore, setTasbihTotalScore] = useState(0);
 
+  // Browser Notification & Reminder states
+  const [morningReminderEnabled, setMorningReminderEnabled] = useState(() => {
+    return localStorage.getItem('morningReminderEnabled') === 'true';
+  });
+  const [morningReminderTime, setMorningReminderTime] = useState(() => {
+    return localStorage.getItem('morningReminderTime') || '06:30';
+  });
+  const [eveningReminderEnabled, setEveningReminderEnabled] = useState(() => {
+    return localStorage.getItem('eveningReminderEnabled') === 'true';
+  });
+  const [eveningReminderTime, setEveningReminderTime] = useState(() => {
+    return localStorage.getItem('eveningReminderTime') || '17:30';
+  });
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'default'>('default');
+  const [lastTriggeredMorning, setLastTriggeredMorning] = useState(() => {
+    return localStorage.getItem('lastTriggeredMorning') || '';
+  });
+  const [lastTriggeredEvening, setLastTriggeredEvening] = useState(() => {
+    return localStorage.getItem('lastTriggeredEvening') || '';
+  });
+  const [notificationStatusMsg, setNotificationStatusMsg] = useState<{ text: string; mode: 'success' | 'warn' | 'error' } | null>(null);
+
   // Adhkar Step-Through selection module
   const [adhkarCategory, setAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life'>('morning');
   const [adhkarIndex, setAdhkarIndex] = useState(0);
   const [adhkarCompletedStates, setAdhkarCompletedStates] = useState<{[key: string]: number}>({}); // tracks clicks per item ID
   const [translationLang, setTranslationLang] = useState<'en' | 'ar' | 'ur' | 'ha'>(lang);
+  const [progressionPage, setProgressionPage] = useState(0);
 
   
   // Custom & Standard Tasbih State
@@ -213,6 +238,180 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
   // Text to Speech states and Clipboard copy helper states
   const [isCurrentlyReading, setIsCurrentlyReading] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Notification authorization and triggering handlers API
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Reset pagination to 0 when category shifts
+  useEffect(() => {
+    setProgressionPage(0);
+  }, [adhkarCategory]);
+
+  // Keep pagination page in sync with the active step swiper (5 items per page)
+  useEffect(() => {
+    const targetPage = Math.floor(adhkarIndex / 5);
+    setProgressionPage(targetPage);
+  }, [adhkarIndex]);
+
+  // Synchronize Reminder properties with LocalStorage
+  useEffect(() => {
+    localStorage.setItem('morningReminderEnabled', String(morningReminderEnabled));
+  }, [morningReminderEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('morningReminderTime', morningReminderTime);
+  }, [morningReminderTime]);
+
+  useEffect(() => {
+    localStorage.setItem('eveningReminderEnabled', String(eveningReminderEnabled));
+  }, [eveningReminderEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('eveningReminderTime', eveningReminderTime);
+  }, [eveningReminderTime]);
+
+  useEffect(() => {
+    localStorage.setItem('lastTriggeredMorning', lastTriggeredMorning);
+  }, [lastTriggeredMorning]);
+
+  useEffect(() => {
+    localStorage.setItem('lastTriggeredEvening', lastTriggeredEvening);
+  }, [lastTriggeredEvening]);
+
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) {
+      setNotificationStatusMsg({
+        text: lang === 'en' 
+          ? "Local notifications are not supported by your current browser." 
+          : "الإشعارات المحلية غير مدعومة في متصفحك الحالي.",
+        mode: 'error'
+      });
+      return 'default';
+    }
+    
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        setNotificationStatusMsg({
+          text: lang === 'en' 
+            ? "Notification permission granted successfully! Tap 'Test Notification' to verify." 
+            : "تم منح إذن الإشعارات بنجاح! انقر على 'تجربة الإشعار' للتحقق.",
+          mode: 'success'
+        });
+      } else {
+        setNotificationStatusMsg({
+          text: lang === 'en' 
+            ? "Permission denied. Please ensure notifications are enabled in your site permission settings." 
+            : "تم رفض الإذن. يرجى تفعيل الإشعارات من إعدادات المتصفح الخاصة بالموقع.",
+          mode: 'warn'
+        });
+      }
+      setTimeout(() => setNotificationStatusMsg(null), 5000);
+      return permission;
+    } catch (e) {
+      console.warn("Permission request failed:", e);
+      return 'default';
+    }
+  };
+
+  const triggerNotification = (title: string, options: NotificationOptions) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      try {
+        new Notification(title, options);
+      } catch (e) {
+        console.warn("Direct notification constructor failed, trying serviceWorker registry fallback:", e);
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(title, options);
+          });
+        }
+      }
+    }
+  };
+
+  const testNotification = async () => {
+    let perm = notificationPermission;
+    if (perm !== "granted") {
+      perm = await requestNotificationPermission();
+    }
+    
+    if (perm === "granted") {
+      triggerNotification(
+        lang === 'en' ? "DeenSuite Reminder Service" : "خدمة تذكير دِين سويت",
+        {
+          body: lang === 'en' 
+            ? "Praise be to Allah! Local browser scheduled reminders are active." 
+            : "الحمد لله! تم تفعيل خدمة التذكير بجدول الأوراد في هذا المتصفح مسبقاً.",
+          icon: "/favicon.ico"
+        }
+      );
+    }
+  };
+
+  // Background ticker that compares browser systems current time with scheduled alarms
+  useEffect(() => {
+    const reminderTicker = setInterval(() => {
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTimeStr = `${currentHours}:${currentMinutes}`;
+      const todayDateStr = now.toDateString(); // Keeps track of unique day cycles
+
+      // Clock ticking alert helper morning check
+      if (
+        morningReminderEnabled && 
+        currentTimeStr === morningReminderTime && 
+        lastTriggeredMorning !== todayDateStr
+      ) {
+        triggerNotification(
+          lang === 'en' ? "Morning Adhkar Reminder" : "تذكير أذكار الصباح",
+          {
+            body: lang === 'en' 
+              ? "It's time to recite your Morning Adhkars. Click to open and begin your protective routine." 
+              : "حان الآن موعد أذكار الصباح. حافظ على وردك اليومي للسكينة والحفظ.",
+            icon: "/favicon.ico",
+            tag: "morning-adhkar-alarm"
+          }
+        );
+        setLastTriggeredMorning(todayDateStr);
+      }
+
+      // Clock ticking alert helper evening check
+      if (
+        eveningReminderEnabled && 
+        currentTimeStr === eveningReminderTime && 
+        lastTriggeredEvening !== todayDateStr
+      ) {
+        triggerNotification(
+          lang === 'en' ? "Evening Adhkar Reminder" : "تذكير أذكار المساء",
+          {
+            body: lang === 'en' 
+              ? "It's time to recite your Evening Adhkars. Take a moment to renew your peace." 
+              : "حان الآن وقت أذكار المساء. طمئن قلبك بذكر الله مع الغروب.",
+            icon: "/favicon.ico",
+            tag: "evening-adhkar-alarm"
+          }
+        );
+        setLastTriggeredEvening(todayDateStr);
+      }
+
+    }, 15000); // Check every 15 seconds to ensure we do not miss the matching minute window
+
+    return () => clearInterval(reminderTicker);
+  }, [
+    morningReminderEnabled, 
+    morningReminderTime, 
+    lastTriggeredMorning, 
+    eveningReminderEnabled, 
+    eveningReminderTime, 
+    lastTriggeredEvening, 
+    lang
+  ]);
 
   const handleTTS = (text: string, languageCode: 'ar' | 'en' | 'ur' | 'ha', id: string) => {
     if ('speechSynthesis' in window) {
@@ -562,66 +761,55 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
   return (
     <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-12" id="view-daily-spiritual-board">
       
-      {/* Top Header Panel */}
-      <div className="text-center mb-10">
-        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-805 text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider border border-amber-250/20 mb-3">
-          <Flame className="w-3.5 h-3.5 text-amber-700 animate-pulse" /> Nafi Spiritual Companion
-        </span>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-none font-sans">
-          {lang === 'en' ? "Daily Wird, Adhkar & Tasbih Portal" : "الأوراد المأثورة وبوابة الأذكار والتسابيح اليومية"}
-        </h1>
-        <p className="text-slate-500 text-xs md:text-sm mt-3 max-w-2xl mx-auto leading-relaxed font-sans">
-          {lang === 'en' 
-            ? "Your offline-first daily engagement center. Synchronize your learning with sacred reminders, step-through morning & evening remembrances, and real-time community Halaqas." 
-            : "محطتك الروحية المنهجية المتاحة كلياً في أحلك الظروف دون حاجة للإنترنت. تابع وردك الصباحي والمسائي بنظام تفاعلي متكامل."}
-        </p>
-      </div>
-
-      {/* Dynamic Grid: Statistics widgets & micro tracking stats */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-10">
+      {/* Redesigned Space-Optimized Compact Header */}
+      <div className="bg-slate-900 text-white rounded-3xl p-5 md:p-6 shadow-md mb-6 relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-slate-800" id="spiritual-board-compact-header">
+        {/* Decorative ambient gradient aura */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl -ml-12 -mb-12 pointer-events-none" />
         
-        {/* Widget 1: Day commitment Streak */}
-        <div className="md:col-span-4 bg-white border border-slate-200/80 rounded-3xl p-6 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[10px] font-extrabold text-amber-900 uppercase tracking-widest block">{t.consecutiveDays}</span>
-            <span className="text-3xl font-black text-slate-850 tracking-tight">{streak} {lang === 'en' ? "Days" : "أيام"}</span>
-            <p className="text-[10px] text-slate-450 leading-none mt-1">Excellent job! Habit loops are active.</p>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center border border-amber-200 text-amber-850 shadow-inner">
-            <Flame className="w-6 h-6 text-amber-750 font-bold" />
-          </div>
+        <div className="space-y-1 relative z-10 max-w-xl">
+          <span className="inline-flex items-center gap-1 bg-amber-500/15 text-amber-300 text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider border border-amber-500/20">
+            <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Nafi Spiritual Companion
+          </span>
+          <h1 className="text-xl md:text-2xl font-black tracking-tight leading-none font-sans">
+            {lang === 'en' ? "Daily Wird, Adhkar & Tasbih Portal" : "الأوراد المأثورة وبوابة الأذكار والتسابيح"}
+          </h1>
+          <p className="text-slate-450 text-[11px] leading-tight">
+            {lang === 'en'
+              ? "Your space-saving daily companion. Morning & evening remembrances, digital tasbih, and community reminders."
+              : "محطتك الروحية المنهجية التفاعلية لمتابعة تفاصيل أورادك الصباحية والمسائية دون تشتت."}
+          </p>
         </div>
 
-        {/* Widget 2: Completions Completed */}
-        <div className="md:col-span-4 bg-white border border-slate-200/80 rounded-3xl p-6 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-widest block">Daily Accomplishment</span>
-            <span className="text-3xl font-black text-emerald-950 tracking-tight">
-              {completedToday.count} {lang === 'en' ? "Sessions" : "جلسات"}
-            </span>
-            <p className="text-[10px] text-slate-450 mt-1 flex items-center gap-1">
-              <CheckSquare className="w-3.5 h-3.5 text-emerald-600" />
-              {completedToday.morning ? "Morning Completed ✓ " : "Morning Pending — "}
-              {completedToday.evening ? "Evening Completed ✓" : "Evening Pending"}
-            </p>
+        {/* Space-optimized stats widgets */}
+        <div className="flex flex-wrap gap-2 relative z-10">
+          {/* Stat Item 1: Streak */}
+          <div className="bg-white/5 backdrop-blur-xs border border-white/5 rounded-xl px-3.5 py-1.5 flex items-center gap-2">
+            <Flame className="w-4 h-4 text-amber-400" />
+            <div>
+              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block leading-none">{t.consecutiveDays}</span>
+              <span className="text-xs font-black font-mono text-white leading-none mt-1 block">{streak} {lang === 'en' ? "Days" : "أيام"}</span>
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-250 text-emerald-805 shadow-inner">
-            <Award className="w-6 h-6" />
+          {/* Stat Item 2: Active Accomplishments */}
+          <div className="bg-white/5 backdrop-blur-xs border border-white/5 rounded-xl px-3.5 py-1.5 flex items-center gap-2">
+            <Award className="w-4 h-4 text-emerald-400" />
+            <div>
+              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block leading-none">Daily Done</span>
+              <span className="text-xs font-black font-mono text-white leading-none mt-1 block">
+                {completedToday.count} {lang === 'en' ? "Sessions" : "جلسات"}
+              </span>
+            </div>
+          </div>
+          {/* Stat Item 3: Tasbih Total */}
+          <div className="bg-white/5 backdrop-blur-xs border border-white/5 rounded-xl px-3.5 py-1.5 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-blue-400" />
+            <div>
+              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block leading-none">Total Tally</span>
+              <span className="text-xs font-black font-mono text-white leading-none mt-1 block">{tasbihTotalScore}</span>
+            </div>
           </div>
         </div>
-
-        {/* Widget 3: Lifetime praise tallies */}
-        <div className="md:col-span-4 bg-white border border-slate-200/80 rounded-3xl p-6 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
-            <span className="text-[10px] font-extrabold text-blue-805 uppercase tracking-widest block">{t.tasbihClicksLogged}</span>
-            <span className="text-3xl font-black text-slate-850 tracking-tight">{tasbihTotalScore} {lang === 'en' ? "Taps" : "تسبيحة"}</span>
-            <p className="text-[10px] text-slate-450 mt-1">{lang === 'en' ? "All clicks tracked in real-time." : "تحديث العداد فوري وتلقائي حالاً."}</p>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-200 text-blue-800 shadow-inner">
-            <Clock className="w-6 h-6" />
-          </div>
-        </div>
-
       </div>
 
       {/* Main navigation tab selector - Beautiful Tab Buttons resembling High-Prestige system */}
@@ -683,14 +871,14 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
             exit={{ opacity: 0, y: 15 }}
             className="space-y-8"
           >
-            {/* Split selectors with category choices */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {/* Redesigned Compact category / topic tabs */}
+            <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-slate-150/40 border border-slate-200/60 rounded-2xl max-w-4xl mx-auto shadow-xs" id="adhkar-categories-redesign">
               {[
-                { type: 'morning', title: t.morningTitle },
-                { type: 'evening', title: t.eveningTitle },
-                { type: 'after_salah', title: t.salahTitle },
-                { type: 'sleep', title: t.sleepTitle },
-                { type: 'daily_life', title: t.dailyLifeTitle },
+                { type: 'morning', title: t.morningTitle, icon: '☀️' },
+                { type: 'evening', title: t.eveningTitle, icon: '🌙' },
+                { type: 'after_salah', title: t.salahTitle, icon: '📿' },
+                { type: 'sleep', title: t.sleepTitle, icon: '💤' },
+                { type: 'daily_life', title: t.dailyLifeTitle, icon: '🤲' },
               ].map((item) => {
                 const isActive = adhkarCategory === item.type;
                 return (
@@ -700,60 +888,63 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                       setAdhkarCategory(item.type as any);
                       setAdhkarIndex(0);
                     }}
-                    className={`p-4 rounded-2xl border text-center font-bold text-xs transition duration-200 cursor-pointer shadow-xs ${
+                    className={`px-3.5 py-2 rounded-xl font-bold text-xs transition duration-200 cursor-pointer flex items-center gap-1.5 border select-none ${
                       isActive 
-                        ? 'border-amber-700 bg-amber-950 text-white shadow-sm ring-1 ring-amber-600' 
-                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+                        ? 'border-amber-700 bg-gradient-to-r from-amber-900 to-amber-950 text-white shadow-sm shadow-amber-950/10' 
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900'
                     }`}
                   >
-                    {item.title}
+                    <span className="text-sm leading-none">{item.icon}</span>
+                    <span>{item.title}</span>
                   </button>
                 );
               })}
             </div>
 
             {/* Main Interactive Deck */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
               {/* Left Column: STEPPING FRAMEWORK AND DETAILS info */}
-              <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+              <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
                 <div>
-                  <h3 className="text-sm font-black text-slate-900 mb-1">
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wide mb-1">
                     {lang === 'en' ? "Remembrance Progression List" : "سجل الأذكار والتقدم اليومي"}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[10px] text-slate-500 leading-tight">
                     {t.adhkarSubtitle}
                   </p>
                 </div>
 
+                {/* Paginated list of 5 items */}
                 <div className="space-y-2">
-                  {filteredAdhkar.map((item, idx) => {
+                  {filteredAdhkar.slice(progressionPage * 5, (progressionPage + 1) * 5).map((item) => {
+                    const globalIdx = filteredAdhkar.findIndex(x => x.id === item.id);
                     const currentCount = adhkarCompletedStates[item.id] || 0;
                     const isDone = currentCount >= item.targetCount;
-                    const isActive = idx === adhkarIndex;
+                    const isActive = globalIdx === adhkarIndex;
 
                     return (
                       <button
                         key={item.id}
-                        onClick={() => setAdhkarIndex(idx)}
-                        className={`w-full p-3 rounded-xl border text-left transition text-xs flex items-center justify-between cursor-pointer ${
+                        onClick={() => setAdhkarIndex(globalIdx)}
+                        className={`w-full p-2.5 rounded-xl border text-left transition text-xs flex items-center justify-between cursor-pointer ${
                           isActive 
                             ? 'border-amber-600 bg-amber-50/40 text-amber-950 font-extrabold shadow-inner' 
                             : 'border-slate-150 bg-slate-50/50 text-slate-700 hover:bg-white'
                         }`}
                         style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono ${
+                        <div className="flex items-center gap-2 max-w-[75%]">
+                          <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono shrink-0 ${
                             isDone ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-200 text-slate-700'
                           }`}>
-                            {isDone ? "✓" : idx + 1}
+                            {isDone ? "✓" : globalIdx + 1}
                           </span>
-                          <span className="truncate max-w-[200px] font-sans">
-                            {lang === 'en' ? item.transliteration.substring(0, 40) + "..." : item.arabic.substring(0, 30) + "..."}
+                          <span className="truncate font-sans leading-none">
+                            {lang === 'en' ? item.transliteration : item.arabic}
                           </span>
                         </div>
-                        <span className="font-mono text-[10px] font-black text-slate-400">
+                        <span className="font-mono text-[10px] font-black text-slate-400 shrink-0">
                           {currentCount} / {item.targetCount}
                         </span>
                       </button>
@@ -761,17 +952,40 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                   })}
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Category Progress:</span>
-                  <span className="text-xs bg-emerald-50 text-emerald-850 px-3 py-1 rounded-full border border-emerald-250 font-black">
+                {/* Left Column Pagination Controls */}
+                {filteredAdhkar.length > 5 && (
+                  <div className="flex items-center justify-between bg-slate-50/60 px-3 py-1.5 rounded-xl border border-slate-150 text-[10px] select-none">
+                    <button
+                      onClick={() => setProgressionPage(prev => Math.max(0, prev - 1))}
+                      disabled={progressionPage === 0}
+                      className="px-2 py-1 bg-white border border-slate-250 rounded-lg text-slate-600 hover:text-slate-900 disabled:opacity-45 cursor-pointer font-extrabold"
+                    >
+                      {lang === 'en' ? 'Prev' : 'السابق'}
+                    </button>
+                    <span className="font-mono font-bold text-slate-500">
+                      {lang === 'en' ? `Page ${progressionPage + 1} of ${Math.ceil(filteredAdhkar.length / 5)}` : `صفحة ${progressionPage + 1} من ${Math.ceil(filteredAdhkar.length / 5)}`}
+                    </span>
+                    <button
+                      onClick={() => setProgressionPage(prev => Math.min(Math.ceil(filteredAdhkar.length / 5) - 1, prev + 1))}
+                      disabled={progressionPage === Math.ceil(filteredAdhkar.length / 5) - 1}
+                      className="px-2 py-1 bg-white border border-slate-250 rounded-lg text-slate-600 hover:text-slate-900 disabled:opacity-45 cursor-pointer font-extrabold"
+                    >
+                      {lang === 'en' ? 'Next' : 'التالي'}
+                    </button>
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="font-black text-slate-500 uppercase tracking-wider">Progress:</span>
+                  <span className="bg-emerald-50 text-emerald-850 px-2.5 py-0.5 rounded-full border border-emerald-250/20 font-black">
                     {totalCompletedInCat} / {filteredAdhkar.length} Done
                   </span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
                   <div 
-                    className="bg-emerald-600 h-1.5 transition-all duration-300" 
+                    className="bg-emerald-600 h-1 transition-all duration-300" 
                     style={{ width: `${(totalCompletedInCat / filteredAdhkar.length) * 100}%` }}
                   ></div>
                 </div>
@@ -785,9 +999,9 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                     setAdhkarCompletedStates(resetObj);
                     setAdhkarIndex(0);
                   }}
-                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-slate-200"
+                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-slate-200"
                 >
-                  <RefreshCw className="w-3 h-3" />
+                  <RefreshCw className="w-3 h-3 text-slate-450" />
                   <span>{t.resetAdhkar}</span>
                 </button>
               </div>
@@ -1446,6 +1660,183 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
               </div>
 
             </div>
+
+            {/* Notification Reminders Panel */}
+            <div className="bg-white border border-slate-200 shadow-sm rounded-3xl p-6 md:p-8 space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
+                <div className="space-y-1">
+                  <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-[#d97706] bg-[#fef3c7] px-3 py-1 rounded-full border border-[#f59e0b]/20 font-extrabold">
+                    <Bell className="w-3 h-3 text-amber-700 animate-bounce" /> {lang === 'en' ? "Reminders Hub" : "مركز الاستيقاظ والتذكيرات"}
+                  </span>
+                  <h4 className="text-lg font-black text-slate-950 font-sans tracking-tight">
+                    {lang === 'en' ? "Daily Adhkar Notification Reminders" : "جدولة إشعارات الأذكار اليومية"}
+                  </h4>
+                  <p className="text-xs text-slate-505 max-w-xl">
+                    {lang === 'en' 
+                      ? "Enlist browser-native push notifications to remind you when the morning and evening adhkar periods open. Ensure the application is open in the background to dispatch alarms." 
+                      : "احصل على تنبيهات فورية مباشرة من متصفحك يذكرك فور دخول وقت الورد الصباحي والمسائي. تأكد من إبقاء النافذة مفتوحة لتلقي التنبيه."}
+                  </p>
+                </div>
+                
+                {/* Visual Status and Buttons */}
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">{lang === 'en' ? "System Integration" : "تكامل النظام"}</span>
+                    <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded border mt-0.5 ${
+                      notificationPermission === 'granted' 
+                        ? 'text-emerald-800 bg-emerald-50 border-emerald-250' 
+                        : notificationPermission === 'denied' 
+                        ? 'text-rose-800 bg-rose-50 border-rose-200' 
+                        : 'text-amber-850 bg-amber-50 border-amber-200'
+                    }`}>
+                      {notificationPermission === 'granted' 
+                        ? (lang === 'en' ? "Active ✓" : "مفعّل ✓") 
+                        : notificationPermission === 'denied' 
+                        ? (lang === 'en' ? "Blocked ✕" : "محجوب ✕") 
+                        : (lang === 'en' ? "Needs Permission" : "يتطلب تصريح")}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={testNotification}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-220 text-xs font-black rounded-xl transition cursor-pointer"
+                  >
+                    {lang === 'en' ? "Test Notification" : "تجربة الإشعار"}
+                  </button>
+                  
+                  {notificationPermission !== 'granted' && (
+                    <button
+                      onClick={requestNotificationPermission}
+                      className="px-4 py-2 bg-amber-800 hover:bg-[#201002] text-white text-xs font-black rounded-xl transition cursor-pointer flex items-center gap-1"
+                    >
+                      <span>{lang === 'en' ? "Enable Permission" : "منح تصريح"}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Status Message Notification Toast inside UI */}
+              <AnimatePresence>
+                {notificationStatusMsg && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`p-4 rounded-xl text-xs border ${
+                      notificationStatusMsg.mode === 'success' 
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                        : notificationStatusMsg.mode === 'warn' 
+                        ? 'bg-amber-50 border-amber-200 text-amber-800' 
+                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                    }`}
+                  >
+                    {notificationStatusMsg.text}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Scheduler Input Forms Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                
+                {/* Morning reminder block */}
+                <div className="p-5 border border-slate-200/80 rounded-2xl bg-[#fafafa]/50 flex flex-col justify-between hover:border-amber-500/25 transition">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <h5 className="font-extrabold text-slate-900 text-sm">
+                          {lang === 'en' ? "Morning Adhkar Alarm" : "تنبيه أوراد الصباح"}
+                        </h5>
+                      </div>
+                      <p className="text-[11px] text-slate-500 max-w-xs">
+                        {lang === 'en' 
+                          ? "Set a standard daily alarm to recite protective morning adhkar." 
+                          : "قم بتوصيف وقت الإشعار اليومي المفضل لتلاوة أذكار الصباح."}
+                      </p>
+                    </div>
+
+                    {/* Enable input toggler checkbox switch */}
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={morningReminderEnabled}
+                        onChange={(e) => {
+                          setMorningReminderEnabled(e.target.checked);
+                          if (e.target.checked && notificationPermission !== 'granted') {
+                            requestNotificationPermission();
+                          }
+                        }}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-800"></div>
+                    </label>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between border-t border-slate-100/60 pt-4">
+                    <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest">
+                      {lang === 'en' ? "Daily Alarm time" : "توقيت التنبيه"}
+                    </span>
+                    <input 
+                      type="time" 
+                      value={morningReminderTime}
+                      onChange={(e) => setMorningReminderTime(e.target.value)}
+                      disabled={!morningReminderEnabled}
+                      className="px-3 py-1.5 bg-white border border-slate-350 disabled:opacity-40 rounded-xl text-xs font-mono font-black text-slate-905 outline-none focus:ring-1 focus:ring-amber-500/50 transition cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Evening reminder block */}
+                <div className="p-5 border border-slate-200/80 rounded-2xl bg-[#fafafa]/50 flex flex-col justify-between hover:border-amber-500/25 transition">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-750 animate-pulse"></span>
+                        <h5 className="font-extrabold text-slate-900 text-sm">
+                          {lang === 'en' ? "Evening Adhkar Alarm" : "تنبيه أوراد المساء"}
+                        </h5>
+                      </div>
+                      <p className="text-[11px] text-slate-450 max-w-xs">
+                        {lang === 'en' 
+                          ? "Set a standard daily alarm to recite protective evening adhkar." 
+                          : "قم بتوصيف وقت الإشعار اليومي المفضل لتلاوة أذكار المساء."}
+                      </p>
+                    </div>
+
+                    {/* Enable input toggler checkbox switch */}
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={eveningReminderEnabled}
+                        onChange={(e) => {
+                          setEveningReminderEnabled(e.target.checked);
+                          if (e.target.checked && notificationPermission !== 'granted') {
+                            requestNotificationPermission();
+                          }
+                        }}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-800"></div>
+                    </label>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between border-t border-slate-100/60 pt-4">
+                    <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest">
+                      {lang === 'en' ? "Daily Alarm time" : "توقيت التنبيه"}
+                    </span>
+                    <input 
+                      type="time" 
+                      value={eveningReminderTime}
+                      onChange={(e) => setEveningReminderTime(e.target.value)}
+                      disabled={!eveningReminderEnabled}
+                      className="px-3 py-1.5 bg-white border border-slate-350 disabled:opacity-40 rounded-xl text-xs font-mono font-black text-slate-905 outline-none focus:ring-1 focus:ring-amber-500/50 transition cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
           </motion.div>
         )}
 

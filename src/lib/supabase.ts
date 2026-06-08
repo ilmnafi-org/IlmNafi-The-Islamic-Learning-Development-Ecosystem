@@ -40,6 +40,15 @@ export interface LocalThread {
 // In-Memory cache of current session strictly while the app is actively running
 let clientInMemorySession: UserSession | null = null;
 
+function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...extraHeaders };
+  const token = localStorage.getItem('ilm_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export const dbService = {
   // --- AUTH SERVICES ---
   async signUp(email: string, password: string, name: string, role: 'student' | 'researcher' | 'teacher'): Promise<UserSession> {
@@ -55,6 +64,9 @@ export const dbService = {
     }
 
     const data = await response.json();
+    if (data.token) {
+      localStorage.setItem('ilm_token', data.token);
+    }
     clientInMemorySession = data.user;
     return data.user;
   },
@@ -72,13 +84,21 @@ export const dbService = {
     }
 
     const data = await response.json();
+    if (data.token) {
+      localStorage.setItem('ilm_token', data.token);
+    }
     clientInMemorySession = data.user;
     return data.user;
   },
 
   async logout(): Promise<void> {
+    const headers = getAuthHeaders();
     clientInMemorySession = null;
-    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    localStorage.removeItem('ilm_token');
+    await fetch('/api/auth/logout', { 
+      method: 'POST',
+      headers
+    }).catch(() => {});
   },
 
   async signOut(): Promise<void> {
@@ -92,9 +112,14 @@ export const dbService = {
 
     // Attempt to query session from active HttpOnly cookies on the back-end
     try {
-      const response = await fetch('/api/auth/session');
+      const response = await fetch('/api/auth/session', {
+        headers: getAuthHeaders()
+      });
       if (response.ok) {
         const data = await response.json();
+        if (data.token) {
+          localStorage.setItem('ilm_token', data.token);
+        }
         if (data.user) {
           clientInMemorySession = data.user;
           return data.user;
@@ -111,7 +136,7 @@ export const dbService = {
     clientInMemorySession = updated;
     await fetch('/api/auth/update-session', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ progress: updated })
     }).catch(() => {});
   },
@@ -119,7 +144,9 @@ export const dbService = {
   // --- DISCUSSION BOARD FORUM SERVICES ---
   async fetchThreads(): Promise<LocalThread[]> {
     try {
-      const response = await fetch('/api/forum/threads');
+      const response = await fetch('/api/forum/threads', {
+        headers: getAuthHeaders()
+      });
       if (response.ok) {
         const data = await response.json();
         return data.threads || [];
@@ -133,7 +160,7 @@ export const dbService = {
   async createNewThread(title: string, category: any, body: string): Promise<LocalThread> {
     const response = await fetch('/api/forum/threads', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ title, category, body })
     });
 
@@ -148,7 +175,8 @@ export const dbService = {
 
   async destroyThread(threadId: string): Promise<boolean> {
     const response = await fetch(`/api/forum/threads/${threadId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
 
     if (!response.ok) {
@@ -161,7 +189,8 @@ export const dbService = {
 
   async toggleLike(threadId: string): Promise<LocalThread> {
     const response = await fetch(`/api/forum/threads/${threadId}/like`, {
-      method: 'POST'
+      method: 'POST',
+      headers: getAuthHeaders()
     });
 
     if (!response.ok) {
@@ -176,7 +205,7 @@ export const dbService = {
   async addReply(threadId: string, bodyText: string): Promise<LocalThread> {
     const response = await fetch(`/api/forum/threads/${threadId}/replies`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ body: bodyText })
     });
 

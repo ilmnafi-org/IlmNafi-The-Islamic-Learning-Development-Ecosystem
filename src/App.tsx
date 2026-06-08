@@ -249,12 +249,10 @@ export default function App() {
 
   // Initialize progress state
   const [progress, setProgress] = useState<UserProgress>({
-    weeklyMinutes: 45,
-    lessonsCompleted: ['les-taj-1'], 
-    savedScholarships: ['sch-isdb'], 
-    recentRecitations: [
-      { date: '2026-06-05', verse: 'Al-Fatihah (Ayah 1)', score: 92 }
-    ],
+    weeklyMinutes: 0,
+    lessonsCompleted: [], 
+    savedScholarships: [], 
+    recentRecitations: [],
     username: '',
     email: ''
   });
@@ -352,12 +350,10 @@ export default function App() {
       await dbService.signOut();
     } catch (e) {}
     setProgress({
-      weeklyMinutes: 45,
-      lessonsCompleted: ['les-taj-1'],
-      savedScholarships: ['sch-isdb'],
-      recentRecitations: [
-        { date: '2026-06-05', verse: 'Al-Fatihah (Ayah 1)', score: 92 }
-      ],
+      weeklyMinutes: 0,
+      lessonsCompleted: [],
+      savedScholarships: [],
+      recentRecitations: [],
       username: '',
       email: ''
     });
@@ -763,7 +759,7 @@ export default function App() {
                   <div className="pt-2 border-t border-slate-100 flex justify-end">
                     <button
                       onClick={handleSignOut}
-                      className="text-red-600 hover:text-red-800 font-bold flex items-center gap-1.5 bg-transparent"
+                      className="text-red-600 hover:text-red-800 font-bold flex items-center gap-1.5 bg-transparent cursor-pointer"
                       id="btn-sign-out"
                     >
                       <LogOut className="w-3.5 h-3.5" /> {labels.signout}
@@ -785,7 +781,7 @@ export default function App() {
           {/* Trigger list and mobile navigation bar */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 lg:hidden focus:outline-none"
+            className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 lg:hidden focus:outline-none cursor-pointer"
             id="mobile-nav-toggle"
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -793,52 +789,85 @@ export default function App() {
         </div>
       </nav>
 
-      {/* MOBILE EXPANDED MENU LIST */}
-      {mobileMenuOpen && (
-        <div 
-          className="fixed top-20 left-[3%] right-[3%] max-h-[calc(100vh-100px)] overflow-y-auto bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl rounded-2xl p-4 md:p-6 z-40 flex flex-col lg:hidden animate-scaleIn" 
-          id="mobile-dropdown-menu"
-        >
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3.5 pb-1 border-b border-slate-100" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-            {lang === 'en' ? "Academy Navigation" : "فهرس منارة العلم والمنصات"}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {[
-              { id: 'curriculum', label: labels.curriculum, icon: BookOpen, color: 'text-amber-800 bg-amber-500/10' },
-              { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
-              { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
-              { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
-              { id: 'scholarly', label: labels.scholarly, icon: Compass, color: 'text-purple-800 bg-purple-500/10' },
-              { id: 'forum', label: labels.forum, icon: MessageSquare, color: 'text-sky-800 bg-sky-500/10' },
-              { id: 'scholarships', label: labels.scholarships, icon: Award, color: 'text-rose-800 bg-rose-500/10' },
-              { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, color: 'text-yellow-800 bg-yellow-500/10' },
-              { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
-              ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Workspace Dashboard" : "لوحة المتعلم الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
-            ].map(item => {
-              const IconComponent = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 p-3 rounded-xl border text-xs font-bold transition-all text-left w-full cursor-pointer ${
-                    isActive 
-                      ? 'border-amber-600 bg-amber-50/70 text-amber-950 font-black shadow-inner' 
-                      : 'border-slate-150 bg-slate-50 hover:bg-slate-100 text-slate-705 hover:border-slate-300'
-                  }`}
-                  style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row', textAlign: lang === 'ar' ? 'right' : 'left' }}
+      {/* MOBILE BOTTOM SLIDING SHEET NAVIGATION */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Dark blurred interactive Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 lg:hidden"
+              id="mobile-nav-backdrop"
+            />
+            
+            {/* Sliding Bottom Drawer Sheet */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 220 }}
+              className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-white border-t border-slate-200 shadow-2xl rounded-t-[2.5rem] p-6 pb-12 z-50 flex flex-col lg:hidden overflow-y-auto"
+              id="mobile-bottom-sheet"
+              style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
+            >
+              {/* Drag indicator handle on top */}
+              <div 
+                className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 shrink-0 cursor-pointer hover:bg-slate-300 transition"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              
+              <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-3 shrink-0">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none">
+                  {lang === 'en' ? "Academy Navigation Menu" : "قائمة منارة العلم والمنصات"}
+                </p>
+                <button 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 rounded-full cursor-pointer transition"
                 >
-                  <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}>
-                    <IconComponent className="w-4 h-4" />
-                  </span>
-                  <span className="truncate leading-tight block">{item.label}</span>
+                  <X className="w-4 h-4" />
                 </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pb-6">
+                {[
+                  { id: 'curriculum', label: labels.curriculum, icon: BookOpen, color: 'text-amber-800 bg-amber-500/10' },
+                  { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
+                  { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
+                  { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
+                  { id: 'scholarly', label: labels.scholarly, icon: Compass, color: 'text-purple-800 bg-purple-500/10' },
+                  { id: 'forum', label: labels.forum, icon: MessageSquare, color: 'text-sky-800 bg-sky-500/10' },
+                  { id: 'scholarships', label: labels.scholarships, icon: Award, color: 'text-rose-800 bg-rose-500/10' },
+                  { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, color: 'text-yellow-800 bg-yellow-500/10' },
+                  { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
+                  ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Workspace Dashboard" : "لوحة المتعلم الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
+                ].map(item => {
+                  const IconComponent = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }}
+                      className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all w-full cursor-pointer gap-2 ${
+                        isActive 
+                          ? 'border-amber-600 bg-amber-50/80 text-amber-950 font-black shadow-inner' 
+                          : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:border-slate-200'
+                      }`}
+                    >
+                      <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
+                        <IconComponent className="w-5 h-5" />
+                      </span>
+                      <span className="text-xs font-bold leading-tight block truncate max-w-full">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* SPACE FILLER FOR NAV BAR */}
       <div className="h-20 sm:h-24"></div>

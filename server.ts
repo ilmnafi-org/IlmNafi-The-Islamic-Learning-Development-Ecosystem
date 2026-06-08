@@ -48,9 +48,16 @@ interface AuthenticatedRequest extends express.Request {
   user?: ServerUser;
 }
 
-// Authentication Middleware checking the HttpOnly cookie's validity
+// Authentication Middleware checking the HttpOnly cookie's validity or Authorization headers
 function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
-  const token = req.cookies?.ilm_session;
+  let token = req.cookies?.ilm_session;
+  
+  if (!token && req.headers.authorization) {
+    const parts = req.headers.authorization.split(" ");
+    if (parts.length === 2 && parts[0] === "Bearer") {
+      token = parts[1];
+    }
+  }
   
   if (!token) {
     return res.status(401).json({ error: "Access denied. Active session required." });
@@ -71,11 +78,19 @@ function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next:
   }
 }
 
-// --- SECURE AUTHENTICATION ENDPOINTS (HttpOnly Cookie-driven) ---
+// --- SECURE AUTHENTICATION ENDPOINTS (HttpOnly Cookie & Bearer driven) ---
 
 // 1. Get current active session
 app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
-  const token = req.cookies?.ilm_session;
+  let token = req.cookies?.ilm_session;
+  
+  if (!token && req.headers.authorization) {
+    const parts = req.headers.authorization.split(" ");
+    if (parts.length === 2 && parts[0] === "Bearer") {
+      token = parts[1];
+    }
+  }
+
   if (!token) {
     return res.json({ user: null });
   }
@@ -90,6 +105,7 @@ app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
 
     // Return safe presentation
     res.json({
+      token,
       user: {
         id: user.id,
         username: user.username,
@@ -130,12 +146,10 @@ app.post("/api/auth/signup", (req, res) => {
     email: normalizedEmail,
     passwordHash,
     role: role || "student",
-    weeklyMinutes: 45,
-    lessonsCompleted: ["les-taj-1"],
-    savedScholarships: ["sch-isdb"],
-    recentRecitations: [
-      { date: new Date().toISOString().split("T")[0], verse: "Al-Fatihah (Ayah 1)", score: 92 }
-    ],
+    weeklyMinutes: 0,
+    lessonsCompleted: [],
+    savedScholarships: [],
+    recentRecitations: [],
     certificates: []
   };
 
@@ -146,6 +160,7 @@ app.post("/api/auth/signup", (req, res) => {
   res.cookie("ilm_session", token, COOKIE_OPTIONS);
 
   res.json({
+    token,
     user: {
       id: newUser.id,
       username: newUser.username,
@@ -185,6 +200,7 @@ app.post("/api/auth/login", (req, res) => {
   res.cookie("ilm_session", token, COOKIE_OPTIONS);
 
   res.json({
+    token,
     user: {
       id: user.id,
       username: user.username,

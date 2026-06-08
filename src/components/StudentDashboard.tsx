@@ -36,22 +36,45 @@ interface StudentDashboardProps {
 }
 
 export default function StudentDashboard({ lang, progress, onNavigateToTab, onRemoveBookmark }: StudentDashboardProps) {
-  const [dailyChecklist, setDailyChecklist] = useState({
-    fajr: false,
-    dhuhr: false,
-    asr: false,
-    maghrib: false,
-    isha: false,
-    recitation: false,
-    lessons: false,
-    adhkar: false
+  const [dailyChecklist, setDailyChecklist] = useState<{
+    fajr: boolean;
+    dhuhr: boolean;
+    asr: boolean;
+    maghrib: boolean;
+    isha: boolean;
+    recitation: boolean;
+    lessons: boolean;
+    adhkar: boolean;
+  }>(() => {
+    try {
+      const saved = localStorage.getItem('dailyChecklist_v1');
+      const savedDate = localStorage.getItem('dailyChecklistDate_v1');
+      const today = new Date().toDateString();
+      if (saved && savedDate === today) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {}
+    return {
+      fajr: false,
+      dhuhr: false,
+      asr: false,
+      maghrib: false,
+      isha: false,
+      recitation: false,
+      lessons: false,
+      adhkar: false
+    };
   });
 
   const toggleCheck = (item: keyof typeof dailyChecklist) => {
-    setDailyChecklist(prev => ({
-      ...prev,
-      [item]: !prev[item]
-    }));
+    setDailyChecklist(prev => {
+      const next = { ...prev, [item]: !prev[item] };
+      try {
+        localStorage.setItem('dailyChecklist_v1', JSON.stringify(next));
+        localStorage.setItem('dailyChecklistDate_v1', new Date().toDateString());
+      } catch (e) {}
+      return next;
+    });
   };
 
   const completedCount = Object.values(dailyChecklist).filter(Boolean).length;
