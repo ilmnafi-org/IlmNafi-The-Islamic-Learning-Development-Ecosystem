@@ -8,16 +8,399 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { analyzeTajweedText } from "./server/tajweedEngine.js";
+import { dbStore, ServerUser, ServerThread, ServerReply } from "./server/db.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
 
+// Secret key for signing secure academic tokens
+const JWT_SECRET = process.env.JWT_SECRET || "ilm-sacred-academic-secret-key-2026";
+const COOKIE_SECRET = "ilm_sacred_secret_academic_cookie_passphrase_2026";
+
 // Set up server-side body parsers with sufficient limit for brief audio uploads
 app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ limit: "15mb", extended: true }));
+app.use(cookieParser(COOKIE_SECRET));
+
+// Standard secure HttpOnly cookie settings (keeping session token hidden from client script scope)
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const, // Lax works wonderfully for container nested iframe/browser contexts
+  maxAge: 7 * 24 * 3600 * 1000, // 7 days key validity
+  path: "/"
+};
+
+// Cryptographic password hashing helper using native Node core modules
+function hashPassword(password: string): string {
+  return crypto.createHash("sha256").update(password).digest("hex");
+}
+
+// Custom request interface extension for typescript safety
+interface AuthenticatedRequest extends express.Request {
+  user?: ServerUser;
+}
+
+// Authentication Middleware checking the HttpOnly cookie's validity
+function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+  const token = req.cookies?.ilm_session;
+  
+  if (!token) {
+    return res.status(401).json({ error: "Access denied. Active session required." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    const user = dbStore.findUserById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({ error: "Access denied. Matching scholar profile not found." });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: "Session expired or corrupted. Please authorize credentials again." });
+  }
+}
+
+// --- SECURE AUTHENTICATION ENDPOINTS (HttpOnly Cookie-driven) ---
+
+// 1. Get current active session
+app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
+  const token = req.cookies?.ilm_session;
+  if (!token) {
+    return res.json({ user: null });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    const user = dbStore.findUserById(decoded.id);
+    
+    if (!user) {
+      return res.json({ user: null });
+    }
+
+    // Return safe presentation
+    res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        weeklyMinutes: user.weeklyMinutes,
+        lessonsCompleted: user.lessonsCompleted,
+        savedScholarships: user.savedScholarships,
+        recentRecitations: user.recentRecitations,
+        certificates: user.certificates
+      }
+    });
+  } catch (err) {
+    res.json({ user: null });
+  }
+});
+
+// 2. Registrate student/teacher account
+app.post("/api/auth/signup", (req, res) => {
+  const { email, password, name, role } = req.body;
+
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: "All account parameters (email, password, name) are required." });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const existingUser = dbStore.findUserByEmail(normalizedEmail);
+  if (existingUser) {
+    return res.status(400).json({ error: "The provided academic email is already registered." });
+  }
+
+  const userId = "usr_" + Math.random().toString(36).substr(2, 9);
+  const passwordHash = hashPassword(password);
+
+  const newUser: ServerUser = {
+    id: userId,
+    username: name.trim(),
+    email: normalizedEmail,
+    passwordHash,
+    role: role || "student",
+    weeklyMinutes: 45,
+    lessonsCompleted: ["les-taj-1"],
+    savedScholarships: ["sch-isdb"],
+    recentRecitations: [
+      { date: new Date().toISOString().split("T")[0], verse: "Al-Fatihah (Ayah 1)", score: 92 }
+    ],
+    certificates: []
+  };
+
+  dbStore.createUser(newUser);
+
+  // Sign credential
+  const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: "7d" });
+  res.cookie("ilm_session", token, COOKIE_OPTIONS);
+
+  res.json({
+    user: {
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      role: newUser.role,
+      weeklyMinutes: newUser.weeklyMinutes,
+      lessonsCompleted: newUser.lessonsCompleted,
+      savedScholarships: newUser.savedScholarships,
+      recentRecitations: newUser.recentRecitations,
+      certificates: newUser.certificates
+    }
+  });
+});
+
+// 3. Authenticate / Login portal
+app.post("/api/auth/login", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Both email and login pin credentials are required." });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = dbStore.findUserByEmail(normalizedEmail);
+
+  if (!user) {
+    return res.status(401).json({ error: "Account credentials matching this email do not exist." });
+  }
+
+  const checkHash = hashPassword(password);
+  if (user.passwordHash !== checkHash) {
+    return res.status(401).json({ error: "Incorrect Access PIN or password." });
+  }
+
+  // Sign credential
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+  res.cookie("ilm_session", token, COOKIE_OPTIONS);
+
+  res.json({
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      weeklyMinutes: user.weeklyMinutes,
+      lessonsCompleted: user.lessonsCompleted,
+      savedScholarships: user.savedScholarships,
+      recentRecitations: user.recentRecitations,
+      certificates: user.certificates
+    }
+  });
+});
+
+// 4. Terminate session / SignOut clear cookie
+app.post("/api/auth/logout", (req, res) => {
+  res.clearCookie("ilm_session", { path: "/" });
+  res.json({ success: true });
+});
+
+// 5. Update user academic progress
+app.post("/api/auth/update-session", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { progress } = req.body;
+  const user = req.user;
+
+  if (!user || !progress) {
+    return res.status(400).json({ error: "Malformed update body criteria." });
+  }
+
+  // Persist progression metrics safely
+  dbStore.updateUserProfile(user.id, {
+    weeklyMinutes: progress.weeklyMinutes ?? user.weeklyMinutes,
+    lessonsCompleted: progress.lessonsCompleted ?? user.lessonsCompleted,
+    savedScholarships: progress.savedScholarships ?? user.savedScholarships,
+    recentRecitations: progress.recentRecitations ?? user.recentRecitations,
+    certificates: progress.certificates ?? user.certificates
+  });
+
+  res.json({ success: true });
+});
+
+
+// --- DISCUSSION FORUM STUDY BOARD API ENDPOINTS ---
+
+// 1. Fetch available threads in the school directory
+app.get("/api/forum/threads", (req, res) => {
+  res.json({ threads: dbStore.getThreads() });
+});
+
+// 2. Create interactive discussion thread
+app.post("/api/forum/threads", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { title, category, body } = req.body;
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Unauthorized access" });
+  if (!title || !body || !category) {
+    return res.status(400).json({ error: "Required thread properties (title, category, body) missing." });
+  }
+
+  const currentRole = user.role === "teacher" ? "Faculty Qari" : user.role === "researcher" ? "Academic Researcher" : "Student Scholar";
+  const currentAvatar = user.role === "teacher" 
+    ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" 
+    : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150";
+
+  const threadId = "thread_" + Math.random().toString(36).substr(2, 9);
+  const newThread: ServerThread = {
+    id: threadId,
+    title,
+    body,
+    category,
+    author_id: user.id,
+    author_name: user.username,
+    author_role: currentRole,
+    author_avatar: currentAvatar,
+    thumbs_up: 0,
+    liked_by: [],
+    created_at: new Date().toISOString(),
+    replies: []
+  };
+
+  dbStore.addThread(newThread);
+  res.json({ thread: newThread });
+});
+
+// 3. Destroy a forum thread (restricted to creators or faculty/teachers)
+app.delete("/api/forum/threads/:id", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { id } = req.params;
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+  const thread = dbStore.findThreadById(id);
+
+  if (!thread) {
+    return res.status(404).json({ error: "Discussion thread not found." });
+  }
+
+  if (thread.author_id === user.id || user.role === "teacher") {
+    dbStore.deleteThread(id);
+    return res.json({ success: true });
+  }
+
+  res.status(403).json({ error: "Access denied. Only the discussion creator or faculty can remove topics." });
+});
+
+// 4. Emulate or register interactive thumbs up / support
+app.post("/api/forum/threads/:id/like", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { id } = req.params;
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Authentication status required." });
+  const thread = dbStore.findThreadById(id);
+
+  if (!thread) {
+    return res.status(404).json({ error: "Discussion topic not found." });
+  }
+
+  const email = user.email.toLowerCase();
+  let updatedLikedBy = [...thread.liked_by];
+  const index = updatedLikedBy.indexOf(email);
+
+  if (index > -1) {
+    updatedLikedBy.splice(index, 1);
+  } else {
+    updatedLikedBy.push(email);
+  }
+
+  dbStore.updateThread(id, {
+    liked_by: updatedLikedBy,
+    thumbs_up: updatedLikedBy.length
+  });
+
+  const updatedThread = dbStore.findThreadById(id)!;
+  res.json({
+    thread: {
+      id: updatedThread.id,
+      title: updatedThread.title,
+      body: updatedThread.body,
+      category: updatedThread.category,
+      author_id: updatedThread.author_id,
+      author: updatedThread.author_name,
+      role: updatedThread.author_role,
+      avatar: updatedThread.author_avatar,
+      thumbsUp: updatedThread.thumbs_up,
+      likedBy: updatedThread.liked_by,
+      date: new Date(updatedThread.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+      replies: updatedThread.replies.map(r => ({
+        id: r.id,
+        body: r.body,
+        author: r.author_name,
+        role: r.author_role,
+        avatar: r.author_avatar,
+        date: new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+      }))
+    }
+  });
+});
+
+// 5. Append replies to a topic
+app.post("/api/forum/threads/:id/replies", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { id } = req.params;
+  const { body } = req.body;
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Access denied." });
+  if (!body || !body.trim()) {
+    return res.status(400).json({ error: "Reply body cannot be left blank." });
+  }
+
+  const thread = dbStore.findThreadById(id);
+  if (!thread) {
+    return res.status(404).json({ error: "Discussion topic not found." });
+  }
+
+  const currentRole = user.role === "teacher" ? "Faculty Qari" : user.role === "researcher" ? "Academic Researcher" : "Student Scholar";
+  const currentAvatar = user.role === "teacher" 
+    ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" 
+    : "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150";
+
+  const replyId = "rep_" + Math.random().toString(36).substr(2, 9);
+  const newReply: ServerReply = {
+    id: replyId,
+    body: body.trim(),
+    author_name: user.username,
+    author_role: currentRole,
+    author_avatar: currentAvatar,
+    created_at: new Date().toISOString()
+  };
+
+  const updatedReplies = [...thread.replies, newReply];
+  dbStore.updateThread(id, { replies: updatedReplies });
+
+  const updatedThread = dbStore.findThreadById(id)!;
+  res.json({
+    thread: {
+      id: updatedThread.id,
+      title: updatedThread.title,
+      body: updatedThread.body,
+      category: updatedThread.category,
+      author_id: updatedThread.author_id,
+      author: updatedThread.author_name,
+      role: updatedThread.author_role,
+      avatar: updatedThread.author_avatar,
+      thumbsUp: updatedThread.thumbs_up,
+      likedBy: updatedThread.liked_by,
+      date: new Date(updatedThread.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+      replies: updatedThread.replies.map(r => ({
+        id: r.id,
+        body: r.body,
+        author: r.author_name,
+        role: r.author_role,
+        avatar: r.author_avatar,
+        date: new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+      }))
+    }
+  });
+});
+
 
 // Lazy initializer for Google GenAI client to handle missing key gracefully on dev launch
 let aiClient: GoogleGenAI | null = null;
@@ -42,6 +425,7 @@ function getAI(): GoogleGenAI {
 // REST Endpoint: Get Recitation Feedback (Actual Audio or Simulated Recitation)
 app.post("/api/ai-coach", async (req, res) => {
   const { verseText, surahName, ayahNumber, audioBase64, mimeType, qiraat } = req.body;
+
 
   if (!verseText || !surahName) {
     return res.status(400).json({ error: "Required parameters (verseText, surahName) are missing." });

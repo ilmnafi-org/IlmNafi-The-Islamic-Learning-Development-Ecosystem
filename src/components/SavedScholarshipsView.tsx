@@ -38,24 +38,12 @@ interface ApplicationTracker {
 }
 
 export default function SavedScholarshipsView({ progress, onToggleSaveScholarship, lang }: SavedScholarshipsViewProps) {
-  // Load tracked statuses from localStorage / memory
-  const [trackers, setTrackers] = useState<Record<string, ApplicationTracker>>(() => {
-    try {
-      const saved = localStorage.getItem('scholarship_trackers');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
+  // Track state purely in-memory
+  const [trackers, setTrackers] = useState<Record<string, ApplicationTracker>>({});
 
   const [activeTab, setActiveTab] = useState<'board' | 'list'>('board');
   const [selectedSch, setSelectedSch] = useState<Scholarship | null>(null);
   const [editingNotes, setEditingNotes] = useState<string>('');
-
-  // Persist trackers
-  useEffect(() => {
-    localStorage.setItem('scholarship_trackers', JSON.stringify(trackers));
-  }, [trackers]);
 
   // Extract saved scholarships
   const savedItems = SCHOLARSHIPS_DATA.filter(sch => progress.savedScholarships.includes(sch.id));

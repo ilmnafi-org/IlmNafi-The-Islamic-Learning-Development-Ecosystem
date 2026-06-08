@@ -17,12 +17,20 @@ import {
   User,
   ChevronRight,
   Filter,
-  Check
+  Check,
+  Share2,
+  Trash2,
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import AuthModal from './AuthModal';
+import { dbService } from '../lib/supabase';
 
 interface ForumViewProps {
   lang: 'en' | 'ar';
+  currentUser: { username: string; email: string } | null;
+  onAuthSuccess: (username: string, email: string) => void;
 }
 
 interface ThreadReply {
@@ -38,6 +46,7 @@ interface ForumThread {
   id: string;
   title: string;
   author: string;
+  authorEmail?: string;
   avatar: string;
   role: string;
   date: string;
@@ -48,7 +57,7 @@ interface ForumThread {
   isLikedByUser?: boolean;
 }
 
-export const ForumView: React.FC<ForumViewProps> = ({ lang }) => {
+export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthSuccess }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -62,155 +71,141 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang }) => {
   // New comment state
   const [newCommentBody, setNewCommentBody] = useState('');
 
+  // Authentication & custom interactions
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authPurpose, setAuthPurpose] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
+
   const [threads, setThreads] = useState<ForumThread[]>([]);
 
-  // Sample seed data translated dynamically
-  useEffect(() => {
-    const defaultThreads: ForumThread[] = [
-      {
-        id: "thread-1",
-        title: "Mastering the Ghunnah timings - Any pronunciation practice recommendations?",
-        author: "Zayd Al-Masaeri",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150",
-        role: "Advanced Student",
-        date: "2 days ago",
-        category: "recitation",
-        body: "Assalamu alaykum everyone. I am practicing Surah Al-Ikhlas and Al-Asr but I struggle with giving the Ghunnah sound exactly 2 beats when encountering the Nun Sakinah. Is there a counting trick with fingers, or a specific breathing rhythm you recommend?",
-        thumbsUp: 24,
-        replies: [
-          {
-            id: "rep-1",
-            author: "Sister Layla",
-            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
-            role: "Tajweed Instructor",
-            date: "1 day ago",
-            body: "Wa alaykum assalam! A handy classical trick is to fold or unfold one finger at a moderate, paced speed to count the 2 beats. Also, think of reciting at a steady 'Tahqeeq' (slow) pace, rather than rushing through the articulation. Try the AI reciter evaluation coach on our curriculum page, it will give you specific word feedback!"
-          }
-        ]
-      },
-      {
-        id: "thread-2",
-        title: "Ibn Al-Haytham and the foundation of empirical optics",
-        author: "Prof. Dr. Tariq Mansour",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150",
-        role: "Visiting Scholar",
-        date: "3 days ago",
-        category: "history",
-        body: "Did you know that Ibn Al-Haytham (Alhazen) pioneered the scientific method purely out of spiritual curiosity to view the absolute truth in God's physical laws? He conducted his famous darkroom experiment (Camera Obscura) in Cairo, showing that light travels in straight mathematical lines. This broke a thousand years of Greek philosophical consensus.",
-        thumbsUp: 38,
-        replies: [
-          {
-            id: "rep-2",
-            author: "Amina Al-Fatah",
-            avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
-            role: "K-12 Student",
-            date: "2 days ago",
-            body: "That is amazing. In medieval Europe they just accepted opinions, whereas he proved everything through experimental proof. It really shows how Islamic studies have always walked hand-in-hand with mathematics and precise technology."
-          }
-        ]
-      },
-      {
-        id: "thread-3",
-        title: "Applying to Islamic Development Bank (IsDB) Postgraduate scholarship",
-        author: "Karim Basha",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
-        role: "Graduate Scholar",
-        date: "Yesterday",
-        category: "scholarships",
-        body: "For anyone preparing their statement of purpose for the IsDB fully funded program, make sure you highlight your concrete plan for community development in your home country. They are looking for students committed to sustainable local action (healthcare, water studies, or basic K-12 education support) rather than just personal career advancement.",
-        thumbsUp: 15,
-        replies: []
-      }
-    ];
-
-    try {
-      const stored = localStorage.getItem('ilm_forum_threads');
-      if (stored) {
-        setThreads(JSON.parse(stored));
-      } else {
-        setThreads(defaultThreads);
-        localStorage.setItem('ilm_forum_threads', JSON.stringify(defaultThreads));
-      }
-    } catch (e) {
-      setThreads(defaultThreads);
+  // Guard to ensure user account exists
+  const ensureAuth = (purpose: string): boolean => {
+    if (!currentUser) {
+      setAuthPurpose(purpose);
+      setShowAuthModal(true);
+      return false;
     }
-  }, []);
+    return true;
+  };
 
-  const handleCreateThread = () => {
+  const loadThreads = async () => {
+    try {
+      const list = await dbService.fetchThreads();
+      const mapped: ForumThread[] = list.map(t => {
+        // Evaluate if thread belongs to current logged in user
+        const isOwner = currentUser && t.author_id === currentUser.id;
+        return {
+          id: t.id,
+          title: t.title,
+          author: t.author,
+          authorEmail: isOwner ? currentUser.email : t.likedBy?.[0] || '', // match trigger or fallback
+          avatar: t.avatar,
+          role: t.role,
+          date: t.date,
+          category: t.category,
+          body: t.body,
+          thumbsUp: t.thumbsUp,
+          replies: t.replies.map(r => ({
+            id: r.id,
+            author: r.author,
+            avatar: r.avatar,
+            role: r.role,
+            date: r.date,
+            body: r.body
+          })),
+          isLikedByUser: currentUser ? t.likedBy?.includes(currentUser.email) : false
+        };
+      });
+      setThreads(mapped);
+    } catch (err) {
+      console.error("Failed loading threads", err);
+    }
+  };
+
+  // Sync with DB service on mount & user change
+  useEffect(() => {
+    loadThreads();
+  }, [currentUser]);
+
+  const handleCreateThread = async () => {
+    if (!ensureAuth(lang === 'en' ? 'create a discussion topic' : 'إنشاء موضوع طرح جديد')) return;
     if (!newTitle.trim() || !newBody.trim()) return;
 
-    const fresh: ForumThread = {
-      id: "thread-" + Date.now(),
-      title: newTitle,
-      author: lang === 'en' ? "Guest Scholar" : "طالب علم ضيف",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150",
-      role: "Student",
-      date: "Just now",
-      category: newCategory,
-      body: newBody,
-      thumbsUp: 1,
-      replies: []
-    };
-
-    const updated = [fresh, ...threads];
-    setThreads(updated);
     try {
-      localStorage.setItem('ilm_forum_threads', JSON.stringify(updated));
-    } catch (e) {}
+      await dbService.createNewThread(newTitle.trim(), newCategory, newBody.trim());
+      await loadThreads();
 
-    // Reset fields
-    setNewTitle('');
-    setNewBody('');
-    setShowCreateModal(false);
-    setActiveThreadId(fresh.id);
+      // Reset fields
+      setNewTitle('');
+      setNewBody('');
+      setShowCreateModal(false);
+      
+      setToast(lang === 'en' ? "Topic successfully added to study list!" : "تمت إضافة طرحك العلمي للمجلس العام بنجاح!");
+      setTimeout(() => setToast(null), 3000);
+    } catch (err: any) {
+      setToast(err?.message || "Could not publish thread");
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
+    if (!ensureAuth(lang === 'en' ? 'add a comment under this thread' : 'إضافة تعليق ومشاركة تحت هذا الطرح')) return;
     if (!newCommentBody.trim() || !activeThreadId) return;
 
-    const updated = threads.map(t => {
-      if (t.id === activeThreadId) {
-        const freshReply: ThreadReply = {
-          id: "rep-" + Date.now(),
-          author: lang === 'en' ? "Peer Student" : "متعلم زميل",
-          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150",
-          role: "Member",
-          date: "Just now",
-          body: newCommentBody
-        };
-        return {
-          ...t,
-          replies: [...t.replies, freshReply]
-        };
-      }
-      return t;
-    });
-
-    setThreads(updated);
     try {
-      localStorage.setItem('ilm_forum_threads', JSON.stringify(updated));
-    } catch (e) {}
+      await dbService.addReply(activeThreadId, newCommentBody.trim());
+      await loadThreads();
 
-    setNewCommentBody('');
+      setNewCommentBody('');
+      setToast(lang === 'en' ? "Comment published successfully." : "تم نشر تعليقك الأكاديمي بنجاح.");
+      setTimeout(() => setToast(null), 3000);
+    } catch (err: any) {
+      setToast(err?.message || "Could not add comment");
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
-  const likeThread = (threadId: string, e: React.MouseEvent) => {
+  const likeThread = async (threadId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = threads.map(t => {
-      if (t.id === threadId) {
-        const isLiked = t.isLikedByUser;
-        return {
-          ...t,
-          thumbsUp: isLiked ? t.thumbsUp - 1 : t.thumbsUp + 1,
-          isLikedByUser: !isLiked
-        };
-      }
-      return t;
-    });
-    setThreads(updated);
+    if (!ensureAuth(lang === 'en' ? 'like this discussion' : 'تأييد هذا الطرح الأكاديمي')) return;
+
     try {
-      localStorage.setItem('ilm_forum_threads', JSON.stringify(updated));
-    } catch (e) {}
+      await dbService.toggleLike(threadId);
+      await loadThreads();
+    } catch (err: any) {
+      setToast(err?.message || "Like operation failed");
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const shareThread = (thread: ForumThread, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!ensureAuth(lang === 'en' ? 'share this discussion link' : 'مشاركة رابط الموضوع')) return;
+
+    const mockUrl = `${window.location.origin}/forum/#thread-${thread.id}`;
+    try {
+      navigator.clipboard.writeText(mockUrl);
+    } catch (err) {}
+
+    setToast(lang === 'en' ? "Academic share link copied to clipboard!" : "تم نسخ رابط المشاركة إلى الحافظة!");
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleDeleteThread = async (threadId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentUser) return;
+
+    try {
+      await dbService.destroyThread(threadId);
+      await loadThreads();
+
+      setActiveThreadId(null);
+      setToast(lang === 'en' ? "Discussion topic successfully archived." : "تم حذف المقترح الحواري بنجاح.");
+      setTimeout(() => setToast(null), 3000);
+    } catch (err: any) {
+      setToast(err?.message || "Failed to delete post");
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
   const filteredThreads = threads.filter(t => {
@@ -415,21 +410,39 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang }) => {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+                        <div className="flex items-center gap-3.5 text-xs font-bold text-slate-400">
                           <button
                             onClick={(e) => likeThread(thread.id, e)}
                             className={`flex items-center gap-1.5 hover:text-amber-700 transition cursor-pointer ${
-                              thread.isLikedByUser ? 'text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-100' : 'text-slate-400'
+                              thread.isLikedByUser ? 'text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-100 font-bold' : 'text-slate-450 hover:bg-slate-50 p-1 rounded-lg'
                             }`}
                           >
                             <ThumbsUp className="w-3.5 h-3.5" />
                             <span>{thread.thumbsUp}</span>
                           </button>
 
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 hover:bg-slate-50 p-1 rounded-lg">
                             <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
                             <span>{thread.replies.length}</span>
                           </div>
+
+                          <button
+                            onClick={(e) => shareThread(thread, e)}
+                            className="flex items-center justify-center text-slate-400 hover:text-emerald-800 hover:bg-slate-50 p-1.5 rounded-lg transition duration-200"
+                            title={lang === 'en' ? "Share topic" : "مشاركة الفائدة"}
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {currentUser && thread.authorEmail === currentUser.email && (
+                            <button
+                              onClick={(e) => handleDeleteThread(thread.id, e)}
+                              className="flex items-center justify-center text-slate-400 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition duration-200 animate-fadeIn"
+                              title={lang === 'en' ? "Delete post" : "حذف المشاركة"}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -484,7 +497,7 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang }) => {
                       {current.body}
                     </p>
 
-                    <div className="flex items-center justify-between border-t border-amber-900/10 pt-6 mt-6">
+                    <div className="flex flex-wrap items-center justify-between border-t border-amber-900/10 pt-6 mt-6 gap-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-slate-150 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 overflow-hidden shrink-0 shadow">
                           {current.avatar ? <img src={current.avatar} alt="avatar" className="w-full h-full object-cover" /> : <User className="w-5 h-5" />}
@@ -495,15 +508,35 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang }) => {
                         </div>
                       </div>
 
-                      <button
-                        onClick={(e) => likeThread(current.id, e)}
-                        className={`flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-amber-800 transition cursor-pointer ${
-                          current.isLikedByUser ? 'text-amber-900 bg-amber-100/60 px-4 py-2 rounded-xl border border-amber-205/20 shadow-inner' : ''
-                        }`}
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>{current.thumbsUp} {lang === 'en' ? "Support Marks" : "إعجاب"}</span>
-                      </button>
+                      <div className="flex items-center gap-2.5 text-xs font-bold font-sans">
+                        <button
+                          onClick={(e) => likeThread(current.id, e)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 transition cursor-pointer hover:bg-amber-50 hover:text-amber-900 duration-200 ${
+                            current.isLikedByUser ? 'text-amber-900 bg-amber-55/70 border-amber-200 font-semibold shadow-sm' : 'text-slate-550 bg-white'
+                          }`}
+                        >
+                          <ThumbsUp className="w-3.5 h-3.5 shrink-0 text-amber-750" />
+                          <span>{current.thumbsUp} {lang === 'en' ? "Instruct Support" : "إسناد وتأييد"}</span>
+                        </button>
+
+                        <button
+                          onClick={(e) => shareThread(current, e)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-emerald-900 hover:bg-emerald-50 transition bg-white cursor-pointer duration-200"
+                        >
+                          <Share2 className="w-3.5 h-3.5 shrink-0 text-emerald-800" />
+                          <span>{lang === 'en' ? "Share topic" : "مشاركة الفائدة"}</span>
+                        </button>
+
+                        {currentUser && current.authorEmail === currentUser.email && (
+                          <button
+                            onClick={(e) => handleDeleteThread(current.id, e)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-red-200 text-red-600 hover:text-red-950 hover:bg-red-50 transition bg-white cursor-pointer duration-200"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                            <span>{lang === 'en' ? "Delete" : "حذف الموضوع"}</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -569,6 +602,33 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang }) => {
               );
             })()}
 
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QUICK AUTH REQUIREMENT WORKSPACE OVERLAY */}
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={(username, email) => {
+            onAuthSuccess(username, email);
+            setShowAuthModal(false);
+          }}
+        />
+      )}
+
+      {/* ANIMATED FLOATING TOAST FEEDBACK WICK */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#0c1b18] text-teal-50 border border-teal-800 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-2.5 text-xs text-[11px] font-semibold text-center tracking-tight"
+            id="forum-action-toast"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>{toast}</span>
           </motion.div>
         )}
       </AnimatePresence>

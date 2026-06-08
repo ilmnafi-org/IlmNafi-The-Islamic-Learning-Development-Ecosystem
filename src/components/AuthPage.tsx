@@ -19,9 +19,11 @@ import {
   Globe,
   Award,
   IdCard,
-  Hash
+  Hash,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { dbService } from '../lib/supabase';
 
 interface AuthPageProps {
   lang: 'en' | 'ar';
@@ -36,18 +38,35 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'student' | 'researcher' | 'teacher'>('student');
   const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setAuthError(null);
 
-    setTimeout(() => {
+    try {
+      if (isLogin) {
+        const session = await dbService.login(email.trim(), password.trim());
+        setLoading(false);
+        onSuccess(session.username, session.email);
+      } else {
+        const finalName = name.trim() || email.split('@')[0];
+        const session = await dbService.signUp(email.trim(), password.trim(), finalName, role);
+        setLoading(false);
+        onSuccess(session.username, session.email);
+      }
+    } catch (err: any) {
       setLoading(false);
-      onSuccess(
-        name || email.split('@')[0] || (lang === 'en' ? "Scholar Student" : "طالب العلم"),
-        email || "student@ilm-naafi.edu"
-      );
-    }, 1800);
+      setAuthError(err?.message || (lang === 'en' ? "Authentication failed" : "فشل التحقق من الهوية"));
+    }
+  };
+
+  const toggleAuthMode = (loginMode: boolean) => {
+    setIsLogin(loginMode);
+    setAuthError(null);
+    setName('');
+    setPassword('');
   };
 
   const labels = {
@@ -256,7 +275,7 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
             <div className="bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-500 h-12 border border-slate-200/60 relative flex">
               <button
                 type="button"
-                onClick={() => setIsLogin(true)}
+                onClick={() => toggleAuthMode(true)}
                 className={`flex-1 rounded-xl text-center py-2 transition-all outline-none z-10 cursor-pointer ${
                   isLogin ? 'bg-white text-emerald-900 shadow-md font-extrabold' : 'hover:text-slate-900'
                 }`}
@@ -265,7 +284,7 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setIsLogin(false)}
+                onClick={() => toggleAuthMode(false)}
                 className={`flex-1 rounded-xl text-center py-2 transition-all outline-none z-10 cursor-pointer ${
                   !isLogin ? 'bg-white text-emerald-900 shadow-md font-extrabold' : 'hover:text-slate-900'
                 }`}
@@ -273,6 +292,20 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                 {labels.toggleReg}
               </button>
             </div>
+
+            {/* Error Indicators */}
+            <AnimatePresence>
+              {authError && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  className="bg-red-50 border border-red-200/80 rounded-2xl p-4 text-xs text-red-850 font-bold flex items-start gap-2.5 shadow-sm"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed text-red-950 font-medium">{authError}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Auth Forms */}
             <form onSubmit={handleSubmit} className="space-y-4">

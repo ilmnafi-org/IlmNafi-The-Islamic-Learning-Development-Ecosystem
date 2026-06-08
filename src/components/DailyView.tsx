@@ -166,7 +166,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
     }
   }[lang];
 
-  // Global user statistics and offline history cached in localStorage
+  // Global user statistics and active duration statistics
   const [streak, setStreak] = useState(0);
   const [completedToday, setCompletedToday] = useState<{morning: boolean; evening: boolean; count: number}>({morning: false, evening: false, count: 0});
   const [heatmap, setHeatmap] = useState<{[key: string]: boolean}>({});
@@ -278,32 +278,11 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
     }
   ];
 
-  // Load stats & backups from localStorage on mount
+  // Initialize nice default state values on mount
   useEffect(() => {
-    try {
-      const storedDuas = localStorage.getItem('ilm_pinned_duas');
-      if (storedDuas) setPinnedDuas(JSON.parse(storedDuas));
-
-      const todayKey = new Date().toISOString().split('T')[0];
-      const savedHeatmap = localStorage.getItem('nafi_adhkar_heatmap');
-      if (savedHeatmap) setHeatmap(JSON.parse(savedHeatmap));
-
-      const savedStreak = localStorage.getItem('nafi_adhkar_streak');
-      if (savedStreak) setStreak(Number(savedStreak) || 3);
-
-      const savedTally = localStorage.getItem('nafi_tasbih_score_v1');
-      if (savedTally) setTasbihTotalScore(Number(savedTally));
-
-      const savedCompletedToday = localStorage.getItem('nafi_completed_today_v1');
-      if (savedCompletedToday) {
-        setCompletedToday(JSON.parse(savedCompletedToday));
-      } else {
-        // Mock default if none
-        setCompletedToday({morning: false, evening: false, count: 2});
-      }
-    } catch (e) {
-      console.warn("Unable to restore offline remembrance stats:", e);
-    }
+    setStreak(3);
+    setCompletedToday({morning: false, evening: false, count: 2});
+    setTasbihTotalScore(640);
 
     // Geolocation detection fallback
     if (navigator?.geolocation) {
@@ -424,20 +403,17 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
       setTasbihCount(0);
       setTasbihTotalScore(prev => {
         const next = prev + (customWirdText ? customTarget : 33);
-        localStorage.setItem('nafi_tasbih_score_v1', String(next));
         return next;
       });
       // Increment Completed count
       setCompletedToday(prev => {
         const updated = { ...prev, count: prev.count + 1 };
-        localStorage.setItem('nafi_completed_today_v1', JSON.stringify(updated));
         return updated;
       });
       // Add visual active state to heatmap
       const todayString = new Date().toISOString().split('T')[0];
       setHeatmap(prev => {
         const updated = { ...prev, [todayString]: true };
-        localStorage.setItem('nafi_adhkar_heatmap', JSON.stringify(updated));
         return updated;
       });
     }
@@ -484,21 +460,18 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
             evening: adhkarCategory === 'evening' ? true : prev.evening,
             count: prev.count + 1
           };
-          localStorage.setItem('nafi_completed_today_v1', JSON.stringify(updated));
           return updated;
         });
 
         // Update heatmap of engagement
         setHeatmap(prev => {
           const updated = { ...prev, [todayString]: true };
-          localStorage.setItem('nafi_adhkar_heatmap', JSON.stringify(updated));
           return updated;
         });
 
         // Trigger streak advance on full Morning/Evening completion
         setStreak(prev => {
           const nextVal = prev + 1;
-          localStorage.setItem('nafi_adhkar_streak', String(nextVal));
           return nextVal;
         });
       }
@@ -568,7 +541,6 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
 
     const updated = [newPin, ...pinnedDuas];
     setPinnedDuas(updated);
-    localStorage.setItem('ilm_pinned_duas', JSON.stringify(updated));
     setGeneratedDua(null);
     setDuaIntention('');
   };
@@ -576,7 +548,6 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
   const removePinnedDua = (id: string) => {
     const updated = pinnedDuas.filter(d => d.id !== id);
     setPinnedDuas(updated);
-    localStorage.setItem('ilm_pinned_duas', JSON.stringify(updated));
   };
 
   // Filter Adhkar DB by selected category
@@ -644,7 +615,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
           <div className="space-y-1">
             <span className="text-[10px] font-extrabold text-blue-805 uppercase tracking-widest block">{t.tasbihClicksLogged}</span>
             <span className="text-3xl font-black text-slate-850 tracking-tight">{tasbihTotalScore} {lang === 'en' ? "Taps" : "تسبيحة"}</span>
-            <p className="text-[10px] text-slate-450 mt-1">All clicks cached beautifully in local storage.</p>
+            <p className="text-[10px] text-slate-450 mt-1">{lang === 'en' ? "All clicks tracked in real-time." : "تحديث العداد فوري وتلقائي حالاً."}</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-200 text-blue-800 shadow-inner">
             <Clock className="w-6 h-6" />
@@ -1661,7 +1632,6 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                           };
                           setPinnedDuas(prev => {
                             const updated = [mockCustom, ...prev];
-                            localStorage.setItem('ilm_pinned_duas', JSON.stringify(updated));
                             return updated;
                           });
                         }}

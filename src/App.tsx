@@ -39,7 +39,8 @@ import {
   Activity,
   Sliders,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  GraduationCap
 } from 'lucide-react';
 
 import CurriculumView from './components/CurriculumView';
@@ -51,6 +52,8 @@ import { ScholarlyView } from './components/ScholarlyView';
 import { DailyView } from './components/DailyView';
 import { ForumView } from './components/ForumView';
 import AuthPage from './components/AuthPage';
+import StudentDashboard from './components/StudentDashboard';
+import { dbService } from './lib/supabase';
 
 import { UserProgress } from './types';
 
@@ -162,8 +165,8 @@ const ACTIVE_CIRCLES = [
 ];
 
 export default function App() {
-  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community'>('home');
+  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'
+  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -242,31 +245,45 @@ export default function App() {
     return { weeklyLessons, audioMinutes, completionWeeks, syllabusPoints };
   };
 
-  // Initialize progress from localStorage
-  const [progress, setProgress] = useState<UserProgress>(() => {
-    const saved = localStorage.getItem('al_hikmah_progress');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (err) {
-        console.error("Failed to parse local progress", err);
-      }
-    }
-    return {
-      weeklyMinutes: 45,
-      lessonsCompleted: ['les-taj-1'], 
-      savedScholarships: ['sch-isdb'], 
-      recentRecitations: [
-        { date: '2026-06-05', verse: 'Al-Fatihah (Ayah 1)', score: 92 }
-      ],
-      username: '',
-      email: ''
-    };
+  // Initialize progress state
+  const [progress, setProgress] = useState<UserProgress>({
+    weeklyMinutes: 45,
+    lessonsCompleted: ['les-taj-1'], 
+    savedScholarships: ['sch-isdb'], 
+    recentRecitations: [
+      { date: '2026-06-05', verse: 'Al-Fatihah (Ayah 1)', score: 92 }
+    ],
+    username: '',
+    email: ''
   });
 
-  // Save progress back to localStorage
+  // Auto-restore secure HttpOnly session on load
   useEffect(() => {
-    localStorage.setItem('al_hikmah_progress', JSON.stringify(progress));
+    const restoreSession = async () => {
+      try {
+        const session = await dbService.getCurrentSession();
+        if (session) {
+          setProgress({
+            weeklyMinutes: session.weeklyMinutes ?? 45,
+            lessonsCompleted: session.lessonsCompleted ?? ['les-taj-1'],
+            savedScholarships: session.savedScholarships ?? ['sch-isdb'],
+            recentRecitations: session.recentRecitations ?? [],
+            username: session.username,
+            email: session.email
+          });
+        }
+      } catch (err) {
+        // Silent catch on unauthenticated page loads
+      }
+    };
+    restoreSession();
+  }, []);
+
+  // Save progress changes directly to the back-end database
+  useEffect(() => {
+    if (progress.email) {
+      dbService.updateSession(progress).catch(() => {});
+    }
   }, [progress]);
 
   const handleCompleteLesson = (lessonId: string) => {
@@ -304,21 +321,46 @@ export default function App() {
   };
 
   const handleAuthSuccess = (username: string, email: string) => {
-    setProgress(prev => ({
-      ...prev,
-      username,
-      email
-    }));
-    setActiveTab('home');
+    // Attempt full session restore on successful credentials authentication
+    const fetchFullAndSet = async () => {
+      try {
+        const session = await dbService.getCurrentSession();
+        if (session) {
+          setProgress({
+            weeklyMinutes: session.weeklyMinutes ?? 45,
+            lessonsCompleted: session.lessonsCompleted ?? ['les-taj-1'],
+            savedScholarships: session.savedScholarships ?? ['sch-isdb'],
+            recentRecitations: session.recentRecitations ?? [],
+            username: session.username,
+            email: session.email
+          });
+        } else {
+          setProgress(prev => ({ ...prev, username, email }));
+        }
+      } catch {
+        setProgress(prev => ({ ...prev, username, email }));
+      }
+    };
+    fetchFullAndSet();
+    setActiveTab('dashboard');
   };
 
-  const handleSignOut = () => {
-    setProgress(prev => ({
-      ...prev,
+  const handleSignOut = async () => {
+    try {
+      await dbService.signOut();
+    } catch (e) {}
+    setProgress({
+      weeklyMinutes: 45,
+      lessonsCompleted: ['les-taj-1'],
+      savedScholarships: ['sch-isdb'],
+      recentRecitations: [
+        { date: '2026-06-05', verse: 'Al-Fatihah (Ayah 1)', score: 92 }
+      ],
       username: '',
       email: ''
-    }));
+    });
     setShowProfileDropdown(false);
+    setActiveTab('home');
   };
 
   const triggerRsvp = (idx: number) => {
@@ -687,6 +729,22 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Open dashboard quick navigation trigger */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => { setActiveTab('dashboard'); setShowProfileDropdown(false); }}
+                      className="w-full h-10 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-205/30 rounded-xl transition-colors font-extrabold text-[11px] text-amber-950 flex items-center justify-between cursor-pointer"
+                      style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
+                      id="dropdown-btn-to-dashboard"
+                    >
+                      <span className="flex items-center gap-1.5" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                        <GraduationCap className="w-4 h-4 text-amber-900 shrink-0" />
+                        <span>{lang === 'en' ? "Student Workspace Dev" : "معمل المتابعة الأكاديمية"}</span>
+                      </span>
+                      <ChevronRight className={`w-3.5 h-3.5 text-amber-900 ${lang === 'ar' ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+
                   <div className="pt-2 border-t border-slate-100 flex justify-end">
                     <button
                       onClick={handleSignOut}
@@ -740,6 +798,7 @@ export default function App() {
               { id: 'scholarships', label: labels.scholarships, icon: Award, color: 'text-rose-800 bg-rose-500/10' },
               { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, color: 'text-yellow-800 bg-yellow-500/10' },
               { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
+              ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Workspace Dashboard" : "لوحة المتعلم الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
             ].map(item => {
               const IconComponent = item.icon;
               const isActive = activeTab === item.id;
@@ -2028,7 +2087,11 @@ export default function App() {
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.25 }}
           >
-            <ForumView lang={lang} />
+            <ForumView 
+              lang={lang} 
+              currentUser={progress.username ? { username: progress.username, email: progress.email } : null}
+              onAuthSuccess={handleAuthSuccess}
+            />
           </motion.div>
         )}
 
@@ -2093,6 +2156,24 @@ export default function App() {
               lang={lang} 
               onSuccess={handleAuthSuccess} 
               onCancel={() => { setActiveTab('home'); }} 
+            />
+          </motion.div>
+        )}
+
+        {/* STUDENT WORKSPACE DASHBOARD */}
+        {activeTab === 'dashboard' && (
+          <motion.div
+            key="dashboard"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <StudentDashboard 
+              lang={lang}
+              progress={progress}
+              onNavigateToTab={(tab) => { setActiveTab(tab); }}
+              onRemoveBookmark={handleToggleSaveScholarship}
             />
           </motion.div>
         )}
