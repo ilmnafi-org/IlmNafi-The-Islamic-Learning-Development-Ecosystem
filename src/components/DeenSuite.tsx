@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Clock, Bell, BellOff, Compass, MapPin, Sparkles, 
   Activity, Check, Moon, Heart, Info, AlertCircle, 
-  RefreshCw, Navigation 
+  RefreshCw, Navigation, CheckCircle2 
 } from 'lucide-react';
 
 interface PrayerTime {
@@ -61,12 +61,18 @@ export function DeenSuite({ lang }: { lang: 'en' | 'ar' }) {
 
   // Qiblah Compass State
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [manualLat, setManualLat] = useState('30.044');
-  const [manualLng, setManualLng] = useState('31.235');
+  const [manualLat, setManualLat] = useState('30.0440');
+  const [manualLng, setManualLng] = useState('31.2350');
   const [qiblahAngle, setQiblahAngle] = useState<number | null>(null);
   const [deviceHeading, setDeviceHeading] = useState<number | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
+
+  // PWA Installation Prompts State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   // References to handle timing checks and notification throttle
   const stickyNotificationRef = useRef<Notification | null>(null);
@@ -88,15 +94,70 @@ export function DeenSuite({ lang }: { lang: 'en' | 'ar' }) {
     return (bearingDeg + 360) % 360;
   };
 
-  // --- INITIALIZE GEOLOCATION / DEFAULTS ---
+  // --- INITIALIZE GEOLOCATION / DEFAULTS & AUTO-PERMISSIONS ---
   useEffect(() => {
-    // default location (Cairo)
+    // 1. Set initial location (Cairo)
     const initLat = 30.0444;
     const initLng = 31.2357;
     setUserCoords({ lat: initLat, lng: initLng });
     setQiblahAngle(calculateQiblah(initLat, initLng));
 
-    // Try tracking mobile device orientation compass bearing
+    // 2. Automatical Geolocation detection on launch (non-blocking)
+    if (navigator.geolocation) {
+      setGpsLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setUserCoords({ lat: latitude, lng: longitude });
+          setManualLat(latitude.toFixed(4));
+          setManualLng(longitude.toFixed(4));
+          setQiblahAngle(calculateQiblah(latitude, longitude));
+          setGpsLoading(false);
+        },
+        (err) => {
+          setGpsLoading(false);
+          console.log("Automatic high-precision GPS on mount failed, using Egypt placeholder. Detail: ", err);
+          // Still fetch if allowed standard precision
+        },
+        { enableHighAccuracy: true, timeout: 6000 }
+      );
+    }
+
+    // 3. Automatical prompt for Notifications on load
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then((res) => {
+        setPermission(res);
+        if (res === 'granted') {
+          new Notification(
+            lang === 'en' ? "Welcome to Ilm Naafi Academy!" : "مرحباً بكم في أكاديمية علم نافع",
+            {
+              body: lang === 'en'
+                ? "Academic lessons, prayer alerts, and beneficial Hadith push services are activated."
+                : "تم تفعيل حزمة أذكار اليوم والليلة وتنبيهات مواقيت الصلاة والمقررات الدراسية بنجاح.",
+              icon: '/icon-192.png'
+            }
+          );
+        }
+      }).catch(err => console.warn("Failed to request notifications automatically: ", err));
+    }
+
+    // 4. PWA checks and install prompt captures
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    setIsInstalled(!!isStandalone);
+
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const iosDevice = /iphone|ipad|ipod/.test(userAgent);
+    setIsIOS(iosDevice);
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // 5. Try tracking mobile device orientation compass bearing
     const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
       const heading = (e as any).webkitCompassHeading || e.alpha;
       if (typeof heading === 'number') {
@@ -107,6 +168,7 @@ export function DeenSuite({ lang }: { lang: 'en' | 'ar' }) {
     window.addEventListener('deviceorientation', handleDeviceOrientation);
     return () => {
       window.removeEventListener('deviceorientation', handleDeviceOrientation);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       if (stickyNotificationRef.current) {
         stickyNotificationRef.current.close();
       }
@@ -336,8 +398,86 @@ export function DeenSuite({ lang }: { lang: 'en' | 'ar' }) {
 
   const isWithPrecision = qiblahAngle !== null && Math.abs(needleRotation % 360) < 6;
 
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log("Installation choice outcome is: ", outcome);
+    if (outcome === 'accepted') {
+      setIsInstalled(true);
+    }
+    setDeferredPrompt(null);
+    setShowInstallPrompt(false);
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch pt-4">
+    <div className="space-y-6 w-full">
+      {/* PWA INSTALLATION PROMPT SUITE */}
+      {!isInstalled && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50/60 border border-amber-200/80 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-[#C59B32]/10 flex items-center justify-center border border-[#C59B32]/35 shrink-0">
+              <Sparkles className="w-5 h-5 text-[#C59B32]" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
+                {lang === 'en' ? "Install Ilm Naafi App Shortcut" : "تثبيت تطبيق علم نافع على هاتفك"}
+                <span className="bg-amber-100 text-amber-900 text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded font-mono uppercase">Offline Ready</span>
+              </h4>
+              <p className="text-xs text-slate-600 leading-normal max-w-xl">
+                {lang === 'en' 
+                  ? "Add shortcut to your phone or desktop home screen for offline access and instant, reliable, sticky adhan/salah reminders." 
+                  : "أضف أيقونة سريعة للشاشة الرئيسية لسرعة التصفح وتفعيل تنبيهات الأذكار تلقائياً والعمل حتى بدون إنترنت."}
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0 w-full md:w-auto self-stretch md:self-center flex flex-col justify-center">
+            {isIOS ? (
+              <div className="bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 text-[11px] text-slate-700 leading-relaxed font-semibold self-end md:self-auto shadow-2xs">
+                {lang === 'en' ? (
+                  <span className="flex items-center gap-1">
+                    Tap <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-sm">📤</span> then <span className="text-amber-950 font-black">"Add to Home Screen"</span> in Safari.
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-right" dir="rtl">
+                    اضغط زر المشاركة <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-sm">📤</span> ثم اختر <span className="text-amber-950 font-black">"إضافة للشاشة الرئيسية"</span>.
+                  </span>
+                )}
+              </div>
+            ) : showInstallPrompt ? (
+              <button
+                onClick={handleInstallClick}
+                className="w-full md:w-auto bg-emerald-800 hover:bg-emerald-950 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4 text-amber-305" />
+                {lang === 'en' ? "Add to Home Screen" : "تثبيت فوري على الجهاز"}
+              </button>
+            ) : (
+              <div className="bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 text-[11px] text-slate-700 leading-relaxed font-semibold self-end md:self-auto shadow-2xs">
+                {lang === 'en' ? (
+                  <span>Use Chrome/Safari and select <span className="text-amber-950 font-black">"Add to Home Screen"</span> in settings.</span>
+                ) : (
+                  <span>افتح المتصفح الرسمي واختر <span className="text-amber-950 font-black">"إضافة إلى الشاشة الرئيسية"</span>.</span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isInstalled && (
+        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-3 px-4 flex items-center justify-between text-xs text-emerald-900 font-bold select-none">
+          <span className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+            {lang === 'en' ? "PWA App Status: Connected & Calibrated (PWA Mode Active)" : "حالة التطبيق: مثبت ونشط في شاشتك (وضع التطبيق المستقل)"}
+          </span>
+          <span className="text-[9px] uppercase font-mono tracking-wider bg-emerald-100 border border-emerald-300 rounded px-2 py-0.5">Standalone</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch pt-4">
       
       {/* 1. COMPASS & TIME SYNERGAL ZONE */}
       <div className="bg-[#FAF8F5] border border-slate-200/80 rounded-2xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden">
@@ -620,6 +760,7 @@ export function DeenSuite({ lang }: { lang: 'en' | 'ar' }) {
         </div>
       </div>
 
+    </div>
     </div>
   );
 }

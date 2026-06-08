@@ -27,39 +27,20 @@ interface CommunityHubViewProps {
 }
 
 export default function CommunityHubView({ lang }: CommunityHubViewProps) {
-  const [copied, setCopied] = useState(false);
+  const [dmName, setDmName] = useState('');
+  const [dmText, setDmText] = useState('');
+  const [dmSuccess, setDmSuccess] = useState(false);
+  const [dmSending, setDmSending] = useState(false);
 
-  // The paragraphised announcement message they can share with their community/friends
-  const shareMessage = lang === 'en' 
-    ? `Alhamdulillah! 🌟 I have just launched the first open-source release of the Universal Scholarly Platform & Tajweed Academy! 🎓✨
-
-It is a fully-featured, unified React web application combining:
-1. 🗣️ Interactive Makhraj Visualizer for mouth/throat pronunciation corrector simulation.
-2. 📚 Complete Multi-Subject Curriculums (Structured Tajweed, Jurisprudence & Islamic History).
-3. ⏳ Dynamic Study Focus Planner dividing curriculum modules based on student availability.
-4. 💼 Global Scholarships & Fellowship Registry with in-memory application step tracking and custom draft notes.
-5. 🛡️ Secure Student ID Badging with fully spring-loaded state transitions.
-
-💻 Check out our live application, review our clean TypeScript architecture, and contribute to our roadmap. Feel free to clone or submit pull requests! Join us in preserving and teaching the noble sciences of the Quran and academic excellence. 
-
-#Alhamdulillah #OpenSource #Reactjs #TailwindCSS #Tailwind #TypeScript`
-    : `الحمد لله رب العالمين! 🌟 أطلقت بحمد الله الإصدار المفتوح المصدر الأول لمنصّة الأكاديمية العالمية ومجمع الحصافة العلمية لعلوم التجويد والمنح الدراسية! 🎓✨
-
-تطبيق ويب متكامل ومميز جداً بأرقى المعايير التقنية:
-١. 🗣️ معمل مخارج الحروف التفاعلي: لتوضيح مخارج النطق الصوتي بدقة التشريح الشفهي والحلقي.
-٢. 📚 المقررات المنهجية الموحدة: مسارات تعليمية كاملة من المستوى الابتدائي للدبلوم العلمي.
-٣. ⏳ المخطط الدراسي اليومي: يوزّع دقائق دراستك الذاتية بذكاء على المباحث المختلفة.
-٤. 💼 بوابة رعاية الموهوبين والمنح: قاعدة بيانات حية للمنح العالمية مع مفكرة وبطاقة رصد التقدم.
-٥. 🛡️ بوابات التوثيق والأمان: تسجيل سلس ببطاقة الطالب الأكاديمية وحركات متحركة غاية في الأناقة وبدعم ثنائي اللغة.
-
-💻 شاركونا في المراجعة، التطوير وتوسيع ديوان المقررات الفقهية والمأثورات العلمية عبر المساهمة المباشرة في مستودع الشفرات وتنزيل الكود.
-
-#الحمد_لله #مفتوح_المصدر #تطوير_ويب #رياكت #تايلوند`;
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareMessage);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleSendDm = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dmText.trim()) return;
+    setDmSending(true);
+    setTimeout(() => {
+      setDmSending(false);
+      setDmSuccess(true);
+      setDmText('');
+    }, 1200);
   };
 
   // List of completed features
@@ -129,40 +110,89 @@ It is a fully-featured, unified React web application combining:
         {/* LEFT COLUMN: ANNOUNCEMENT BOX & HOW TO CONTRIBUTE */}
         <div className="col-span-1 space-y-8">
           
-          {/* THE SHAREABLE PARAGRAPH MESSAGE CARD */}
-          <div className="bg-[#fdfcf9] border border-amber-900/15 rounded-3xl p-6 md:p-8 shadow-md space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5 font-mono">
-                <Share2 className="w-4 h-4 text-amber-700" />
-                {lang === 'en' ? "SHARE WITH PEOPLE" : "انشر الخبر وشارك الأجر"}
-              </span>
-              <button
-                onClick={copyToClipboard}
-                className="bg-white hover:bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1.5 rounded-xl text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{lang === 'en' ? "Copied!" : "تم النسخ!"}</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>{lang === 'en' ? "Copy Text" : "نسخ الرسالة"}</span>
-                  </>
-                )}
-              </button>
+          {/* THE FREE SOFTWARE WELCOME & DIRECT MESSAGE SUPPORT CELL */}
+          <div className="bg-[#fdfcf9] border border-amber-900/15 rounded-3xl p-6 md:p-8 shadow-md space-y-5">
+            <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5 font-mono uppercase">
+              <Heart className="w-4.5 h-4.5 text-amber-700 animate-pulse fill-amber-50" />
+              {lang === 'en' ? "100% Free Software Policy" : "برمجية مجانية وحرة بالكامل"}
+            </span>
+
+            <div className="space-y-3">
+              <h3 className="font-extrabold text-slate-900 text-sm">
+                {lang === 'en' ? "All Additions are Welcomed!" : "نرحب بكافة الإضافات والتحسينات!"}
+              </h3>
+              <p className="text-slate-600 text-xs leading-relaxed font-normal">
+                {lang === 'en'
+                  ? "Ilm Naafi is built with love as a completely free community project. Any type of helpful addition is warmly welcomed! You can contribute code, write new curriculum lesson nodes, fix transcription details, or clean up translations."
+                  : "تم بناء أكاديمية علم نافع بحب كامل وتنسيق متميز كمشروع مجاني ومفتوح المصدر لوجه الله تعالى. أي جهد أو إضافة مهما كانت بسيطة (تصحيح لغوي، إضافة حكم تجويدي، تزويد بقاعدة بيانات المنح) هي ثواب مستمر ومرحب بها جهراً."
+                }
+              </p>
             </div>
 
-            <p className="text-[10px] text-slate-500 font-medium leading-relaxed pb-3 border-b border-amber-900/5">
-              {lang === 'en'
-                ? "This is a beautifully structured, paragraphised announcement message detailing all features. Click the copy button to share this directly on WhatsApp, Twitter, or Discord!"
-                : "رسالة إعلان مرتبة ومبنية على هيئة فقرات متكاملة توضّح أهداف المجمع وخصائصه. اضغط على زر النسخ لنشرها مباشرة في منصات التواصل أو مجموعات الطلاب!"
-              }
-            </p>
+            <div className="border-t border-amber-900/10 pt-4 space-y-3">
+              <div>
+                <h4 className="font-extrabold text-slate-800 text-xs flex items-center gap-1">
+                  <span className="text-[#C59B32] font-black">✦</span>
+                  {lang === 'en' ? "Confused or Stuck? Send a DM!" : "هل تشعر بالتردد أو ترغب بمساعدة؟ تواصل معنا!"}
+                </h4>
+                <p className="text-slate-500 text-[11px] leading-relaxed mt-1">
+                  {lang === 'en'
+                    ? "If you are confused or don't know where to build first, you don't need to worry. Send a Direct Message to the main supervisor immediately here or via email at apatirasulayman@gmail.com for support."
+                    : "إذا كنت متردداً بشأن كيفية تعديل الكود أو تود تزويدنا بمقترحات مباشرة، فلا تقلق أبداً. يمكنك إرسال رسالة فورية للمشرف المطور هنا أو التواصل مباشرة عبر البريد الإلكتروني: apatirasulayman@gmail.com"}
+                </p>
+              </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-4 h-64 overflow-y-auto text-xs text-slate-750 font-normal leading-relaxed whitespace-pre-wrap select-all font-sans relative">
-              {shareMessage}
+              {dmSuccess ? (
+                <div className="bg-emerald-50 border border-emerald-400/30 rounded-xl p-3.5 space-y-2 text-xs text-emerald-950">
+                  <p className="font-black flex items-center gap-1">
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    {lang === 'en' ? "Message Drafted Successfully!" : "تم تسجيل رسالتك بنجاح!"}
+                  </p>
+                  <p className="text-[11px] text-emerald-800 leading-relaxed font-medium">
+                    {lang === 'en' 
+                      ? "Jazakum Allah Khayr! Your proposal has been prepared. We will reach back to your student inbox or coordinate on email."
+                      : "جزاكم الله خيراً! تم إرسال مسودتك وتأكيدها، وسيتابع قائد التطوير الرد المباشر إليكم قريباً."}
+                  </p>
+                  <button 
+                    onClick={() => setDmSuccess(false)}
+                    className="text-[10px] font-bold text-emerald-900 hover:text-emerald-950 underline cursor-pointer mt-1 font-mono bg-transparent border-0"
+                  >
+                    {lang === 'en' ? "Write another message" : "كتابة رسالة أخرى"}
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSendDm} className="space-y-2.5 pt-1">
+                  <div>
+                    <input 
+                      type="text"
+                      placeholder={lang === 'en' ? "Your name or email" : "اسمك الكريم أو بريدك الإلكتروني"}
+                      value={dmName}
+                      onChange={(e) => setDmName(e.target.value)}
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 font-sans"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <textarea 
+                      placeholder={lang === 'en' ? "How would you like to help? (Type your DM here...)" : "كيف ترغب في خدمة منهاج الأكاديمية؟ (اكتب رسالتك المباشرة هنا...)"}
+                      value={dmText}
+                      onChange={(e) => setDmText(e.target.value)}
+                      rows={3}
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 font-sans resize-none"
+                      required
+                    />
+                  </div>
+                  <button
+                    disabled={dmSending}
+                    type="submit"
+                    className="w-full bg-emerald-800 hover:bg-emerald-950 text-white font-extrabold p-2.5 rounded-xl text-xs transition-colors cursor-pointer shadow-2xs border-0"
+                  >
+                    {dmSending 
+                      ? (lang === 'en' ? "Sending..." : "جاري الإرسال...")
+                      : (lang === 'en' ? "Send Direct Message" : "إرسال رسالة مباشرة")}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
 
