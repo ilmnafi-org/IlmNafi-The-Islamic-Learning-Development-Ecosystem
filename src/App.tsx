@@ -173,6 +173,36 @@ const ACTIVE_CIRCLES = [
   }
 ];
 
+const KAABA_LAT = 21.4225;
+const KAABA_LNG = 39.8262;
+
+function calculateQiblah(lat: number, lng: number): number {
+  const phiK = (KAABA_LAT * Math.PI) / 180;
+  const lambdaK = (KAABA_LNG * Math.PI) / 180;
+  const phi = (lat * Math.PI) / 180;
+  const lambda = (lng * Math.PI) / 180;
+  
+  const dLng = lambdaK - lambda;
+  const y = Math.sin(dLng);
+  const x = Math.cos(phi) * Math.tan(phiK) - Math.sin(phi) * Math.cos(dLng);
+  
+  const bearingRad = Math.atan2(y, x);
+  const bearingDeg = (bearingRad * 180) / Math.PI;
+  return (bearingDeg + 360) % 360;
+}
+
+function formatTo12Hour(timeStr: string): string {
+  if (!timeStr) return "";
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return timeStr;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  return `${hours}:${minutes} ${ampm}`;
+}
+
 export default function App() {
   // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'
   const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic'>('home');
@@ -183,6 +213,12 @@ export default function App() {
   const [appLoading, setAppLoading] = useState(true);
   const [loadingQuoteIdx] = useState(() => Math.floor(Math.random() * WISDOM_QUOTES.length));
   
+  // Landing dynamics states
+  const [landingQiblah, setLandingQiblah] = useState<number | null>(null);
+  const [landingNextPrayer, setLandingNextPrayer] = useState<{ name: string; time: string } | null>(null);
+  const [landingLocation, setLandingLocation] = useState<string>("Makkah");
+  const [showLaunchLangGuide, setShowLaunchLangGuide] = useState(true);
+
   // Daily reminder index state
   const [wisdomIdx, setWisdomIdx] = useState(0);
 
@@ -208,6 +244,66 @@ export default function App() {
       setAppLoading(false);
     }, 6200);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Hide language pointer dynamic launch guide after 12 seconds
+    const timer = setTimeout(() => {
+      setShowLaunchLangGuide(false);
+    }, 12000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (navigator?.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          const bearing = calculateQiblah(latitude, longitude);
+          setLandingQiblah(bearing);
+          
+          try {
+            const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`);
+            if (res.ok) {
+              const json = await res.json();
+              const timings = json?.data?.timings;
+              if (timings) {
+                const now = new Date();
+                const hrs = now.getHours();
+                const mins = now.getMinutes();
+                const currentMinTotal = hrs * 60 + mins;
+                
+                const prayerOrder = [
+                  { name: 'Fajr', timeStr: timings.Fajr },
+                  { name: 'Sunrise', timeStr: timings.Sunrise },
+                  { name: 'Dhuhr', timeStr: timings.Dhuhr },
+                  { name: 'Asr', timeStr: timings.Asr },
+                  { name: 'Maghrib', timeStr: timings.Maghrib },
+                  { name: 'Isha', timeStr: timings.Isha }
+                ];
+                
+                let foundNext = prayerOrder[0];
+                for (const pr of prayerOrder) {
+                  const parts = pr.timeStr.split(':');
+                  const prMinTotal = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+                  if (prMinTotal > currentMinTotal) {
+                    foundNext = pr;
+                    break;
+                  }
+                }
+                setLandingNextPrayer({ name: foundNext.name, time: formatTo12Hour(foundNext.timeStr) });
+                setLandingLocation(`${latitude.toFixed(1)}°, ${longitude.toFixed(1)}°`);
+              }
+            }
+          } catch (err) {
+            console.warn("Landing page prayer times dynamic fetch failed", err);
+          }
+        },
+        (err) => {
+          console.log("No dynamic location query for landing page default coords used", err);
+        }
+      );
+    }
   }, []);
 
   useEffect(() => {
@@ -900,15 +996,16 @@ export default function App() {
 
             {/* Direction pointer cue pointing to language change icon */}
             <AnimatePresence>
-              {activeTab === 'daily' && adhkarDrawerActive !== null && (
+              {((activeTab === 'daily' && adhkarDrawerActive !== null) || showLaunchLangGuide) && (
                 <motion.div
                   initial={{ opacity: 0, y: 15, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 15, scale: 0.9 }}
-                  className="absolute right-0 top-full mt-2.5 z-[250] w-48 bg-emerald-900 text-white rounded-2xl p-3 shadow-2xl border border-emerald-500 flex flex-col items-center text-center pointer-events-none"
+                  onClick={() => setShowLaunchLangGuide(false)}
+                  className="absolute right-0 top-full mt-2.5 z-[250] w-48 bg-emerald-950 text-white rounded-2xl p-3 shadow-2xl border border-emerald-500 flex flex-col items-center text-center cursor-pointer transition-transform hover:scale-102"
                 >
                   {/* Upward pointer arrow */}
-                  <div className="absolute -top-1.5 right-6 w-3 h-3 bg-emerald-900 border-t border-l border-emerald-500 rotate-45" />
+                  <div className="absolute -top-1.5 right-6 w-3 h-3 bg-emerald-950 border-t border-l border-emerald-500 rotate-45" />
                   
                   {/* Glowing Indicator pointing upwards */}
                   <motion.div 
@@ -922,8 +1019,8 @@ export default function App() {
                   <span className="text-[11px] font-extrabold tracking-tight text-white leading-tight font-sans">
                     Change language here
                   </span>
-                  <span className="text-[8px] text-emerald-250 mt-0.5 font-medium leading-normal block font-sans">
-                    Switch text, audio & translation instantly
+                  <span className="text-[8px] text-emerald-200 mt-0.5 font-medium leading-normal block font-sans">
+                    Switch text, audio & translation instantly (Tap to close)
                   </span>
                 </motion.div>
               )}
@@ -1644,7 +1741,12 @@ export default function App() {
                       </span>
                       <div>
                         <span className="text-[8px] text-zinc-400 uppercase tracking-widest block font-mono">Qiblah</span>
-                        <span className="text-[10px] font-bold text-white font-sans">57.3° NE (Makkah)</span>
+                        <span className="text-[10px] font-bold text-white font-sans">
+                          {landingQiblah !== null 
+                            ? `${landingQiblah.toFixed(1)}° (${lang === 'en' ? 'Calculated' : 'رصد فلكي'})` 
+                            : `57.3° NE (${lang === 'en' ? 'Makkah' : 'مكة المكرمة'})`
+                          }
+                        </span>
                       </div>
                     </div>
 
@@ -1654,8 +1756,15 @@ export default function App() {
                         🕌
                       </span>
                       <div>
-                        <span className="text-[8px] text-zinc-400 uppercase tracking-widest block font-mono">Next Prayer</span>
-                        <span className="text-[10px] font-bold text-white font-sans">Dhuhr 12:24 PM</span>
+                        <span className="text-[8px] text-zinc-400 uppercase tracking-widest block font-mono">
+                          {lang === 'en' ? "Next Prayer" : "الصلاة القادمة"}
+                        </span>
+                        <span className="text-[10px] font-bold text-white font-sans">
+                          {landingNextPrayer 
+                            ? `${lang === 'en' ? landingNextPrayer.name : (landingNextPrayer.name === 'Fajr' ? 'الفجر' : landingNextPrayer.name === 'Sunrise' ? 'الشروق' : landingNextPrayer.name === 'Dhuhr' ? 'الظهر' : landingNextPrayer.name === 'Asr' ? 'العصر' : landingNextPrayer.name === 'Maghrib' ? 'المغرب' : 'العشاء')} ${landingNextPrayer.time}` 
+                            : `Dhuhr 12:24 PM`
+                          }
+                        </span>
                       </div>
                     </div>
                   </div>

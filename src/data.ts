@@ -334,5 +334,90 @@ export const SCHOLARSHIPS_DATA: Scholarship[] = [
     ],
     description: "Designed for outstanding international scholars wanting to carry out advanced scientific research and academic pursuits in Doha.",
     websiteUrl: "http://www.qu.edu.qa/students/admission/graduate"
+  },
+  {
+    id: "sch-madinah",
+    title: "Islamic University of Madinah International Scholarships",
+    provider: "The Deanship of Admission and Registration, IUM",
+    country: "Saudi Arabia (Madinah)",
+    coverage: "Fully Funded",
+    level: ["Undergraduate", "Postgraduate"],
+    stipendAmount: "SR 840/month + Free Housing + Air Tickets + Free Medical Care",
+    deadline: "2026-11-30",
+    eligibility: [
+      "Muslim male applicants with excellent high school standing (GPA 3.0+ minimum)",
+      "Be under 25 years old at the beginning of the academic year",
+      "Accredited secondary school certificate or equivalent with good behavior history"
+    ],
+    description: "The official, world-famous scholarship scheme enabling students globally to study Islamic Jurisprudence, Quranic Studies, Arabic Language, Engineering, Computer Science, and Science in the blessed city of Madinah.",
+    websiteUrl: "https://admission.iu.edu.sa"
+  },
+  {
+    id: "sch-hbku",
+    title: "Hamad Bin Khalifa University Graduate Fellowships",
+    provider: "Qatar Foundation",
+    country: "Qatar (Education City, Doha)",
+    coverage: "Fully Funded",
+    level: ["Postgraduate", "Research Grants"],
+    stipendAmount: "QR 5,000/month (M.Sc.) or QR 7,500/month (Ph.D.) + Accommodation + Annual Air Ticket",
+    deadline: "2026-09-01",
+    eligibility: [
+      "Applicants with excellent undergraduate or Master's degrees from accredited universities",
+      "Meets the language requirement (IELTS/TOEFL) for english-taught programs",
+      "Research proposal required for doctoral/research programs"
+    ],
+    description: "Highly competitive, fully-funded educational grants for international scholars who wish to pursue cutting-edge research in Islamic Studies, Humanities, Sustainability, Health, and Science at HBKU in Doha.",
+    websiteUrl: "https://www.hbku.edu.qa/en/admissions"
+  },
+  {
+    id: "sch-ksu",
+    title: "King Saud University External Scholarship Program",
+    provider: "Ministry of Education / King Saud University",
+    country: "Saudi Arabia (Riyadh)",
+    coverage: "Fully Funded",
+    level: ["Undergraduate", "Postgraduate"],
+    stipendAmount: "SR 1,000/month + Full Tuition Waiver + Free Double Room Housing + Subsidized Meals",
+    deadline: "2026-10-15",
+    eligibility: [
+      "Excellent secondary school grade or standard cumulative college GPA",
+      "Age constraints apply (under 25 for Undergraduate; under 30 for MSc; under 35 for PhD)",
+      "Not having been awarded another scholarship from a Saudi educational institution"
+    ],
+    description: "The flagship scholarship program for Saudi Arabia's premier non-sectarian university, offering robust education tracks in modern Sciences, Engineering, Pharmacy, Quranic Linguistics, and Arabic literature.",
+    websiteUrl: "https://dar.ksu.edu.sa"
+  },
+  {
+    id: "sch-brunei",
+    title: "Brunei Darussalam Government Scholarship",
+    provider: "Ministry of Foreign Affairs, Brunei Darussalam",
+    country: "Brunei",
+    coverage: "Fully Funded",
+    level: ["Undergraduate", "Postgraduate"],
+    stipendAmount: "BND 500/month + Airfare + Accommodation + Full Tuition + Health Insurance",
+    deadline: "2026-10-31",
+    eligibility: [
+      "International applicants from ASEAN, OIC, and Commonwealth member countries",
+      "Age must not be more than 25 for undergraduate, or 35 for post-graduate",
+      "Excellent high school or university academic records"
+    ],
+    description: "A complete government-funded scholarship offering candidates the opportunity to study at leading universities in Brunei, including Universiti Brunei Darussalam (UBD) and Universiti Islam Sultan Sharif Ali (UNISSA).",
+    websiteUrl: "http://www.mfa.gov.bn/pages/online-bdgs.aspx"
+  },
+  {
+    id: "sch-alazhar",
+    title: "Al-Azhar Al-Sharif Islamic Scholarship Exchange",
+    provider: "The Grand Imamate of Al-Azhar Al-Sharif",
+    country: "Egypt (Cairo)",
+    coverage: "Fully Funded",
+    level: ["Undergraduate", "Postgraduate"],
+    stipendAmount: "EGP 4,500/month + Free Lodging in Al-Azhar Hostels + Exemption from Tuition Fees",
+    deadline: "2026-09-30",
+    eligibility: [
+      "Excellent baseline recommendation from trusted native Islamic bodies in your home country",
+      "Excluding Egyptian citizens",
+      "Passing the general Arabic language compatibility test"
+    ],
+    description: "The grand classical learning scholarship by Al-Azhar Al-Sharif, welcoming thousands of international students to deepen their understanding of Islamic theology, Arabic grammar, and secondary sciences.",
+    websiteUrl: "http://www.azhar.eg"
   }
 ];
