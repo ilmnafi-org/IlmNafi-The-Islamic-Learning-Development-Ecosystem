@@ -179,6 +179,7 @@ export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adhkarDrawerActive, setAdhkarDrawerActive] = useState<'tasbih' | 'prayers' | 'dua' | null>(null);
   const [appLoading, setAppLoading] = useState(true);
   const [loadingQuoteIdx] = useState(() => Math.floor(Math.random() * WISDOM_QUOTES.length));
   
@@ -710,7 +711,7 @@ export default function App() {
       </AnimatePresence>
 
       <div 
-        className="bg-[#fafbfc] text-slate-900 font-sans antialiased min-h-screen flex flex-col relative pb-20 md:pb-0" 
+        className="bg-[#fafbfc] text-slate-900 font-sans antialiased min-h-screen flex flex-col relative pb-0" 
         id="ilm-naafi-app"
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
       >
@@ -885,16 +886,49 @@ export default function App() {
         <div className="flex items-center gap-3">
           
           {/* Languange switcher toggle */}
-          <button
-            onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-            className="flex items-center gap-1 bg-slate-50 hover:bg-amber-50 hover:text-amber-900 text-slate-700 rounded-xl px-3 py-1.5 border border-slate-200 transition-colors text-xs font-semibold"
-            id="lang-toggle-nav"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">
-              {lang === 'en' ? "العربية" : "English"}
-            </span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+              className="flex items-center gap-1 bg-slate-50 hover:bg-amber-50 hover:text-amber-900 text-slate-700 rounded-xl px-3 py-1.5 border border-slate-200 transition-colors text-xs font-semibold"
+              id="lang-toggle-nav"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">
+                {lang === 'en' ? "العربية" : "English"}
+              </span>
+            </button>
+
+            {/* Direction pointer cue pointing to language change icon */}
+            <AnimatePresence>
+              {activeTab === 'daily' && adhkarDrawerActive !== null && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.9 }}
+                  className="absolute right-0 top-full mt-2.5 z-[250] w-48 bg-emerald-900 text-white rounded-2xl p-3 shadow-2xl border border-emerald-500 flex flex-col items-center text-center pointer-events-none"
+                >
+                  {/* Upward pointer arrow */}
+                  <div className="absolute -top-1.5 right-6 w-3 h-3 bg-emerald-900 border-t border-l border-emerald-500 rotate-45" />
+                  
+                  {/* Glowing Indicator pointing upwards */}
+                  <motion.div 
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                    className="text-amber-300 text-sm font-bold mb-1"
+                  >
+                    ↑
+                  </motion.div>
+                  
+                  <span className="text-[11px] font-extrabold tracking-tight text-white leading-tight font-sans">
+                    Change language here
+                  </span>
+                  <span className="text-[8px] text-emerald-250 mt-0.5 font-medium leading-normal block font-sans">
+                    Switch text, audio & translation instantly
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* User ID controls */}
           {progress.username ? (
@@ -2482,7 +2516,7 @@ export default function App() {
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.25 }}
           >
-            <DailyView lang={lang} />
+            <DailyView lang={lang} onDrawerChange={(drawer) => setAdhkarDrawerActive(drawer)} />
           </motion.div>
         )}
 

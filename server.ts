@@ -1053,6 +1053,60 @@ Provide your response in raw JSON format matching this schema strictly. Don't ad
   }
 });
 
+// Serve authentic daily reminders collection
+app.get("/api/adhkar", (req, res) => {
+  const category = (req.query.category as string || "anxiety").toLowerCase();
+  const items = [
+    {
+      id: "tr_01",
+      category: "travel",
+      arabic: "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَى رَبِّنَا لَمُنقَلِبُونَ",
+      transliteration: "Subhanal-ladhee sakhkhara lana hadha wa ma kunna lahu muqrineen, wa inna ila Rabbina lamunqaliboon.",
+      translationEn: "Glory to Him Who has subjected this to us, and we could never have it by our effort. And indeed, to our Lord we will return.",
+      source: "Surah Az-Zukhruf 13-14",
+      grade: "Sahih"
+    },
+    {
+      id: "tr_02",
+      category: "travel",
+      arabic: "اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى",
+      transliteration: "Allahumma inna nas'aluka fee safarina hadhal-birra wat-taqwa, wa minal-'amali ma tardha.",
+      translationEn: "O Allah, we ask You on this journey of ours for righteousness and piety, and for deeds that please You.",
+      source: "Sahih Muslim 1342",
+      grade: "Sahih"
+    },
+    {
+      id: "ax_01",
+      category: "anxiety",
+      arabic: "لَا إِلَهَ إِلَّا اللَّهُ الْعَظِيمُ الْحَلِيمُ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ الْعَرْشِ الْعَظِيمِ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ السَّمَاوَاتِ وَرَبُّ الْأَرْضِ وَرَبُّ الْعَرْشِ الْكَرِيمِ",
+      transliteration: "La ilaha illallahul-'Adheemul-Haleem, la ilaha illallahu Rabbul-'Arshil-'Adheem...",
+      translationEn: "There is no deity except Allah, the All-Great, the Forbearing; there is no deity except Allah, Lord of the Magnificent Throne...",
+      source: "Bukhari 6346 / Muslim 2730",
+      grade: "Sahih"
+    },
+    {
+      id: "ax_02",
+      category: "anxiety",
+      arabic: "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ",
+      transliteration: "Ya Hayyu ya Qayyoomu bi-rahmatika astagheeth, aslih lee sha'nee kullahu wa la takilnee ila nafsee tarfata 'ayn.",
+      translationEn: "O Ever-Living, O Sustainer, in Your mercy I seek relief. Amend all of my affairs and do not leave me to myself even for a blink of an eye.",
+      source: "Al-Hakim / Sahih Al-Jami 3388",
+      grade: "Sahih"
+    },
+    {
+      id: "fd_01",
+      category: "food",
+      arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ",
+      transliteration: "Al-hamdu lillahil-ladhee at'amanee hadha wa razaqaneehi min ghayri hawlin minnee wa la quwwah.",
+      translationEn: "Praise is to Allah Who has fed me this and provided it for me without any strength or power on my part.",
+      source: "At-Tirmidhi 3458",
+      grade: "Hasan"
+    }
+  ];
+  const filtered = items.filter(x => x.category === category);
+  res.json(filtered.length > 0 ? filtered : items);
+});
+
 // Serve API check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ status: "healthy", time: new Date() });

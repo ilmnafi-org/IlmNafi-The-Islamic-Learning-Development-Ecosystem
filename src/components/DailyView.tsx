@@ -38,6 +38,7 @@ import { AUTHENTIC_ADHKAR_DB, DhikrItem, DAILY_WIRDS_PRESETS } from '../adhkarDa
 
 interface DailyViewProps {
   lang: 'en' | 'ar';
+  onDrawerChange?: (drawer: 'tasbih' | 'prayers' | 'dua' | null) => void;
 }
 
 interface CustomDua {
@@ -58,10 +59,15 @@ interface PeerActivity {
   action: string;
 }
 
-export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
+export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) => {
   // Navigation: Sub-tabs within the Spiritual Board
   const [activeSubTab, setActiveSubTab] = useState<'walkthrough' | 'tasbih' | 'prayers' | 'dua'>('walkthrough');
   const [activeAdhkarDrawer, setActiveAdhkarDrawer] = useState<'tasbih' | 'prayers' | 'dua' | null>(null);
+
+  const handleSetAdhkarDrawer = (val: 'tasbih' | 'prayers' | 'dua' | null) => {
+    setActiveAdhkarDrawer(val);
+    onDrawerChange?.(val);
+  };
   
   // Translation dictionary
   const t = {
@@ -198,8 +204,8 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
   const [notificationStatusMsg, setNotificationStatusMsg] = useState<{ text: string; mode: 'success' | 'warn' | 'error' } | null>(null);
 
   // Adhkar Step-Through selection module
-  const [adhkarCategory, setAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life'>('morning');
-  const [selectedAdhkarCategory, setSelectedAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life' | null>(null);
+  const [adhkarCategory, setAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life' | 'travel' | 'anxiety' | 'food'>('morning');
+  const [selectedAdhkarCategory, setSelectedAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life' | 'travel' | 'anxiety' | 'food' | null>(null);
   const [adhkarIndex, setAdhkarIndex] = useState(0);
   const [adhkarCompletedStates, setAdhkarCompletedStates] = useState<{[key: string]: number}>({}); // tracks clicks per item ID
   const [translationLang, setTranslationLang] = useState<'en' | 'ar' | 'ur' | 'ha'>(lang);
@@ -830,14 +836,17 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                   </p>
                 </div>
 
-                {/* MUSHAF-STYLE CATEGORY INDEX GRID - 3 COLUMNS ON MOBILE */}
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 max-w-4xl mx-auto" id="adhkar-categories-index-grid">
+                {/* MUSHAF-STYLE CATEGORY INDEX GRID - 8 COLUMNS */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-3 max-w-6xl mx-auto" id="adhkar-categories-index-grid">
                   {[
                     { type: 'morning', title: t.morningTitle, descEn: "Morning Protection", descAr: "أذكار الصباح الشريفة", icon: '☀️' },
                     { type: 'evening', title: t.eveningTitle, descEn: "Evening Protection", descAr: "أذكار المساء الشريفة", icon: '🌙' },
                     { type: 'after_salah', title: t.salahTitle, descEn: "Post-Salah Prayers", descAr: "أدعية ما بعد الصلاة", icon: '📿' },
                     { type: 'sleep', title: t.sleepTitle, descEn: "Before Sleeping", descAr: "أذكار النوم الصحيحة", icon: '💤' },
                     { type: 'daily_life', title: t.dailyLifeTitle, descEn: "Remembrance of Life", descAr: "الأدعية اليومية العامة", icon: '🤲' },
+                    { type: 'travel', title: lang === 'en' ? "Travel Dua" : "أذكار السفر", descEn: "Safe Journeying", descAr: "أدعية السفر والركوب", icon: '🚀' },
+                    { type: 'anxiety', title: lang === 'en' ? "Relief & Peace" : "الكرب والفرج", descEn: "Overcome Anxiety", descAr: "أدعية الهم والحزن", icon: '🛡️' },
+                    { type: 'food', title: lang === 'en' ? "Food & Drinks" : "أذكار الطعام", descEn: "Eating Gratitude", descAr: "أدعية الطعام والشراب", icon: '🍉' },
                   ].map((item) => {
                     const count = AUTHENTIC_ADHKAR_DB.filter(x => x.category === item.type).length;
                     return (
@@ -849,21 +858,21 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                           setSelectedAdhkarCategory(item.type as any);
                           setAdhkarIndex(0);
                         }}
-                        className="aspect-square bg-white border border-slate-200/80 hover:border-amber-600 rounded-2xl p-2.5 flex flex-col items-center justify-between text-center transition-all duration-200 hover:shadow-md cursor-pointer group active:scale-95 shadow-xs"
+                        className="aspect-square bg-white border border-slate-200/80 hover:border-amber-600 rounded-2xl p-2 flex flex-col items-center justify-between text-center transition-all duration-200 hover:shadow-md cursor-pointer group active:scale-95 shadow-xs"
                       >
-                        <div className="w-10 h-10 rounded-full bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-xl transition">
+                        <div className="w-9 h-9 rounded-full bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-lg transition">
                           {item.icon}
                         </div>
                         <div className="space-y-0.5 mt-1 select-none">
-                          <h4 className="font-extrabold text-[11px] text-slate-800 group-hover:text-amber-800 leading-tight">
+                          <h4 className="font-extrabold text-[10px] text-slate-800 group-hover:text-amber-800 leading-tight truncate max-w-full">
                             {item.title}
                           </h4>
-                          <p className="text-[8px] text-slate-400 font-medium truncate block max-w-full">
+                          <p className="text-[7.5px] text-slate-400 font-medium truncate block max-w-full">
                             {lang === 'en' ? item.descEn : item.descAr}
                           </p>
                         </div>
-                        <span className="text-[7px] uppercase font-mono font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md leading-none select-none">
-                          {count} {lang === 'en' ? "Remembrances" : "أذكار"}
+                        <span className="text-[7px] uppercase font-mono font-black bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md leading-none select-none">
+                          {count} {lang === 'en' ? "Adhkar" : "أذكار"}
                         </span>
                       </button>
                     );
@@ -886,10 +895,10 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                   </button>
                   <div className="flex items-center gap-2">
                     <span className="text-lg">
-                      {selectedAdhkarCategory === 'morning' ? '☀️' : selectedAdhkarCategory === 'evening' ? '🌙' : selectedAdhkarCategory === 'after_salah' ? '📿' : selectedAdhkarCategory === 'sleep' ? '💤' : '🤲'}
+                      {selectedAdhkarCategory === 'morning' ? '☀️' : selectedAdhkarCategory === 'evening' ? '🌙' : selectedAdhkarCategory === 'after_salah' ? '📿' : selectedAdhkarCategory === 'sleep' ? '💤' : selectedAdhkarCategory === 'travel' ? '🚀' : selectedAdhkarCategory === 'anxiety' ? '🛡️' : selectedAdhkarCategory === 'food' ? '🍉' : '🤲'}
                     </span>
-                    <h3 className="text-sm font-black text-slate-900 capitalize">
-                      {lang === 'en' ? `${selectedAdhkarCategory.replace('_', ' ')} Walkthrough` : `أذكار ${selectedAdhkarCategory === 'morning' ? 'الصباح' : selectedAdhkarCategory === 'evening' ? 'المساء' : selectedAdhkarCategory === 'after_salah' ? 'بعد الصلاة' : selectedAdhkarCategory === 'sleep' ? 'النوم' : 'اليوم الكلية'}`}
+                    <h3 className="text-sm font-black text-slate-900 capitalize font-sans">
+                      {lang === 'en' ? `${selectedAdhkarCategory.replace('_', ' ')} Walkthrough` : `أذكار ${selectedAdhkarCategory === 'morning' ? 'الصباح' : selectedAdhkarCategory === 'evening' ? 'المساء' : selectedAdhkarCategory === 'after_salah' ? 'بعد الصلاة' : selectedAdhkarCategory === 'sleep' ? 'النوم' : selectedAdhkarCategory === 'travel' ? 'السفر والركوب' : selectedAdhkarCategory === 'anxiety' ? 'الفرج والهمّ' : selectedAdhkarCategory === 'food' ? 'الطعام والشراب' : 'اليوم الكلية'}`}
                     </h3>
                   </div>
                 </div>
@@ -1273,19 +1282,28 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[200] cursor-pointer"
-              onClick={() => setActiveAdhkarDrawer(null)}
+              onClick={() => handleSetAdhkarDrawer(null)}
             />
             {/* Slide-Up Sheet */}
             <motion.div
               key="tasbih-drawer"
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 600 }}
+              dragElastic={{ top: 0, bottom: 0.4 }}
+              onDragEnd={(event, info) => {
+                if (info.offset.y > 150) {
+                  handleSetAdhkarDrawer(null);
+                }
+              }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "105%" }}
               transition={{ type: "spring", damping: 30, stiffness: 220 }}
               className="fixed bottom-0 inset-x-0 bg-white text-slate-800 rounded-t-[2rem] shadow-2xl z-[201] max-h-[90vh] overflow-y-auto border-t border-slate-205 pb-12"
             >
-              <div className="flex justify-center py-3.5">
-                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => setActiveAdhkarDrawer(null)} />
+              <div className="flex flex-col items-center py-3.5 select-none">
+                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => handleSetAdhkarDrawer(null)} />
+                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-1 font-sans">Swipe down or tap above to close</span>
               </div>
               
               <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 space-y-6">
@@ -1297,7 +1315,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                     </h3>
                   </div>
                   <button
-                    onClick={() => setActiveAdhkarDrawer(null)}
+                    onClick={() => handleSetAdhkarDrawer(null)}
                     type="button"
                     className="p-1.5 px-4 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-black cursor-pointer border-0 transition-all active:scale-95"
                   >
@@ -1568,19 +1586,28 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[200] cursor-pointer"
-              onClick={() => setActiveAdhkarDrawer(null)}
+              onClick={() => handleSetAdhkarDrawer(null)}
             />
             {/* Slide-Up Sheet */}
             <motion.div
               key="prayers-drawer"
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 600 }}
+              dragElastic={{ top: 0, bottom: 0.4 }}
+              onDragEnd={(event, info) => {
+                if (info.offset.y > 150) {
+                  handleSetAdhkarDrawer(null);
+                }
+              }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "105%" }}
               transition={{ type: "spring", damping: 30, stiffness: 220 }}
               className="fixed bottom-0 inset-x-0 bg-white text-slate-800 rounded-t-[2rem] shadow-2xl z-[201] max-h-[90vh] overflow-y-auto border-t border-slate-205 pb-12"
             >
-              <div className="flex justify-center py-3.5">
-                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => setActiveAdhkarDrawer(null)} />
+              <div className="flex flex-col items-center py-3.5 select-none">
+                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => handleSetAdhkarDrawer(null)} />
+                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-1 font-sans">Swipe down or tap above to close</span>
               </div>
               
               <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 space-y-6 pb-12">
@@ -1592,7 +1619,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                     </h3>
                   </div>
                   <button
-                    onClick={() => setActiveAdhkarDrawer(null)}
+                    onClick={() => handleSetAdhkarDrawer(null)}
                     type="button"
                     className="p-1.5 px-4 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-black cursor-pointer border-0 transition-all active:scale-95"
                   >
@@ -1910,19 +1937,28 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[200] cursor-pointer"
-              onClick={() => setActiveAdhkarDrawer(null)}
+              onClick={() => handleSetAdhkarDrawer(null)}
             />
             {/* Slide-Up Sheet */}
             <motion.div
               key="dua-drawer"
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 600 }}
+              dragElastic={{ top: 0, bottom: 0.4 }}
+              onDragEnd={(event, info) => {
+                if (info.offset.y > 150) {
+                  handleSetAdhkarDrawer(null);
+                }
+              }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "105%" }}
               transition={{ type: "spring", damping: 30, stiffness: 220 }}
               className="fixed bottom-0 inset-x-0 bg-white text-slate-800 rounded-t-[2rem] shadow-2xl z-[201] max-h-[90vh] overflow-y-auto border-t border-slate-205 pb-12"
             >
-              <div className="flex justify-center py-3.5">
-                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => setActiveAdhkarDrawer(null)} />
+              <div className="flex flex-col items-center py-3.5 select-none">
+                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => handleSetAdhkarDrawer(null)} />
+                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-1 font-sans">Swipe down or tap above to close</span>
               </div>
               
               <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 space-y-6 pb-12">
@@ -1934,7 +1970,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                     </h3>
                   </div>
                   <button
-                    onClick={() => setActiveAdhkarDrawer(null)}
+                    onClick={() => handleSetAdhkarDrawer(null)}
                     type="button"
                     className="p-1.5 px-4 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-black cursor-pointer border-0 transition-all active:scale-95"
                   >
@@ -2196,7 +2232,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
           <div className="bg-linear-to-b from-[#0e4b3b] to-[#062c21] border border-emerald-700/50 rounded-3xl shadow-2xl p-2 md:p-2.5 flex items-center justify-around text-white">
             
             <button 
-              onClick={() => setActiveAdhkarDrawer('prayers')}
+              onClick={() => handleSetAdhkarDrawer('prayers')}
               type="button"
               className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all w-1/3 hover:bg-emerald-800/40 cursor-pointer active:scale-95 ${activeAdhkarDrawer === 'prayers' ? 'bg-amber-900/45 text-amber-300 font-bold' : 'text-slate-200'}`}
             >
@@ -2207,7 +2243,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
             <div className="w-[1px] h-8 bg-emerald-800/40" />
 
             <button 
-              onClick={() => setActiveAdhkarDrawer('tasbih')}
+              onClick={() => handleSetAdhkarDrawer('tasbih')}
               type="button"
               className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all w-1/3 hover:bg-emerald-800/40 cursor-pointer active:scale-95 ${activeAdhkarDrawer === 'tasbih' ? 'bg-amber-900/45 text-amber-300 font-bold' : 'text-slate-200'}`}
             >
@@ -2218,7 +2254,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
             <div className="w-[1px] h-8 bg-emerald-800/40" />
 
             <button 
-              onClick={() => setActiveAdhkarDrawer('dua')}
+              onClick={() => handleSetAdhkarDrawer('dua')}
               type="button"
               className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all w-1/3 hover:bg-emerald-800/40 cursor-pointer active:scale-95 ${activeAdhkarDrawer === 'dua' ? 'bg-amber-900/45 text-amber-300 font-bold' : 'text-slate-200'}`}
             >

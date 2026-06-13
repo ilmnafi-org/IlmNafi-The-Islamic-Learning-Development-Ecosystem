@@ -46,6 +46,14 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
   // List of completed features
   const completedFeatures = [
     {
+      title: lang === 'en' ? "Modular Swipeable Adhkar Drawers" : "لوحات الأذكار المنزلقة تفاعلياً",
+      desc: lang === 'en' ? "Full gesture support with drag-to-close capabilities on mobile devices for smooth spiritual workflows." : "تحكم كامل بالإيماءات والسحب للأسفل لإغلاق اللواحق الرقمية (مواقيت الصلاة، المسبحة، ومساعد الأدعية)."
+    },
+    {
+      title: lang === 'en' ? "Verifiably Sourced Adhkar Database" : "قاعدة بيانات الأذكار المحققة المأثورة",
+      desc: lang === 'en' ? "Includes morning, evening, sleep, after-prayer, travel, relief/distress, eating and drinking supplications." : "توسيع مكتبة الأوراد المحققة كاملة لتضم السفر، والفرج من الهموم والكروب، وأدعية الأكل والشرب بمطابقة الأسانيد."
+    },
+    {
       title: lang === 'en' ? "Interactive Makhraj Visualizer" : "معمل مخارج الحروف التفاعلي",
       desc: lang === 'en' ? "Simulates speech articulation zones (tongue, teeth, throat) with interactive canvas controllers to guide correct consonant vocalization." : "محاكاة واقعية لنقاط النطق (الحلق، الشفتان، اللسان) بطريقة تفاعلية لتعزيز الفهم السليم لمخارج الحروف العربية."
     },
@@ -60,10 +68,6 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
     {
       title: lang === 'en' ? "Scholarship Opportunities Tracker" : "بوابة المنح وديوان حفظ الفرص",
       desc: lang === 'en' ? "Curates verified financial undergraduate, graduate and research fellowships with custom application states and in-memory drafting note panels." : "يجمع المنح الأكاديمية الحقيقية والممولة بالكامل مع توفير طاولة تحرير للمسودات ومتابعة حالة التقديم (مقبول، تم التقديم) بذاكرة حية."
-    },
-    {
-      title: lang === 'en' ? "Auth Page Smooth Transitions" : "حركات انتقالية متقنة لبوابات العضوية",
-      desc: lang === 'en' ? "Spring-loaded expandable text fields, dynamic role toggling, responsive layouts using high speed React AnimatePresence and layout layouts." : "تفاعلات تبديل سلسة ومتجاوبة لتبويب تسجيل الدخول وتوثيق بطاقة الطالب مع ارتفاع حركي مرن وتضمين سلس لحقول الإدخال."
     }
   ];
 

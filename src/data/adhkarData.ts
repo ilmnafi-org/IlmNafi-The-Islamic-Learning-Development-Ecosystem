@@ -5,7 +5,7 @@
 
 export interface DhikrItem {
   id: string;
-  category: 'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life';
+  category: 'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life' | 'travel' | 'anxiety' | 'food';
   arabic: string;
   transliteration: string;
   translationEn: string;
@@ -792,6 +792,81 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
     virtueEn: "These three chapters will suffice you from all physical and spiritual harm of night.",
     virtueAr: "قراءة المعوذات ثلاث مرات تكفيك من كل سوء وشرور الشياطين طول الليلة.",
     grade: "Sahih"
+  },
+  {
+    id: "tr_01",
+    category: "travel",
+    arabic: "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَى رَبِّنَا لَمُنقَلِبُونَ",
+    transliteration: "Subhanal-ladhee sakhkhara lana hadha wa ma kunna lahu muqrineen, wa inna ila Rabbina lamunqaliboon.",
+    translationEn: "Glory to Him Who has subjected this to us, and we could never have it by our effort. And indeed, to our Lord we will return.",
+    translationAr: "سبحان الذي يسر لنا هذه المركبة والوسيلة وما كنا لنقوى عليها لولا تسخيره وإنا إليه راجعون.",
+    translationUr: "پاک ہے وہ ذات جس نے ہمارے لیے اسے مسخر کیا ورنہ ہم میں اس کی طاقت نہ تھی۔",
+    translationHa: "Tsarki ya tabbata ga wanda ya hore mana wannan.",
+    targetCount: 1,
+    source: "Surah Az-Zukhruf 13-14",
+    virtueEn: "Recited when mounting a vehicle or commencing travel for divine preservation and safety.",
+    virtueAr: "دعاء ركوب السيارة أو الطائرة أو أي واسطة سفر لحفظ النفس وحمايتها من العوارض.",
+    grade: "Sahih"
+  },
+  {
+    id: "tr_02",
+    category: "travel",
+    arabic: "اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى",
+    transliteration: "Allahumma inna nas'aluka fee safarina hadhal-birra wat-taqwa, wa minal-'amali ma tardha.",
+    translationEn: "O Allah, we ask You on this journey of ours for righteousness and piety, and for deeds that please You.",
+    translationAr: "اللهم إنا نسألك في سفرنا هذا البر والتقوى وعملاً صالحاً يرضيك عنا.",
+    translationUr: "اے اللہ! ہم آپ سے اپنے اس سفر میں نیکی اور تقویٰ اور ایسے عمل کا سوال کرتے ہیں جس سے آپ راضی ہو جائیں۔",
+    translationHa: "Ya Allah, muna rokon Ka a cikin wannan tafiya tamu domin kyautatawa da tsoron Allah.",
+    targetCount: 1,
+    source: "Sahih Muslim 1342",
+    virtueEn: "Aligns the traveler's intention towards continuous obedience and spiritual safety during the journey.",
+    virtueAr: "توجيه الهمة نحو الطاعة والذكر وصيانة السلوك من المعاصي أثناء الغربة والسفر.",
+    grade: "Sahih"
+  },
+  {
+    id: "ax_01",
+    category: "anxiety",
+    arabic: "لَا إِلَهَ إِلَّا اللَّهُ الْعَظِيمُ الْحَلِيمُ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ الْعَرْشِ الْعَظِيمِ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ السَّمَاوَاتِ وَرَبُّ الْأَرْضِ وَرَبُّ الْعَرْشِ الْكَرِيمِ",
+    transliteration: "La ilaha illallahul-'Adheemul-Haleem, la ilaha illallahu Rabbul-'Arshil-'Adheem, la ilaha illallahu Rabbus-samawati wa Rabbul-ardi wa Rabbul-'Arshil-Kareem.",
+    translationEn: "There is no deity except Allah, the All-Great, the Forbearing; there is no deity except Allah, Lord of the Magnificent Throne; there is no deity except Allah, Lord of the heavens and Lord of the earth and Lord of the Noble Throne.",
+    translationAr: "لا إله إلا الله العظيم الحليم... الكلمة العظمى لتفريج الهم والكروب العظيمة للقلب.",
+    translationUr: "اللہ العظیم الحلیم کے سوا کوئی معبود نہیں، اللہ رب العرش العظیم کے سوا کوئی معبود نہیں۔",
+    translationHa: "Babu abin bautawa sai Allah Mai girma, Mai natsuwa, Ubangijin Al'arshi mai daraja.",
+    targetCount: 1,
+    source: "Bukhari 6346 / Muslim 2730",
+    virtueEn: "The premier distress-relief supplication taught by the Prophet to restore complete calm in immense hardship.",
+    virtueAr: "أعظم دعاء لفك المكروبات ودفع ثقل القلوب الحزينة وبعث الطمأنينة.",
+    grade: "Sahih"
+  },
+  {
+    id: "ax_02",
+    category: "anxiety",
+    arabic: "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ",
+    transliteration: "Ya Hayyu ya Qayyoomu bi-rahmatika astagheeth, aslih lee sha'nee kullahu wa la takilnee ila nafsee tarfata 'ayn.",
+    translationEn: "O Ever-Living, O Sustainer, in Your mercy I seek relief. Amend all of my affairs and do not leave me to myself even for a blink of an eye.",
+    translationAr: "يا حي يا قيوم برحمتك أستغيث، أصلح لي شأني كله ولا تكلني إلى نفسي طرفة عين.",
+    translationUr: "اے زندہ اور قائم رہنے والے! میں تیری رحمت کے ساتھ فریاد کرتا ہوں، میرے تمام حالات کی اصلاح فرما۔",
+    translationHa: "Ya Rayayye, Ya Madawwami, saboda rahamarka nake neman taimako sanya mini zaman lafiya.",
+    targetCount: 1,
+    source: "Al-Hakim / Sahih Al-Jami 3388",
+    virtueEn: "Seeks total reliance on the Creator to guide decisions and soothe an overthinking mind.",
+    virtueAr: "سؤال الاستغاثة برحمة الله وتسهيل سبل الحياة المادية والذهنية.",
+    grade: "Sahih"
+  },
+  {
+    id: "fd_01",
+    category: "food",
+    arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ",
+    transliteration: "Al-hamdu lillahil-ladhee at'amanee hadha wa razaqaneehi min ghayri hawlin minnee wa la quwwah.",
+    translationEn: "Praise is to Allah Who has fed me this and provided it for me without any strength or power on my part.",
+    translationAr: "الحمد لله الذي رزقني وأطعمني هذا الغذاء من غير تعب مني ولا مجهود وقوة.",
+    translationUr: "تمام تعریفیں اس اللہ کے لیے ہیں جس نے مجھے یہ کھلایا اور میری کسی طاقت کے بغیر عطا کیا۔",
+    translationHa: "Godiya ta tabbata ga Allah wanda ya ciyar da ni da wannan.",
+    targetCount: 1,
+    source: "At-Tirmidhi 3458",
+    virtueEn: "All the reciter's past minor sins are instantly forgiven as recorded in the Sunnah.",
+    virtueAr: "من قاله عند الفراغ من طعامه غُفر له ما تقدم من ذنبه شكراً على نعمته الميسرة.",
+    grade: "Hasan"
   }
 ];
 

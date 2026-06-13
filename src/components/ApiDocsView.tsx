@@ -136,6 +136,30 @@ Cache-Control: public, max-age=31536000`
     "repliesCount": 3
   }
 ]`
+    },
+    {
+      id: 'adhkar-collection',
+      method: 'GET',
+      path: '/api/adhkar?category=:categoryName',
+      desc: lang === 'en'
+        ? 'Retrieve an itemized collection of authenticated daily remembrances filtered by category (morning, evening, sleep, after_salah, travel, anxiety, food).'
+        : 'استرجاع قائمة الأذكار المحققة المأثورة مصفاة حسب التصنيف (الصباح، المساء، النوم، بعد الصلاة، السفر، الكرب، الطعام).',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      curl: 'curl -X GET https://ilmnaafi.com/api/adhkar?category=anxiety',
+      response: `[
+  {
+    "id": "ax_01",
+    "category": "anxiety",
+    "arabic": "لَا إِلَهَ إِلَّا اللَّهُ الْعَظِيمُ الْحَلِيمُ...",
+    "transliteration": "La ilaha illallahul-Adheemul-Haleem...",
+    "translationEn": "There is no deity except Allah, the All-Great, the Forbearing...",
+    "targetCount": 1,
+    "source": "Bukhari 6346 / Muslim 2730",
+    "grade": "Sahih"
+  }
+]`
     }
   ];
 
