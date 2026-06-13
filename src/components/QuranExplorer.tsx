@@ -211,14 +211,14 @@ export default function QuranExplorer({
   const [localTajweed, setLocalTajweed] = useState<boolean>(() => {
     return localStorage.getItem('ilm_naafi_tajweed_mode') !== 'false';
   });
-  const [primaryReciter, setPrimaryReciter] = useState<'ghamadi' | 'husary'>(() => {
-    return (localStorage.getItem('ilm_naafi_primary_reciter') as 'ghamadi' | 'husary') || 'husary';
+  const [primaryReciter, setPrimaryReciter] = useState<'ghamadi' | 'husary' | 'kameny' | 'sudais' | 'shuraim' | 'muaiqly'>(() => {
+    return (localStorage.getItem('ilm_naafi_primary_reciter') as any) || 'husary';
   });
 
   const [activeQiraat] = useState<'hafs' | 'warsh'>('hafs');
   const activeTajweed = tajweedMode !== undefined ? tajweedMode : localTajweed;
 
-  const selectPrimaryReciter = (r: 'ghamadi' | 'husary') => {
+  const selectPrimaryReciter = (r: 'ghamadi' | 'husary' | 'kameny' | 'sudais' | 'shuraim' | 'muaiqly') => {
     setPrimaryReciter(r);
     localStorage.setItem('ilm_naafi_primary_reciter', r);
   };
@@ -298,6 +298,9 @@ export default function QuranExplorer({
   // Consecutive full surah playback states
   const [surahPlayActive, setSurahPlayActive] = useState(false);
   const [surahPlayAyahIdx, setSurahPlayAyahIdx] = useState<number | null>(null);
+  const [playMode, setPlayMode] = useState<'continuous_stream' | 'verse_by_verse'>('continuous_stream');
+  const [fullSurahDuration, setFullSurahDuration] = useState(0);
+  const [fullSurahCurrentTime, setFullSurahCurrentTime] = useState(0);
 
   // Murajah State Hooks
   const [revIsRecording, setRevIsRecording] = useState(false);
@@ -318,10 +321,28 @@ export default function QuranExplorer({
   const [schedSurahNum, setSchedSurahNum] = useState<number>(1);
   const [schedFreq, setSchedFreq] = useState<string>('daily');
   const [schedTargetDate, setSchedTargetDate] = useState<string>(() => {
-    const today = new Date();
+     const today = new Date();
     today.setDate(today.getDate() + 1);
     return today.toISOString().split('T')[0];
   });
+
+  // Periodic audio progress and duration calculation for seekbar tracking
+  useEffect(() => {
+    let timer: any;
+    if (surahPlayActive) {
+      timer = setInterval(() => {
+        const player = audioPlayerRef.current;
+        if (player) {
+          setFullSurahCurrentTime(player.currentTime || 0);
+          setFullSurahDuration(player.duration || 0);
+        }
+      }, 350);
+    } else {
+      setFullSurahCurrentTime(0);
+      setFullSurahDuration(0);
+    }
+    return () => clearInterval(timer);
+  }, [surahPlayActive]);
 
   // --- Real-time Muraja'ah Ghost Mode Architecture States ---
   const [ghostModeActive, setGhostModeActive] = useState(false);
@@ -886,7 +907,12 @@ export default function QuranExplorer({
             // Dynamic Qari Audio URL builder
             const paddedSurah = String(selectedSurahNum).padStart(3, '0');
             const paddedAyah = String(ar.numberInSurah).padStart(3, '0');
-            const audioFolder = primaryReciter === 'ghamadi' ? 'Ghamadi_40kbps' : 'Husary_64kbps';
+            let audioFolder = 'Husary_64kbps';
+            if (primaryReciter === 'ghamadi') audioFolder = 'Ghamadi_40kbps';
+            else if (primaryReciter === 'sudais') audioFolder = 'Sudais_64kbps';
+            else if (primaryReciter === 'shuraim') audioFolder = 'Saood_ash-Shuraym_128kbps';
+            else if (primaryReciter === 'muaiqly') audioFolder = 'Maher_AlMuaiqly_64kbps';
+            else if (primaryReciter === 'kameny') audioFolder = 'Husary_64kbps'; // fallback to Husary for verse-by-verse, while streaming plays his actual audio
             const audioLink = `https://everyayah.com/data/${audioFolder}/${paddedSurah}${paddedAyah}.mp3`;
             
             return {
@@ -1069,6 +1095,26 @@ export default function QuranExplorer({
     }
   };
 
+  const getFullSurahAudioUrl = (surahNum: number, reciter: string): string => {
+    const paddedSurah = String(surahNum).padStart(3, '0');
+    switch (reciter) {
+      case 'husary':
+        return `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`;
+      case 'ghamadi':
+        return `https://server7.mp3quran.net/s_gmd/${paddedSurah}.mp3`;
+      case 'shuraim':
+        return `https://server7.mp3quran.net/shrm/${paddedSurah}.mp3`;
+      case 'sudais':
+        return `https://server11.mp3quran.net/sds/${paddedSurah}.mp3`;
+      case 'muaiqly':
+        return `https://server12.mp3quran.net/maher/${paddedSurah}.mp3`;
+      case 'kameny':
+        return `https://download.qurancentral.com/okasha-kameny/okasha-kameny-${paddedSurah}.mp3`;
+      default:
+        return `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`;
+    }
+  };
+
   const playWholeSurahConsecutive = async (startIndex: number) => {
     if (activeSurahData.length === 0) return;
     
@@ -1078,6 +1124,49 @@ export default function QuranExplorer({
 
     setSurahPlayActive(true);
     surahPlayActiveRef.current = true;
+
+    if (playMode === 'continuous_stream') {
+      setSurahPlayAyahIdx(null);
+      setPlayingAyahKey(null);
+      const streamUrl = getFullSurahAudioUrl(selectedSurahNum, primaryReciter);
+      let sourceUrl = streamUrl;
+      try {
+        if (typeof window !== 'undefined' && 'caches' in window) {
+          const cache = await caches.open('quran-audio-cache');
+          const matched = await cache.match(streamUrl);
+          if (matched) {
+            const blob = await matched.blob();
+            sourceUrl = URL.createObjectURL(blob);
+            console.log("Playing full surah stream from cache:", streamUrl);
+          } else {
+            sourceUrl = `/api/audio-proxy?url=${encodeURIComponent(streamUrl)}`;
+          }
+        } else {
+          sourceUrl = `/api/audio-proxy?url=${encodeURIComponent(streamUrl)}`;
+        }
+      } catch (err) {
+        sourceUrl = `/api/audio-proxy?url=${encodeURIComponent(streamUrl)}`;
+      }
+
+      const audio = new Audio(sourceUrl);
+      audioPlayerRef.current = audio;
+      
+      audio.onended = () => {
+        if (selectedSurahNum < 114) {
+          console.log("Track ended. Autoplaying next Surah:", selectedSurahNum + 1);
+          autoplayNextSurahRef.current = true;
+          setSelectedSurahNum(prev => prev + 1);
+        } else {
+          stopWholeSurahPlayback();
+        }
+      };
+
+      audio.play().catch(e => {
+        console.warn("Failed playing continuous stream:", e);
+      });
+      return;
+    }
+
     setSurahPlayAyahIdx(startIndex);
 
     const currentAyah = activeSurahData[startIndex];
@@ -1196,6 +1285,13 @@ export default function QuranExplorer({
       }
     } else {
       stopWholeSurahPlayback();
+    }
+  };
+
+  const seekContinuousStream = (time: number) => {
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.currentTime = time;
+      setFullSurahCurrentTime(time);
     }
   };
 
@@ -1417,6 +1513,13 @@ export default function QuranExplorer({
       deleteCurrentSurahAudio={deleteCurrentSurahAudio}
       downloadCurrentSurahAudio={downloadCurrentSurahAudio}
       playWholeSurahConsecutive={playWholeSurahConsecutive}
+      playMode={playMode}
+      setPlayMode={setPlayMode}
+      fullSurahDuration={fullSurahDuration}
+      fullSurahCurrentTime={fullSurahCurrentTime}
+      seekContinuousStream={seekContinuousStream}
+      surahPlayActive={surahPlayActive}
+      setSelectedSurahNum={setSelectedSurahNum}
       ghostModeActive={ghostModeActive}
       ghostExpectedWords={ghostExpectedWords}
       setGhostExpectedWords={setGhostExpectedWords}

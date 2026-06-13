@@ -1124,7 +1124,9 @@ app.get("/api/audio-proxy", async (req, res) => {
     audioUrl.includes("everyayah.com") || 
     audioUrl.includes("www.everyayah.com") || 
     audioUrl.includes("everyayah.com/data") ||
-    audioUrl.includes("qurancentral.com");
+    audioUrl.includes("qurancentral.com") ||
+    audioUrl.includes("mp3quran.net") ||
+    audioUrl.includes("archive.org");
 
   if (!isTrusted) {
     return res.status(403).json({ error: "Access to target domain not allowed. Trusted domain only." });

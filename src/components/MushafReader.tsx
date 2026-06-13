@@ -36,7 +36,7 @@ interface MushafReaderProps {
   displayMode: 'translation' | 'transliteration' | 'both' | 'tajweed';
   setDisplayMode: (m: any) => void;
   selectTajweed: (t: boolean) => void;
-  primaryReciter: 'ghamadi' | 'husary';
+  primaryReciter: string;
   setPrimaryReciter: (r: any) => void;
   errorMsg: string | null;
   mushafPage: number;
@@ -110,6 +110,13 @@ interface MushafReaderProps {
   activeSurahData: AyahPair[];
   transformHafsToWarsh: (text: string) => string;
   MUSHAF_THEMES: any;
+  playMode: 'continuous_stream' | 'verse_by_verse';
+  setPlayMode: (m: 'continuous_stream' | 'verse_by_verse') => void;
+  fullSurahDuration: number;
+  fullSurahCurrentTime: number;
+  seekContinuousStream: (time: number) => void;
+  surahPlayActive: boolean;
+  setSelectedSurahNum: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function MushafReader({
@@ -151,6 +158,13 @@ export default function MushafReader({
   deleteCurrentSurahAudio,
   downloadCurrentSurahAudio,
   playWholeSurahConsecutive,
+  playMode,
+  setPlayMode,
+  fullSurahDuration,
+  fullSurahCurrentTime,
+  seekContinuousStream,
+  surahPlayActive,
+  setSelectedSurahNum,
   ghostModeActive,
   ghostScopeJuz,
   setGhostScopeJuz,
@@ -335,25 +349,20 @@ export default function MushafReader({
               </div>
 
               {/* Reciter selector */}
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 select-none">
-                <button
-                  type="button"
-                  onClick={() => setPrimaryReciter('husary')}
-                  className={`py-1 px-2.5 rounded-lg border-0 cursor-pointer text-[9px] uppercase font-bold tracking-wider transition-all active:scale-95 ${
-                    primaryReciter === 'husary' ? 'bg-amber-600 text-white shadow-xs' : 'bg-transparent text-slate-500'
-                  }`}
+              <div className="flex items-center gap-1.5 select-none shrink-0">
+                <select
+                  value={primaryReciter}
+                  onChange={(e) => setPrimaryReciter(e.target.value)}
+                  className="bg-white hover:bg-slate-50 text-slate-800 text-[10px] font-extrabold py-1 px-2 rounded-lg border border-slate-250 cursor-pointer outline-none transition-all"
+                  title="Choose Audio Reciter"
                 >
-                  Husary
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPrimaryReciter('ghamadi')}
-                  className={`py-1 px-2.5 rounded-lg border-0 cursor-pointer text-[9px] uppercase font-bold tracking-wider transition-all active:scale-95 ${
-                    primaryReciter === 'ghamadi' ? 'bg-amber-600 text-white shadow-xs' : 'bg-transparent text-slate-500'
-                  }`}
-                >
-                  Ghamadi
-                </button>
+                  <option value="husary">{lang === 'en' ? 'Al-Husary' : 'الحصري'}</option>
+                  <option value="ghamadi">{lang === 'en' ? 'Al-Ghamidi' : 'الغامدي'}</option>
+                  <option value="sudais">{lang === 'en' ? 'Al-Sudais' : 'السديس'}</option>
+                  <option value="shuraim">{lang === 'en' ? 'Al-Shuraim' : 'الشريم'}</option>
+                  <option value="muaiqly">{lang === 'en' ? 'Al-Muaiqly' : 'المعيقلي'}</option>
+                  <option value="kameny">{lang === 'en' ? 'Okasha Kameny' : 'عكاشة كميني'}</option>
+                </select>
               </div>
 
             </div>
@@ -1139,6 +1148,191 @@ export default function MushafReader({
           </>
         )}
       </AnimatePresence>
+
+      {/* Floating Audio Playback Controller Bar */}
+      <div 
+        className="fixed bottom-6 left-1/2 -track-layout -translate-x-1/2 z-40 w-[95%] max-w-2xl bg-zinc-950/95 backdrop-blur-md text-white border border-neutral-800 rounded-3xl shadow-2xl p-4 sm:p-5 flex flex-col gap-3 font-sans"
+        id="floating-audio-panel"
+      >
+        {/* Upper Track Details and Mode Toggle */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+          <div className="text-left">
+            <span className="block text-[8px] sm:text-[9.5px] uppercase tracking-widest text-amber-500 font-extrabold font-mono">
+              Quran Stream • {playMode === 'continuous_stream' ? (lang === 'en' ? 'Continuous MP3 Track' : 'تلاوة متواصلة بدون تقطيع') : (lang === 'en' ? 'Syllable Highlighter' : 'تتبع الآيات')}
+            </span>
+            <h4 className="text-sm font-black tracking-tight text-white flex flex-wrap items-center gap-2 mt-0.5">
+              <span>{lang === 'en' ? "Surah" : "سورة"} {currentSurahMeta?.englishName} ({currentSurahMeta?.name})</span>
+              <span className="text-[10px] text-zinc-400 font-normal">
+                by {primaryReciter === 'husary' ? 'Sheikh Al-Husary' : primaryReciter === 'ghamadi' ? 'Saad Al-Ghamidi' : primaryReciter === 'sudais' ? 'Al-Sudais' : primaryReciter === 'shuraim' ? 'Saud Al-Shuraim' : primaryReciter === 'muaiqly' ? 'Maher Al-Muaiqly' : 'Okasha Kameny'}
+              </span>
+            </h4>
+          </div>
+          
+          <div className="flex items-center gap-1.5 self-stretch sm:self-auto justify-between bg-zinc-900 p-1 rounded-xl border border-zinc-850">
+            <button
+              onClick={() => {
+                stopWholeSurahPlayback();
+                setPlayMode('continuous_stream');
+              }}
+              className={`py-1 px-2 text-[8px] sm:text-[9px] uppercase font-black tracking-wider rounded-lg cursor-pointer transition-all ${
+                playMode === 'continuous_stream' 
+                  ? 'bg-amber-500 text-zinc-950 font-black' 
+                  : 'bg-transparent text-slate-400 hover:text-white'
+              }`}
+              title="Seamless whole-surah listening with draggable seekbar"
+            >
+              {lang === 'en' ? "Continuous Stream" : "تلاوة متواصلة"}
+            </button>
+            <button
+              onClick={() => {
+                stopWholeSurahPlayback();
+                setPlayMode('verse_by_verse');
+              }}
+              className={`py-1 px-2 text-[8px] sm:text-[9px] uppercase font-black tracking-wider rounded-lg cursor-pointer transition-all ${
+                playMode === 'verse_by_verse' 
+                  ? 'bg-amber-500 text-zinc-950 font-black' 
+                  : 'bg-transparent text-slate-400 hover:text-white'
+              }`}
+              title="Autoplay with verse highlights"
+            >
+              {lang === 'en' ? "Verse Highlights" : "تتبع الآيات"}
+            </button>
+          </div>
+        </div>
+
+        {/* DRAGGABLE TIMELINE TRACKER (Only for Continuous Stream Mode) */}
+        {playMode === 'continuous_stream' && (
+          <div className="flex items-center gap-3 w-full">
+            <span className="text-[10.5px] font-mono text-zinc-400 select-none shrink-0">
+              {(() => {
+                const secs = fullSurahCurrentTime || 0;
+                const m = Math.floor(secs / 60);
+                const s = Math.floor(secs % 60);
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+              })()}
+            </span>
+            <input
+              type="range"
+              min="0"
+              max={fullSurahDuration || 100}
+              value={fullSurahCurrentTime || 0}
+              onChange={(e) => seekContinuousStream(parseFloat(e.target.value))}
+              className="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500 transition-colors hover:bg-zinc-700 outline-none"
+              title="Seek audio track position"
+            />
+            <span className="text-[10.5px] font-mono text-zinc-450 select-none shrink-0 font-bold text-amber-500">
+              {(() => {
+                const secs = fullSurahDuration || 0;
+                const m = Math.floor(secs / 60);
+                const s = Math.floor(secs % 60);
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+              })()}
+            </span>
+          </div>
+        )}
+
+        {/* Lower row controllers */}
+        <div className="flex items-center justify-between gap-2.5 mt-1 border-t border-zinc-900 pt-3">
+          {/* Reciter dropdown list */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-mono hidden sm:inline">Qari:</span>
+            <select
+              value={primaryReciter}
+              onChange={(e) => {
+                stopWholeSurahPlayback();
+                setPrimaryReciter(e.target.value);
+              }}
+              className="bg-zinc-900 text-white hover:bg-zinc-850 text-[10px] sm:text-xs font-black py-1.5 px-2 rounded-xl border border-zinc-800 cursor-pointer outline-none transition-all"
+            >
+              <option value="husary">Sheikh Al-Husary</option>
+              <option value="ghamadi">Saad Al-Ghamidi</option>
+              <option value="sudais">Abdul Rahman Al-Sudais</option>
+              <option value="shuraim">Saud Al-Shuraim</option>
+              <option value="muaiqly">Maher Al-Muaiqly</option>
+              <option value="kameny">Okasha Kameny</option>
+            </select>
+          </div>
+
+          {/* Core Player Center actions */}
+          <div className="flex items-center gap-3">
+            {/* Previous Surah button */}
+            <button
+              onClick={() => {
+                if (selectedSurahNum > 1) {
+                  stopWholeSurahPlayback();
+                  setSelectedSurahNum(selectedSurahNum - 1);
+                }
+              }}
+              disabled={selectedSurahNum <= 1}
+              className="p-1.5 sm:p-2 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white disabled:opacity-30 transition cursor-pointer disabled:cursor-not-allowed shrink-0 border border-zinc-800"
+              title="Previous Surah"
+            >
+              <ChevronLeft className="w-4 h-4 shrink-0" />
+            </button>
+
+            {/* Core Play/Pause Trigger Button */}
+            <button
+              onClick={() => {
+                if (surahPlayActive) {
+                  stopWholeSurahPlayback();
+                } else {
+                  playWholeSurahConsecutive(0);
+                }
+              }}
+              id="btn-play-full-surah"
+              className={`p-2.5 sm:p-3 rounded-full flex items-center justify-center transition-all cursor-pointer scale-110 active:scale-95 shadow-lg border ${
+                surahPlayActive 
+                  ? 'bg-amber-400 text-zinc-950 font-black hover:bg-amber-300 border-zinc-900' 
+                  : 'bg-emerald-600 text-white font-extrabold hover:bg-emerald-500 hover:scale-115 border-zinc-900'
+              }`}
+              title={surahPlayActive ? "Pause Audio Track" : "Start Audio Recitation"}
+            >
+              {surahPlayActive ? (
+                <Pause className="w-5 h-5 fill-current shrink-0" />
+              ) : (
+                <Play className="w-5 h-5 fill-current shrink-0" />
+              )}
+            </button>
+
+            {/* Next Surah button */}
+            <button
+              onClick={() => {
+                if (selectedSurahNum < 114) {
+                  stopWholeSurahPlayback();
+                  setSelectedSurahNum(selectedSurahNum + 1);
+                }
+              }}
+              disabled={selectedSurahNum >= 114}
+              className="p-1.5 sm:p-2 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white disabled:opacity-30 transition cursor-pointer disabled:cursor-not-allowed shrink-0 border border-zinc-800"
+              title="Next Surah"
+            >
+              <ChevronRight className="w-4 h-4 shrink-0" />
+            </button>
+          </div>
+
+          {/* Quick ZIP Downloader Link for complete Quran files */}
+          <div className="flex items-center gap-2">
+            <a
+              href={
+                primaryReciter === 'ghamadi' ? 'https://download.mp3quran.net/download/s_gmd/s_gmd_complete.zip' :
+                primaryReciter === 'sudais' ? 'https://download.mp3quran.net/download/sds/sds_complete.zip' :
+                primaryReciter === 'shuraim' ? 'https://download.mp3quran.net/download/shrm/shrm_complete.zip' :
+                primaryReciter === 'muaiqly' ? 'https://download.mp3quran.net/download/maher/maher_complete.zip' :
+                primaryReciter === 'husary' ? 'https://download.mp3quran.net/download/husr/husr_complete.zip' :
+                'https://archive.org/compress/okasha-kameny-quran/formats=VBR%20MP3'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 py-1.5 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-850 text-amber-500 font-extrabold text-[10px] border border-zinc-800 transition"
+              title={lang === 'en' ? "Download Complete Offline Quran ZIP" : "تحميل المصحف كاملاً ملف مضغوط"}
+            >
+              <Cloud className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="hidden md:inline">{lang === 'en' ? "Download Quran ZIP" : "تحميل المصحف كاملاً"}</span>
+              <span className="md:hidden">{lang === 'en' ? "ZIP" : "تحميل"}</span>
+            </a>
+          </div>
+        </div>
+      </div>
 
     </div>
   );

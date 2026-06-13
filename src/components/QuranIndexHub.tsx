@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  BookOpen, Search, Bookmark, ChevronLeft, RefreshCw, AlertCircle
+  BookOpen, Search, Bookmark, ChevronLeft, RefreshCw, AlertCircle, Play
 } from 'lucide-react';
 
 interface SurahMeta {
@@ -172,12 +172,27 @@ export default function QuranIndexHub({
                         }}
                         className="bg-white hover:bg-amber-50/15 border border-slate-200 hover:border-amber-500/40 rounded-3xl p-5 transition-all duration-200 cursor-pointer flex items-center justify-between group shadow-sm hover:shadow-md hover:-translate-y-0.5"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-mono font-black text-xs text-slate-650 border border-slate-200/60 group-hover:bg-amber-600 group-hover:text-white group-hover:border-amber-700 transition">
-                            {surah.number}
-                          </div>
+                        <div className="flex items-center gap-3">
+                          {/* Direct Continuous Play Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSurahNum(surah.number);
+                              setShowReader(true);
+                              setTimeout(() => {
+                                const btn = document.getElementById("btn-play-full-surah");
+                                if (btn) btn.click();
+                              }, 650);
+                            }}
+                            className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-600 hover:text-white flex items-center justify-center transition border border-[#c59b32]/10 shadow-xs shrink-0 cursor-pointer group/btn"
+                            title={lang === 'en' ? "Play Complete Surah" : "تشغيل السورة كاملة"}
+                          >
+                            <Play className="w-4 h-4 fill-current text-emerald-700 group-hover/btn:text-white shrink-0" />
+                          </button>
+
                           <div className="text-left">
-                            <h3 className="text-sm font-black text-slate-900 group-hover:text-amber-800 transition-colors">
+                            <h3 className="text-sm font-black text-slate-900 group-hover:text-amber-800 transition-colors flex items-center gap-1.5">
+                              <span className="text-xs font-mono text-slate-400">#{surah.number}</span>
                               {surah.englishName}
                             </h3>
                             <p className="text-[10px] text-slate-500 group-hover:text-slate-650 capitalize mt-0.5 transition-colors">
@@ -190,8 +205,8 @@ export default function QuranIndexHub({
                           <span className="block text-sm font-extrabold text-slate-800 font-serif pr-1">
                             {surah.name}
                           </span>
-                          <span className="block text-[9px] text-slate-400 mt-0.5 tracking-tight uppercase">
-                            {surah.numberOfAyahs} {lang === 'en' ? 'verses' : 'آية'} • Page {getSurahStartPage(surah.number)}
+                          <span className="block text-[9px] text-slate-400 mt-0.5 tracking-tight uppercase font-mono">
+                            {surah.numberOfAyahs} {lang === 'en' ? 'V' : 'آية'} • P. {getSurahStartPage(surah.number)}
                           </span>
                         </div>
                       </div>
