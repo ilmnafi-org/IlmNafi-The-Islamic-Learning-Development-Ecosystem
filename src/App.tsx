@@ -208,6 +208,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showMoreNav, setShowMoreNav] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [adhkarDrawerActive, setAdhkarDrawerActive] = useState<'tasbih' | 'prayers' | 'dua' | null>(null);
   const [appLoading, setAppLoading] = useState(true);
@@ -720,7 +721,7 @@ export default function App() {
       articlesRead: "الدروس المكتملة",
       bookmarked: "المنح المحفوظة",
       arabicFocus: "العربية",
-      englishFocus: "English (الإيرانية)",
+      englishFocus: "English",
       statsCountries: "أقطار مستفيدة",
       statsStudents: "طالب علم نشط",
       statsLessons: "تلاوة ومحاضرة مكتملة",
@@ -814,169 +815,262 @@ export default function App() {
       
       {/* FLOATING TOP NAVBAR */}
       <nav 
-        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/90 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-md z-50 transition-all h-16 px-4 md:px-8 flex items-center justify-between" 
+        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all h-16 px-4 md:px-6 lg:px-8 flex items-center justify-between" 
         id="app-floating-navbar"
       >
         {/* Brand identity logo */}
-        <div className="flex items-center gap-6">
+        <button 
+          onClick={() => { setActiveTab('home'); setShowMoreNav(false); }} 
+          className="font-extrabold text-[#004d3d] tracking-tight cursor-pointer py-1 text-left flex items-center gap-2 outline-none focus:outline-none shrink-0"
+          id="brand-logo"
+        >
+          <span className="w-8 h-8 rounded-xl bg-amber-700/10 flex items-center justify-center text-amber-800 font-extrabold border border-amber-850/15 shrink-0">
+            ع
+          </span>
+          <div className="flex flex-col items-start leading-none">
+            <span className="text-sm md:text-base font-extrabold">{labels.brand}</span>
+            <span className="text-[9px] text-amber-800 font-semibold mt-0.5">{labels.desc}</span>
+          </div>
+        </button>
+        
+        {/* Centered Desktop Navigation Links */}
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-1.5 xl:gap-2 font-medium text-[11.5px] xl:text-[12.5px] whitespace-nowrap py-1 px-4 border-l border-r border-slate-100/85 mx-4" id="desktop-nav-links-center">
           <button 
-            onClick={() => { setActiveTab('home'); }} 
-            className="font-extrabold text-[#004d3d] tracking-tight cursor-pointer py-1 text-left flex items-center gap-2 outline-none focus:outline-none"
-            id="brand-logo"
+            onClick={() => { setActiveTab('curriculum'); setShowMoreNav(false); }}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+              activeTab === 'curriculum' 
+                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+            }`}
+            id="nav-curriculum"
           >
-            <span className="w-8 h-8 rounded-xl bg-amber-700/10 flex items-center justify-center text-amber-800 font-extrabold border border-amber-850/15 shrink-0">
-              ع
-            </span>
-            <div className="flex flex-col items-start leading-none">
-              <span className="text-sm md:text-base font-extrabold">{labels.brand}</span>
-              <span className="text-[9px] text-amber-800 font-semibold mt-0.5">{labels.desc}</span>
-            </div>
+            {labels.curriculum}
           </button>
-          
-          {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex gap-1 items-center font-medium text-[11px] xl:text-xs max-w-[440px] xl:max-w-[720px] 2xl:max-w-none overflow-x-auto scrollbar-none whitespace-nowrap py-1">
-            {/* Split curriculum and coach first */}
-            <button 
-              onClick={() => { setActiveTab('curriculum'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'curriculum' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-650 text-slate-600 hover:text-amber-900 hover:bg-slate-50'
+          <button 
+            onClick={() => { setActiveTab('coach'); setShowMoreNav(false); }}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+              activeTab === 'coach' 
+                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+            }`}
+            id="nav-coach"
+          >
+            {labels.coach}
+          </button>
+          <button 
+            onClick={() => { setActiveTab('quran'); setShowMoreNav(false); }}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+              activeTab === 'quran' 
+                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-550/15' 
+                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+            }`}
+            id="nav-quran"
+          >
+            {labels.quran}
+          </button>
+          <button 
+            onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+              activeTab === 'daily' 
+                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+            }`}
+            id="nav-daily"
+          >
+            {labels.daily}
+          </button>
+          <button 
+            onClick={() => { setActiveTab('scholarly'); setShowMoreNav(false); }}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+              activeTab === 'scholarly' 
+                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+            }`}
+            id="nav-scholarly"
+          >
+            {labels.scholarly}
+          </button>
+
+          {/* More Academy Platforms Popover Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowMoreNav(true)}
+            onMouseLeave={() => setShowMoreNav(false)}
+          >
+            <button
+              onClick={() => setShowMoreNav(!showMoreNav)}
+              className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-1 border ${
+                showMoreNav || ['forum', 'scholarships', 'saved-scholarships', 'community', 'api-docs', 'notifications', 'settings'].includes(activeTab)
+                  ? 'text-amber-900 bg-amber-50/90 border-amber-200/60 font-extrabold shadow-sm'
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border-transparent'
               }`}
-              id="nav-curriculum"
+              id="nav-more-dropdown"
             >
-              {labels.curriculum}
+              <span>{lang === 'en' ? "Platforms Hub" : "بوابات ومصادر"}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showMoreNav ? 'rotate-180 text-amber-700' : 'text-slate-400'}`} />
             </button>
-            <button 
-              onClick={() => { setActiveTab('coach'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'coach' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-coach"
-            >
-              {labels.coach}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('quran'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'quran' 
-                  ? 'text-amber-905 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-905 hover:bg-slate-50'
-              }`}
-              id="nav-quran"
-            >
-              {labels.quran}
-            </button>
-            
-            {/* NEW APPLIED PAGES */}
-            <button 
-              onClick={() => { setActiveTab('daily'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'daily' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-daily"
-            >
-              {labels.daily}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('scholarly'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'scholarly' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-scholarly"
-            >
-              {labels.scholarly}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('forum'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'forum' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-forum"
-            >
-              {labels.forum}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('scholarships'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'scholarships' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-scholarships"
-            >
-              {labels.scholarships}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('saved-scholarships'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'saved-scholarships' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-saved-scholarships"
-            >
-              {labels.savedHub}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('community'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'community' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-community"
-            >
-              {labels.openSource}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('api-docs'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'api-docs' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-605 text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-api-docs"
-            >
-              {labels.apiDocs}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('notifications'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 relative ${
-                activeTab === 'notifications' 
-                  ? 'text-amber-900 bg-amber-50 font-bold' 
-                  : 'text-slate-650 text-slate-600 hover:text-amber-900 hover:bg-slate-50'
-              }`}
-              id="nav-notifications"
-            >
-              <span className="flex items-center gap-1.5">
-                <span>{labels.notifications}</span>
-                {progress.notifications && progress.notifications.filter(n => !n.isRead).length > 0 && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                )}
-              </span>
-            </button>
-            <button 
-              onClick={() => { setActiveTab('settings'); }}
-              className={`px-2.5 py-2 rounded-xl transition-all shrink-0 ${
-                activeTab === 'settings' 
-                  ? 'text-amber-905 bg-amber-50 font-bold' 
-                  : 'text-slate-650 text-slate-600 hover:text-amber-905 hover:bg-slate-50'
-              }`}
-              id="nav-settings"
-            >
-              {labels.settings}
-            </button>
+
+            <AnimatePresence>
+              {showMoreNav && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className={`absolute ${lang === 'ar' ? 'left-auto right-0' : 'right-auto left-0'} mt-2 w-72 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl p-2.5 z-[100] gap-0.5 flex flex-col`}
+                  id="nav-more-dropdown-panel"
+                >
+                  <button 
+                    onClick={() => { setActiveTab('forum'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'forum' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-forum"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-800 shrink-0">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px]">{labels.forum}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Discuss academic topics" : "نقاشات ومجالس علمية"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('scholarships'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'scholarships' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-scholarships"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-800 shrink-0">
+                      <Award className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px]">{labels.scholarships}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Explore academic grants" : "قاعدة بيانات المنح الموثقة"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('saved-scholarships'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'saved-scholarships' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-saved-scholarships"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-800 shrink-0">
+                      <Bookmark className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px]">{labels.savedHub}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Your bookmarked grants" : "فرص المنح المحفوظة"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('community'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'community' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-community"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-800 shrink-0">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px]">{labels.openSource}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Contribute to resources" : "المساهمة البرمجية المفتوحة"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('api-docs'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'api-docs' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-api-docs"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-800 shrink-0">
+                      <Terminal className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px]">{labels.apiDocs}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Developer credentials" : "بوابات الربط البرمجي"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('notifications'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} relative ${
+                      activeTab === 'notifications' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-notifications"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-800 shrink-0">
+                      <Bell className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px] flex items-center gap-1.5">
+                        <span>{labels.notifications}</span>
+                        {progress.notifications && progress.notifications.filter(n => !n.isRead).length > 0 && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                        )}
+                      </span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "System alerts & cues" : "إشعارات المنصة الفورية"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('settings'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'settings' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-settings"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center text-slate-800 shrink-0">
+                      <Settings className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px]">{labels.settings}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Preferences & configs" : "إعدادات الهوية والمنصة"}
+                      </span>
+                    </div>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
+
+
 
         {/* Right Nav Box: Lang Toggle and Login profiles */}
         <div className="flex items-center gap-3">
