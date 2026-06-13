@@ -44,6 +44,7 @@ export default function SavedScholarshipsView({ progress, onToggleSaveScholarshi
   const [activeTab, setActiveTab] = useState<'board' | 'list'>('board');
   const [selectedSch, setSelectedSch] = useState<Scholarship | null>(null);
   const [editingNotes, setEditingNotes] = useState<string>('');
+  const [openStatusSelectorId, setOpenStatusSelectorId] = useState<string | null>(null);
 
   // Extract saved scholarships
   const savedItems = SCHOLARSHIPS_DATA.filter(sch => progress.savedScholarships.includes(sch.id));
@@ -214,19 +215,66 @@ export default function SavedScholarshipsView({ progress, onToggleSaveScholarshi
                         </div>
 
                         {/* Status updater dropdown */}
-                        <div className="mt-4 pt-3 border-t border-dashed border-slate-100 flex flex-col gap-2">
-                          <label className="text-[8px] uppercase font-bold text-slate-400 tracking-wider">Move Stage:</label>
-                          <select
-                            value={info?.status || 'saved'}
-                            onChange={(e) => updateStatus(item.id, e.target.value as any)}
-                            className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-1.5 text-[10px] text-slate-800 outline-none w-full font-bold cursor-pointer transition"
+                        <div className="mt-4 pt-3 border-t border-dashed border-slate-100 flex flex-col gap-2 relative" id={`custom-stage-select-wrapper-${item.id}`}>
+                          <label className="text-[8px] uppercase font-bold text-slate-400 tracking-wider">
+                            {lang === 'en' ? "Move Stage:" : "تعديل حالة الطلب:"}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setOpenStatusSelectorId(openStatusSelectorId === item.id ? null : item.id)}
+                            className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-2 text-[10px] text-slate-800 outline-none w-full font-bold cursor-pointer transition flex items-center justify-between"
+                            id={`custom-stage-trigger-${item.id}`}
                           >
-                            <option value="saved">{lang === 'en' ? "Saved (Review)" : "محفوظة (مراجعة)"}</option>
-                            <option value="drafting">{lang === 'en' ? "Drafting Essays" : "كتابة المقالات والخطابات"}</option>
-                            <option value="submitted">{lang === 'en' ? "Submitted" : "تم تقديم الطلب"}</option>
-                            <option value="interview">{lang === 'en' ? "Interview Stage" : "مرحلة المقابلة الشخصية"}</option>
-                            <option value="accepted">{lang === 'en' ? "Offer Received! 🎉" : "تم القبول بحمد الله! 🎉"}</option>
-                          </select>
+                            <span>
+                              {(() => {
+                                const st = info?.status || 'saved';
+                                return st === 'saved'
+                                  ? (lang === 'en' ? "Saved (Review)" : "محفوظة (مراجعة)")
+                                  : st === 'drafting'
+                                    ? (lang === 'en' ? "Drafting Essays" : "كتابة المقالات والخطابات")
+                                    : st === 'submitted'
+                                      ? (lang === 'en' ? "Submitted" : "تم تقديم الطلب")
+                                      : st === 'interview'
+                                        ? (lang === 'en' ? "Interview Stage" : "مرحلة المقابلة الشخصية")
+                                        : (lang === 'en' ? "Offer Received! 🎉" : "تم القبول بحمد الله! 🎉");
+                              })()}
+                            </span>
+                            <span className="text-[8px] text-slate-400">▼</span>
+                          </button>
+
+                          <AnimatePresence>
+                            {openStatusSelectorId === item.id && (
+                              <>
+                                <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setOpenStatusSelectorId(null)} />
+                                <motion.div
+                                  initial={{ opacity: 0, y: 5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: 5 }}
+                                  className="absolute bottom-full left-0 mb-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-50 text-left"
+                                >
+                                  {[
+                                    { value: 'saved', en: "Saved (Review)", ar: "محفوظة (مراجعة)" },
+                                    { value: 'drafting', en: "Drafting Essays", ar: "كتابة المقالات والخطابات" },
+                                    { value: 'submitted', en: "Submitted", ar: "تم تقديم الطلب" },
+                                    { value: 'interview', en: "Interview Stage", ar: "مرحلة المقابلة الشخصية" },
+                                    { value: 'accepted', en: "Offer Received! 🎉", ar: "تم القبول بحمد الله! 🎉" }
+                                  ].map(opt => (
+                                    <button
+                                      key={`stage-opt-${opt.value}`}
+                                      type="button"
+                                      onClick={() => {
+                                        updateStatus(item.id, opt.value as any);
+                                        setOpenStatusSelectorId(null);
+                                      }}
+                                      className={`w-full text-left px-3.5 py-1.5 text-[10px] border-0 cursor-pointer ${info?.status === opt.value ? 'bg-amber-50 text-amber-900 font-extrabold' : 'bg-transparent text-slate-700 hover:bg-slate-50'}`}
+                                    >
+                                      {lang === 'en' ? opt.en : opt.ar}
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Footer buttons / notes */}

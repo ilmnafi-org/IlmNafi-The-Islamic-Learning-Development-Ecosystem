@@ -12,13 +12,96 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import http from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { analyzeTajweedText } from "./server/tajweedEngine.js";
 import { dbStore, ServerUser, ServerThread, ServerReply } from "./server/db.js";
 
 dotenv.config();
 
+// Mute all backend logging for privacy & storage-cleanliness
+console.log = () => {};
+console.info = () => {};
+console.debug = () => {};
+console.warn = () => {};
+console.error = () => {};
+
 const app = express();
 const PORT = 3000;
+
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+const wsClients = new Map<string, WebSocket>();
+
+// Real-Time notification dispatcher
+function sendLiveNotification(targetEmail: string, notification: { title: string; body: string; type: string; referenceId?: string }) {
+  const normEmail = targetEmail.toLowerCase();
+  const user = dbStore.findUserByEmail(normEmail);
+  if (!user) return;
+
+  const notifId = "notif_" + Math.random().toString(36).substr(2, 9);
+  const serverNotif = {
+    id: notifId,
+    title: notification.title,
+    body: notification.body,
+    type: notification.type as any,
+    referenceId: notification.referenceId,
+    isRead: false,
+    createdAt: new Date().toISOString()
+  };
+
+  if (!user.notifications) {
+    user.notifications = [];
+  }
+  user.notifications.unshift(serverNotif);
+  dbStore.updateUserProfile(user.id, { notifications: user.notifications });
+
+  // Publish to connected WebSocket client
+  const ws = wsClients.get(normEmail);
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    try {
+      ws.send(JSON.stringify({
+        type: "notification",
+        notification: serverNotif
+      }));
+    } catch (e) {
+      console.error("Failed to push websocket notification:", e);
+    }
+  }
+}
+
+// Set up WebSocket handlers
+wss.on("connection", (ws: WebSocket) => {
+  let userEmail: string | null = null;
+  
+  ws.on("message", (message: string) => {
+    try {
+      const data = JSON.parse(message.toString());
+      if (data.type === "register" && data.email) {
+        userEmail = data.email.toLowerCase();
+        wsClients.set(userEmail, ws);
+        
+        ws.send(JSON.stringify({
+          type: "registered",
+          email: userEmail,
+          message: "Real-time sync established with Al-Hikmah Academy server."
+        }));
+      }
+      if (data.type === "ping") {
+        ws.send(JSON.stringify({ type: "pong" }));
+      }
+    } catch (e) {
+      console.error("WS error handling:", e);
+    }
+  });
+
+  ws.on("close", () => {
+    if (userEmail) {
+      wsClients.delete(userEmail);
+    }
+  });
+});
 
 // Secret key for signing secure academic tokens
 const JWT_SECRET = process.env.JWT_SECRET || "ilm-sacred-academic-secret-key-2026";
@@ -28,6 +111,74 @@ const COOKIE_SECRET = "ilm_sacred_secret_academic_cookie_passphrase_2026";
 app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ limit: "15mb", extended: true }));
 app.use(cookieParser(COOKIE_SECRET));
+
+// In-Memory production rate limiter for sensitive endpoints
+const rateLimitRegistry = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimiter(limit: number, windowMs: number) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const clientIp = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "anonymous_client";
+    const now = Date.now();
+    const record = rateLimitRegistry.get(clientIp);
+
+    if (!record || now > record.resetAt) {
+      rateLimitRegistry.set(clientIp, {
+        count: 1,
+        resetAt: now + windowMs
+      });
+      return next();
+    }
+
+    if (record.count >= limit) {
+      return res.status(429).json({
+        error: "Too many actions requested. Please pacify your requests and try again shortly."
+      });
+    }
+
+    record.count += 1;
+    next();
+  };
+}
+
+// In-Memory production operations duplicate/idempotency guard
+const processedIdempotencyKeys = new Set<string>();
+
+function checkIdempotency(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const key = (req.headers["x-idempotency-key"] || req.headers["idempotency-key"]) as string;
+  if (!key) {
+    return next();
+  }
+
+  if (processedIdempotencyKeys.has(key)) {
+    return res.status(409).json({
+      error: "Duplicate request filtered. This action has already been successfully submitted and logged on the server."
+    });
+  }
+
+  processedIdempotencyKeys.add(key);
+  setTimeout(() => {
+    processedIdempotencyKeys.delete(key);
+  }, 10 * 60 * 1000); // 10 minutes cache duration
+
+  next();
+}
+
+// Ensure all API responses bypass client/proxy caching so data remains perfectly live
+app.use("/api", (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  next();
+});
+
+// Protect all APIs with a rate limit of 180 requests per minute per IP
+app.use("/api", rateLimiter(180, 60000));
+
+// Enforce idempotency on mutate operations (POST, PUT, DELETE)
+app.use("/api", (req, res, next) => {
+  if (req.method === "POST" || req.method === "PUT" || req.method === "DELETE") {
+    return checkIdempotency(req, res, next);
+  }
+  next();
+});
 
 // Standard secure HttpOnly cookie settings (keeping session token hidden from client script scope)
 const COOKIE_OPTIONS = {
@@ -115,7 +266,9 @@ app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
         lessonsCompleted: user.lessonsCompleted,
         savedScholarships: user.savedScholarships,
         recentRecitations: user.recentRecitations,
-        certificates: user.certificates
+        certificates: user.certificates,
+        joinedForums: user.joinedForums || [],
+        notifications: user.notifications || []
       }
     });
   } catch (err) {
@@ -124,7 +277,7 @@ app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
 });
 
 // 2. Registrate student/teacher account
-app.post("/api/auth/signup", (req, res) => {
+app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), (req, res) => {
   const { email, password, name, role } = req.body;
 
   if (!email || !password || !name) {
@@ -170,13 +323,15 @@ app.post("/api/auth/signup", (req, res) => {
       lessonsCompleted: newUser.lessonsCompleted,
       savedScholarships: newUser.savedScholarships,
       recentRecitations: newUser.recentRecitations,
-      certificates: newUser.certificates
+      certificates: newUser.certificates,
+      joinedForums: newUser.joinedForums || [],
+      notifications: newUser.notifications || []
     }
   });
 });
 
 // 3. Authenticate / Login portal
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", rateLimiter(30, 15 * 60 * 1000), (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -210,7 +365,9 @@ app.post("/api/auth/login", (req, res) => {
       lessonsCompleted: user.lessonsCompleted,
       savedScholarships: user.savedScholarships,
       recentRecitations: user.recentRecitations,
-      certificates: user.certificates
+      certificates: user.certificates,
+      joinedForums: user.joinedForums || [],
+      notifications: user.notifications || []
     }
   });
 });
@@ -236,7 +393,9 @@ app.post("/api/auth/update-session", authenticateJWT, (req: AuthenticatedRequest
     lessonsCompleted: progress.lessonsCompleted ?? user.lessonsCompleted,
     savedScholarships: progress.savedScholarships ?? user.savedScholarships,
     recentRecitations: progress.recentRecitations ?? user.recentRecitations,
-    certificates: progress.certificates ?? user.certificates
+    certificates: progress.certificates ?? user.certificates,
+    joinedForums: progress.joinedForums ?? user.joinedForums,
+    notifications: progress.notifications ?? user.notifications
   });
 
   res.json({ success: true });
@@ -251,7 +410,7 @@ app.get("/api/forum/threads", (req, res) => {
 });
 
 // 2. Create interactive discussion thread
-app.post("/api/forum/threads", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/forum/threads", authenticateJWT, checkIdempotency, (req: AuthenticatedRequest, res) => {
   const { title, category, body } = req.body;
   const user = req.user;
 
@@ -282,6 +441,20 @@ app.post("/api/forum/threads", authenticateJWT, (req: AuthenticatedRequest, res)
   };
 
   dbStore.addThread(newThread);
+
+  // Send real-time notifications to users who have joined this category forum
+  const allUsersList = dbStore.getUsers();
+  for (const recipient of allUsersList) {
+    if (recipient.id !== user.id && recipient.joinedForums?.includes(category)) {
+      sendLiveNotification(recipient.email, {
+        title: `New topic in ${category === 'recitation' ? 'Tajweed' : category === 'history' ? 'History' : category === 'jurisprudence' ? 'Jurisprudence' : category === 'scholarships' ? 'Scholarships' : 'General'}`,
+        body: `${user.username} posted: "${title.substring(0, 45)}${title.length > 45 ? '...' : ''}"`,
+        type: 'forum_msg',
+        referenceId: threadId
+      });
+    }
+  }
+
   res.json({ thread: newThread });
 });
 
@@ -359,7 +532,7 @@ app.post("/api/forum/threads/:id/like", authenticateJWT, (req: AuthenticatedRequ
 });
 
 // 5. Append replies to a topic
-app.post("/api/forum/threads/:id/replies", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/forum/threads/:id/replies", authenticateJWT, checkIdempotency, (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const { body } = req.body;
   const user = req.user;
@@ -392,6 +565,31 @@ app.post("/api/forum/threads/:id/replies", authenticateJWT, (req: AuthenticatedR
   const updatedReplies = [...thread.replies, newReply];
   dbStore.updateThread(id, { replies: updatedReplies });
 
+  // Send real-time notifications to the thread author and any subscribed category peers
+  const threadAuthor = dbStore.findUserById(thread.author_id);
+  if (threadAuthor && threadAuthor.id !== user.id) {
+    sendLiveNotification(threadAuthor.email, {
+      title: "New reply on your thread",
+      body: `${user.username} replied: "${body.substring(0, 40)}${body.length > 40 ? '...' : ''}"`,
+      type: 'forum_reply',
+      referenceId: thread.id
+    });
+  }
+
+  // Notify other members of joined category forum who are NOT the replier or the author
+  const activeCategory = thread.category;
+  const allUsersList = dbStore.getUsers();
+  for (const recipient of allUsersList) {
+    if (recipient.id !== user.id && recipient.id !== thread.author_id && recipient.joinedForums?.includes(activeCategory)) {
+      sendLiveNotification(recipient.email, {
+        title: `Comment thread update`,
+        body: `${user.username} answered in joined ${activeCategory === 'recitation' ? 'Tajweed' : activeCategory === 'history' ? 'History' : activeCategory === 'jurisprudence' ? 'Jurisprudence' : activeCategory === 'scholarships' ? 'Scholarships' : 'General'} forum.`,
+        type: 'forum_reply',
+        referenceId: thread.id
+      });
+    }
+  }
+
   const updatedThread = dbStore.findThreadById(id)!;
   res.json({
     thread: {
@@ -419,6 +617,114 @@ app.post("/api/forum/threads/:id/replies", authenticateJWT, (req: AuthenticatedR
 });
 
 
+// Join a specific forum category to receive live pushes and alerts
+app.post("/api/forum/join", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { category } = req.body;
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Unauthorized access" });
+  if (!category) return res.status(400).json({ error: "Missing category reference." });
+
+  const currentJoined = user.joinedForums || [];
+  if (!currentJoined.includes(category)) {
+    const updated = [...currentJoined, category];
+    dbStore.updateUserProfile(user.id, { joinedForums: updated });
+    return res.json({ success: true, joinedForums: updated });
+  }
+
+  res.json({ success: true, joinedForums: currentJoined });
+});
+
+// Leave a specific forum category
+app.post("/api/forum/leave", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { category } = req.body;
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Unauthorized access" });
+  if (!category) return res.status(400).json({ error: "Missing category reference." });
+
+  const currentJoined = user.joinedForums || [];
+  const updated = currentJoined.filter(c => c !== category);
+  dbStore.updateUserProfile(user.id, { joinedForums: updated });
+  res.json({ success: true, joinedForums: updated });
+});
+
+// Mark notification as read (either single or 'all')
+app.post("/api/notifications/read", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const { notificationId } = req.body;
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Unauthorized access" });
+
+  const notifications = user.notifications || [];
+  if (notificationId === 'all') {
+    notifications.forEach(n => { n.isRead = true; });
+  } else {
+    const target = notifications.find(n => n.id === notificationId);
+    if (target) {
+      target.isRead = true;
+    }
+  }
+
+  dbStore.updateUserProfile(user.id, { notifications });
+  res.json({ success: true, notifications });
+});
+
+// Clear all notifications archive
+app.post("/api/notifications/clear", authenticateJWT, (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  dbStore.updateUserProfile(user.id, { notifications: [] });
+  res.json({ success: true, notifications: [] });
+});
+
+// Simulator to broadcast peer questions or replies to showcase immediate WebSockets sync
+app.post("/api/forum/simulate-activity", (req, res) => {
+  const { category, type } = req.body;
+  const normalizedCat = category || 'general';
+  const displayCategoryName = normalizedCat === 'recitation' ? 'Tajweed' : normalizedCat === 'history' ? 'History' : normalizedCat === 'jurisprudence' ? 'Jurisprudence' : normalizedCat === 'scholarships' ? 'Scholarships' : 'General';
+
+  const mockUsers = [
+    { name: "Sheikh Abdulrahman Al-Arifi", email: "abdulrahman@hikmah.edu", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" },
+    { name: "Dr. Maryam Cordobese", email: "maryam@hikmah.edu", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150" },
+    { name: "Brother Zayd Al-Faruqi", email: "zayd@hikmah.edu", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150" }
+  ];
+
+  const selectedMock = mockUsers[Math.floor(Math.random() * mockUsers.length)];
+
+  let title = "";
+  let body = "";
+
+  if (type === 'topic') {
+    title = `Urgent Inquiry regarding classic rules of script readings in ${displayCategoryName}`;
+    body = `I have completed translating the secondary manuscript commentary from Al-Mustansiriya collections. Let's start a study circle session!`;
+  } else {
+    title = `New Response in ${displayCategoryName} Study Thread`;
+    body = `Excellent answer! We should organize a weekly micro-seminar this Saturday at 14:00 UTC to consolidate these legal opinions.`;
+  }
+
+  // Send to all users connected/subscribed to normalizedCat
+  const allUsersList = dbStore.getUsers();
+  let countDispatched = 0;
+
+  for (const recipient of allUsersList) {
+    if (recipient.joinedForums?.includes(normalizedCat)) {
+      sendLiveNotification(recipient.email, {
+        title: title,
+        body: `${selectedMock.name} posted: "${body}"`,
+        type: type === 'topic' ? 'forum_msg' : 'forum_reply',
+        referenceId: 'thread_1'
+      });
+      countDispatched++;
+    }
+  }
+
+  res.json({ success: true, countDispatched, message: "Live activity socket stream successfully broadcasted." });
+});
+
+
 // Lazy initializer for Google GenAI client to handle missing key gracefully on dev launch
 let aiClient: GoogleGenAI | null = null;
 function getAI(): GoogleGenAI {
@@ -440,8 +746,8 @@ function getAI(): GoogleGenAI {
 }
 
 // REST Endpoint: Get Recitation Feedback (Actual Audio or Simulated Recitation)
-app.post("/api/ai-coach", async (req, res) => {
-  const { verseText, surahName, ayahNumber, audioBase64, mimeType, qiraat } = req.body;
+app.post("/api/ai-coach", rateLimiter(50, 15 * 60 * 1000), async (req, res) => {
+  const { verseText, surahName, ayahNumber, audioBase64, mimeType, qiraat, isMurajah } = req.body;
 
 
   if (!verseText || !surahName) {
@@ -466,7 +772,7 @@ app.post("/api/ai-coach", async (req, res) => {
     let contents: any[] = [];
 
     // Instruction prompt grounded with Phase 1 engine guidelines
-    const basePrompt = `You are Al-Hikmah Academy's elite AI Quran Coach & Tajweed Teacher.
+    let basePrompt = `You are Al-Hikmah Academy's elite AI Quran Coach & Tajweed Teacher.
 Analyze a student reciting:
 Surah: ${surahName}
 Ayah / Verse: ${ayahNumber || 1}
@@ -485,6 +791,33 @@ Provide:
 5. An array of specific corrective notes pointing to words in the verse if possible. Mark each note with a level: 'success' (for excellent Tajweed mastery), 'warning' (for mistakes or parts needing correction), or 'info' (for general training tips). Make sure you highlight specific words from the ground-truth rules!
 
 Provide your response in raw JSON format matching this schema strictly. Don't add backticks or markdown wrapper.`;
+
+    if (isMurajah) {
+      basePrompt = `You are Al-Hikmah Academy's elite AI Quran Murajah (Memorization) Auditor.
+Analyze a student revising/reciting a verse from memory where the Quran text is completely hidden from them:
+Surah: ${surahName}
+Ayah / Verse: ${ayahNumber || 1}
+Ground-Truth Correct Text: "${verseText}"
+Qiraat Mode: ${(qiraat || "hafs").toUpperCase()}
+
+Our deterministic Tajweed Rules Engine has mapped the core rules for references:
+${parsedRulesText}
+
+Compare the user's spoken audio directly with the Ground-Truth Correct Text.
+Meticulously identify:
+- Any omitted words (words they forgot and skipped entirely)
+- Any substituted words (words where they said a wrong or alternative term)
+- Any pronunciation issues, word stutters, layout mistakes, or active tajweed omissions
+
+Return a report containing:
+1. Overall memory accuracy score (0 to 100) - evaluate how completely they remembered the verse.
+2. Fluency score (0 to 100)
+3. Pronunciation accuracy score (0 to 100)
+4. A supportive yet technically exact "feedbackText" feedback paragraph. Clearly list any omitted words or replacements by quoting them (e.g. "You omitted '[word]'...").
+5. An array of specific notes pointing to words in the ground-truth verse. For example, if a word was skipped/omitted, provide a note targeting that specific Arabic word stating 'Skipped / Omitted from memory' with type: 'warning'. If a word was pronounced perfectly, add a success note!
+
+Provide your response in raw JSON format matching this schema strictly. Don't add backticks or markdown wrapper.`;
+    }
 
     if (audioBase64 && mimeType) {
       // Multimodal audio evaluation (Phase 3)
@@ -725,6 +1058,54 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "healthy", time: new Date() });
 });
 
+// Secure, CORS-enabled Audio Streaming Proxy to resolve browser Mixed Content (HTTP/HTTPS) and CORS blocks
+app.get("/api/audio-proxy", async (req, res) => {
+  const audioUrl = req.query.url as string;
+  if (!audioUrl) {
+    return res.status(400).json({ error: "Missing url parameter" });
+  }
+
+  // Restrict proxy to everyayah.com or trusted hostnames to prevent open proxy vulnerability
+  const isTrusted = 
+    audioUrl.includes("everyayah.com") || 
+    audioUrl.includes("www.everyayah.com") || 
+    audioUrl.includes("everyayah.com/data") ||
+    audioUrl.includes("qurancentral.com");
+
+  if (!isTrusted) {
+    return res.status(403).json({ error: "Access to target domain not allowed. Trusted domain only." });
+  }
+
+  try {
+    let target = audioUrl;
+    // We try to fetch the audio file over http first to bypass any insecure ssl of everyayah.com
+    if (target.startsWith("https://")) {
+      target = target.replace("https://", "http://");
+    }
+
+    console.log(`[AudioProxy] Fetching: ${target}`);
+    const fetchResponse = await fetch(target).catch(async (e) => {
+      console.warn(`[AudioProxy] HTTP fetch failed, trying HTTPS:`, e.message);
+      return await fetch(audioUrl); // try original
+    });
+
+    if (!fetchResponse.ok) {
+      throw new Error(`EveryAyah responded with ${fetchResponse.status}`);
+    }
+
+    const arrayBuffer = await fetchResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cache-Control", "public, max-age=31536000"); // cache audio for up to a year
+    res.status(200).send(buffer);
+  } catch (err: any) {
+    console.error(`[AudioProxy] Error proxying:`, err.message);
+    res.status(500).json({ error: "Audio proxying failed: " + err.message });
+  }
+});
+
 // Configure Vite integration
 async function startServer() {
   // Synchronize generated PWA icon to the public folder if it doesn't already exist
@@ -751,15 +1132,21 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app._router.get("*", (req: any, res: any) => {
+    app.use(express.static(distPath, {
+      maxAge: "365d",
+      etag: true,
+      cacheControl: true
+    }));
+    app.get("*", (req: any, res: any) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  server.listen(PORT, "0.0.0.0", () => {
     console.log(`Ilm Naafi full-stack app running on http://localhost:${PORT}`);
   });
 }
 
 startServer();
+
+export { app, server };

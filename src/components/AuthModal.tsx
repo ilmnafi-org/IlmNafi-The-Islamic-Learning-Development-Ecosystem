@@ -4,8 +4,9 @@
  */
 
 import React, { useState } from 'react';
-import { UserCheck, Key, ShieldCheck, Mail, Sparkles, GraduationCap, X } from 'lucide-react';
+import { UserCheck, Key, ShieldCheck, Mail, Sparkles, GraduationCap, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { dbService } from '../lib/supabase';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -18,16 +19,54 @@ export default function AuthModal({ onClose, onSuccess }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Modals inside AuthModal to align with user's demand
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isFailureModalOpen, setIsFailureModalOpen] = useState(false);
+  const [successUsername, setSuccessUsername] = useState('');
+  const [successEmail, setSuccessEmail] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
+    const minWait = new Promise(resolve => setTimeout(resolve, 1000));
+
+    try {
+      if (isLogin) {
+        const session = await dbService.login(email.trim(), password.trim());
+        await minWait;
+        setLoading(false);
+        setSuccessUsername(session.username);
+        setSuccessEmail(session.email);
+        setIsSuccessModalOpen(true);
+      } else {
+        const finalName = name.trim() || email.split('@')[0];
+        const session = await dbService.signUp(email.trim(), password.trim(), finalName, 'student');
+        await minWait;
+        setLoading(false);
+        setSuccessUsername(session.username);
+        setSuccessEmail(session.email);
+        setIsSuccessModalOpen(true);
+      }
+    } catch (err: any) {
+      await minWait;
       setLoading(false);
-      onSuccess(name || email.split('@')[0] || "Scholar Student", email || "guest@al-hikmah.edu");
-      onClose();
-    }, 1500);
+      const rawMsg = err?.message || '';
+      let cleanMsg = "No account was found matching these credentials. Please check your spelling or register a new identity.";
+
+      if (rawMsg.includes("already registered") || rawMsg.includes("internal server") || rawMsg.includes("Duplicate email")) {
+        cleanMsg = "This academic email address is already registered on our global ledger.";
+      } else if (rawMsg.includes("password") || rawMsg.includes("PIN")) {
+        cleanMsg = "Incorrect password PIN. Please double check your key entry and try again.";
+      } else if (rawMsg.includes("exist")) {
+        cleanMsg = "The account with this email address does not exist. Please register first.";
+      }
+      
+      setErrorMessage(cleanMsg);
+      setIsFailureModalOpen(true);
+    }
   };
 
   return (
@@ -170,6 +209,136 @@ export default function AuthModal({ onClose, onSuccess }: AuthModalProps) {
           </div>
         </form>
       </div>
+
+      {/* FULL-SCREEN OVERLAY DIALOGS TRIGGERED FROM MODAL SUBMISSION */}
+      <AnimatePresence>
+        
+        {/* 1. LOADING OVERLAY */}
+        {loading && (
+          <motion.div
+            key="auth-modal-loading-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6"
+            id="auth-modal-loading"
+          >
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 border border-slate-200 shadow-2xl">
+              <div className="w-14 h-14 bg-amber-500/10 text-amber-800 rounded-full flex items-center justify-center mx-auto border border-amber-500/25">
+                <GraduationCap className="w-7 h-7 text-amber-700 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-extrabold text-slate-900">
+                  Authenticating Credentials
+                </h4>
+                <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+                  Verifying immutable scholar keys on the global ledger...
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <div className="w-3 h-3 bg-emerald-700 rounded-full animate-pulse duration-750" />
+                <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse duration-750 [animation-delay:150ms]" />
+                <div className="w-3 h-3 bg-emerald-800 rounded-full animate-pulse duration-750 [animation-delay:300ms]" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* 2. SUCCESS OVERLAY */}
+        {isSuccessModalOpen && (
+          <motion.div
+            key="auth-modal-success-overlay"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6"
+            id="auth-modal-success"
+          >
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 border border-emerald-500/20 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-600" />
+              <div className="w-14 h-14 bg-emerald-500/15 text-emerald-850 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+                <CheckCircle2 className="w-7 h-7 text-emerald-750" />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="text-base font-extrabold text-slate-950">
+                  Academic Identity Secured
+                </h4>
+                <p className="text-xs text-slate-600">
+                  Welcome to the Al-Hikmah sanctuaries, Scholar {successUsername}!
+                </p>
+                <div className="text-[10px] text-slate-400 font-mono py-1 px-3 bg-slate-50 border border-slate-100 rounded-lg inline-block">
+                  {successEmail}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSuccessModalOpen(false);
+                    onSuccess(successUsername, successEmail);
+                    onClose();
+                  }}
+                  className="w-full bg-emerald-800 text-white font-black py-3 rounded-xl text-xs transition cursor-pointer shadow-md hover:bg-emerald-900"
+                >
+                  Enter Study Workspace
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* 3. FAILURE OVERLAY */}
+        {isFailureModalOpen && (
+          <motion.div
+            key="auth-modal-failure-overlay"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6"
+            id="auth-modal-failure"
+          >
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 border border-red-500/20 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-red-600" />
+              <div className="w-14 h-14 bg-red-50 text-red-700 rounded-full flex items-center justify-center mx-auto border border-red-200">
+                <AlertCircle className="w-7 h-7 text-red-650" />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="text-base font-extrabold text-slate-950">
+                  Authorization Interrupted
+                </h4>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {errorMessage}
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFailureModalOpen(false);
+                  }}
+                  className="w-full bg-slate-900 hover:bg-slate-950 text-white font-extrabold py-3 rounded-xl text-xs transition cursor-pointer shadow-xs"
+                >
+                  Revise Inputs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFailureModalOpen(false);
+                    onClose();
+                  }}
+                  className="w-full border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold py-2 rounded-xl text-[11px] transition cursor-pointer"
+                >
+                  Return as Guest
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
     </div>
   );
 }

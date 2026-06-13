@@ -61,6 +61,7 @@ interface PeerActivity {
 export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
   // Navigation: Sub-tabs within the Spiritual Board
   const [activeSubTab, setActiveSubTab] = useState<'walkthrough' | 'tasbih' | 'prayers' | 'dua'>('walkthrough');
+  const [activeAdhkarDrawer, setActiveAdhkarDrawer] = useState<'tasbih' | 'prayers' | 'dua' | null>(null);
   
   // Translation dictionary
   const t = {
@@ -198,6 +199,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
 
   // Adhkar Step-Through selection module
   const [adhkarCategory, setAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life'>('morning');
+  const [selectedAdhkarCategory, setSelectedAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life' | null>(null);
   const [adhkarIndex, setAdhkarIndex] = useState(0);
   const [adhkarCompletedStates, setAdhkarCompletedStates] = useState<{[key: string]: number}>({}); // tracks clicks per item ID
   const [translationLang, setTranslationLang] = useState<'en' | 'ar' | 'ur' | 'ha'>(lang);
@@ -812,100 +814,91 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
         </div>
       </div>
 
-      {/* Main navigation tab selector - Beautiful Tab Buttons resembling High-Prestige system */}
-      <div className="flex flex-wrap gap-2 justify-center p-1.5 bg-slate-100 rounded-2xl max-w-3xl mx-auto mb-10 border border-slate-200/60 shadow-inner">
-        <button
-          onClick={() => setActiveSubTab('walkthrough')}
-          className={`px-5 py-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeSubTab === 'walkthrough' ? 'bg-amber-800 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
-          }`}
-          id="tab-walkthrough"
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>{lang === 'en' ? "Remembrances Walkthrough" : "الأذكار التفاعلية"}</span>
-        </button>
+      {/* Remembrances Main Deck (No more top tab switcher container) */}
+      <div className="space-y-8 pb-28 animate-fadeIn" id="adhkars-walkthrough-deck">
+            {selectedAdhkarCategory === null && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="text-center max-w-xl mx-auto space-y-1.5 pb-2">
+                  <span className="text-[10px] uppercase tracking-widest text-amber-700 font-mono font-bold block">Al-Adhkar Al-Yawmiyyah</span>
+                  <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                    {lang === 'en' ? "Authentic Remembrances & Supplications" : "الأذكار والأوراد اليومية المأثورة"}
+                  </h3>
+                  <p className="text-xs text-slate-500 leading-normal font-medium">
+                    {lang === 'en' 
+                      ? "Select a protective remembrance page below to begin itemized recitation walkthroughs, with digital counter registers." 
+                      : "اختر نوع الورد من الفهرس أدناه لبدء التلاوة الذكية والعد التصاعدي بالأسانيد الصحيحة."}
+                  </p>
+                </div>
 
-        <button
-          onClick={() => setActiveSubTab('tasbih')}
-          className={`px-5 py-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeSubTab === 'tasbih' ? 'bg-amber-800 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
-          }`}
-          id="tab-tasbih"
-        >
-          <Compass className="w-4 h-4" />
-          <span>{lang === 'en' ? "Digital Tasbih" : "المسبحة الذكية"}</span>
-        </button>
+                {/* MUSHAF-STYLE CATEGORY INDEX GRID - 3 COLUMNS ON MOBILE */}
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 max-w-4xl mx-auto" id="adhkar-categories-index-grid">
+                  {[
+                    { type: 'morning', title: t.morningTitle, descEn: "Morning Protection", descAr: "أذكار الصباح الشريفة", icon: '☀️' },
+                    { type: 'evening', title: t.eveningTitle, descEn: "Evening Protection", descAr: "أذكار المساء الشريفة", icon: '🌙' },
+                    { type: 'after_salah', title: t.salahTitle, descEn: "Post-Salah Prayers", descAr: "أدعية ما بعد الصلاة", icon: '📿' },
+                    { type: 'sleep', title: t.sleepTitle, descEn: "Before Sleeping", descAr: "أذكار النوم الصحيحة", icon: '💤' },
+                    { type: 'daily_life', title: t.dailyLifeTitle, descEn: "Remembrance of Life", descAr: "الأدعية اليومية العامة", icon: '🤲' },
+                  ].map((item) => {
+                    const count = AUTHENTIC_ADHKAR_DB.filter(x => x.category === item.type).length;
+                    return (
+                      <button
+                        key={item.type}
+                        type="button"
+                        onClick={() => {
+                          setAdhkarCategory(item.type as any);
+                          setSelectedAdhkarCategory(item.type as any);
+                          setAdhkarIndex(0);
+                        }}
+                        className="aspect-square bg-white border border-slate-200/80 hover:border-amber-600 rounded-2xl p-2.5 flex flex-col items-center justify-between text-center transition-all duration-200 hover:shadow-md cursor-pointer group active:scale-95 shadow-xs"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-xl transition">
+                          {item.icon}
+                        </div>
+                        <div className="space-y-0.5 mt-1 select-none">
+                          <h4 className="font-extrabold text-[11px] text-slate-800 group-hover:text-amber-800 leading-tight">
+                            {item.title}
+                          </h4>
+                          <p className="text-[8px] text-slate-400 font-medium truncate block max-w-full">
+                            {lang === 'en' ? item.descEn : item.descAr}
+                          </p>
+                        </div>
+                        <span className="text-[7px] uppercase font-mono font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md leading-none select-none">
+                          {count} {lang === 'en' ? "Remembrances" : "أذكار"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-        <button
-          onClick={() => setActiveSubTab('prayers')}
-          className={`px-5 py-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeSubTab === 'prayers' ? 'bg-amber-800 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
-          }`}
-          id="tab-prayers"
-        >
-          <MapPin className="w-4 h-4" />
-          <span>{lang === 'en' ? "Solar Timings Scheduler" : "رصد المواقيت"}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveSubTab('dua')}
-          className={`px-5 py-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeSubTab === 'dua' ? 'bg-amber-800 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
-          }`}
-          id="tab-dua"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>{lang === 'en' ? "Counselor Supplications" : "مرشد الأدعية"}</span>
-        </button>
-      </div>
-
-      {/* SUB-TABS INTERACTIVE SHOWN DYNAMICALLY */}
-      <AnimatePresence mode="wait">
-        
-        {/* SUBTAB A: INTERACTIVE STEP-THROUGH REMEMBRANCES DECK */}
-        {activeSubTab === 'walkthrough' && (
-          <motion.div
-            key="walkthrough-tab"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            className="space-y-8"
-          >
-            {/* Redesigned Compact category / topic tabs */}
-            <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-slate-150/40 border border-slate-200/60 rounded-2xl max-w-4xl mx-auto shadow-xs" id="adhkar-categories-redesign">
-              {[
-                { type: 'morning', title: t.morningTitle, icon: '☀️' },
-                { type: 'evening', title: t.eveningTitle, icon: '🌙' },
-                { type: 'after_salah', title: t.salahTitle, icon: '📿' },
-                { type: 'sleep', title: t.sleepTitle, icon: '💤' },
-                { type: 'daily_life', title: t.dailyLifeTitle, icon: '🤲' },
-              ].map((item) => {
-                const isActive = adhkarCategory === item.type;
-                return (
+            {selectedAdhkarCategory !== null && (
+              <div className="space-y-6 animate-fadeIn">
+                {/* Back controls on top */}
+                <div className="flex items-center justify-between max-w-4xl mx-auto border-b border-slate-100 pb-3">
                   <button
-                    key={item.type}
-                    onClick={() => {
-                      setAdhkarCategory(item.type as any);
-                      setAdhkarIndex(0);
-                    }}
-                    className={`px-3.5 py-2 rounded-xl font-bold text-xs transition duration-200 cursor-pointer flex items-center gap-1.5 border select-none ${
-                      isActive 
-                        ? 'border-amber-700 bg-gradient-to-r from-amber-900 to-amber-950 text-white shadow-sm shadow-amber-950/10' 
-                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900'
-                    }`}
+                    type="button"
+                    onClick={() => setSelectedAdhkarCategory(null)}
+                    className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 font-black text-xs rounded-xl flex items-center gap-1 border-0 cursor-pointer transition active:scale-95"
                   >
-                    <span className="text-sm leading-none">{item.icon}</span>
-                    <span>{item.title}</span>
+                    <ChevronLeft className="w-4 h-4 text-amber-600" />
+                    <span>{lang === 'en' ? "Back to Index" : "العودة للفهرس"}</span>
                   </button>
-                );
-              })}
-            </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">
+                      {selectedAdhkarCategory === 'morning' ? '☀️' : selectedAdhkarCategory === 'evening' ? '🌙' : selectedAdhkarCategory === 'after_salah' ? '📿' : selectedAdhkarCategory === 'sleep' ? '💤' : '🤲'}
+                    </span>
+                    <h3 className="text-sm font-black text-slate-900 capitalize">
+                      {lang === 'en' ? `${selectedAdhkarCategory.replace('_', ' ')} Walkthrough` : `أذكار ${selectedAdhkarCategory === 'morning' ? 'الصباح' : selectedAdhkarCategory === 'evening' ? 'المساء' : selectedAdhkarCategory === 'after_salah' ? 'بعد الصلاة' : selectedAdhkarCategory === 'sleep' ? 'النوم' : 'اليوم الكلية'}`}
+                    </h3>
+                  </div>
+                </div>
 
-            {/* Main Interactive Deck */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Main Interactive Deck */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
-              {/* Left Column: STEPPING FRAMEWORK AND DETAILS info */}
-              <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4">
+              {/* Left Column: STEPPING FRAMEWORK AND DETAILS info (order-2 on mobile, order-1 / col-span-4 on desktop) */}
+              <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4 order-2 lg:order-1">
                 <div>
                   <h3 className="text-xs font-black text-slate-900 uppercase tracking-wide mb-1">
                     {lang === 'en' ? "Remembrance Progression List" : "سجل الأذكار والتقدم اليومي"}
@@ -1006,8 +999,8 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
                 </button>
               </div>
 
-              {/* Right Column: LARGE COMPREHENSIVE ACTIVE WORK CARD */}
-              <div className="lg:col-span-7 space-y-6">
+              {/* Right Column: LARGE COMPREHENSIVE ACTIVE WORK CARD (order-1 on mobile, order-2 / col-span-8 on desktop) */}
+              <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
                 
                 {isCategoryCurrentlyFullyComplete ? (
                   <motion.div 
@@ -1265,23 +1258,56 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
               </div>
 
             </div>
+          </div>
+          )}
 
-          </motion.div>
-        )}
+      </div>
 
-        {/* SUBTAB B: GLORIOUS DIGITAL TASBIH & COLLABORATIVE LIVE LOBBY */}
-        {activeSubTab === 'tasbih' && (
-          <motion.div
-            key="tasbih-tab"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            className="space-y-12"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <AnimatePresence>
+        {/* DRAWER B: GLORIOUS DIGITAL TASBIH & COLLABORATIVE LIVE LOBBY */}
+        {activeAdhkarDrawer === 'tasbih' && (
+          <div key="tasbih-drawer-root">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[200] cursor-pointer"
+              onClick={() => setActiveAdhkarDrawer(null)}
+            />
+            {/* Slide-Up Sheet */}
+            <motion.div
+              key="tasbih-drawer"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "105%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 220 }}
+              className="fixed bottom-0 inset-x-0 bg-white text-slate-800 rounded-t-[2rem] shadow-2xl z-[201] max-h-[90vh] overflow-y-auto border-t border-slate-205 pb-12"
+            >
+              <div className="flex justify-center py-3.5">
+                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => setActiveAdhkarDrawer(null)} />
+              </div>
               
-              {/* Left Column: Tally selection and presets */}
-              <div className="lg:col-span-5 bg-white border border-slate-205 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="text-left">
+                    <span className="text-[10px] uppercase tracking-widest text-[#C59B32] font-mono font-bold leading-none mb-1 block">Spiritual Tally Desk</span>
+                    <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-sans">
+                      {lang === 'en' ? "Digital Tasbih Counter & Halaqa" : "المسبحة الإلكترونية ومجلس الذكر والورد"}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setActiveAdhkarDrawer(null)}
+                    type="button"
+                    className="p-1.5 px-4 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-black cursor-pointer border-0 transition-all active:scale-95"
+                  >
+                    {lang === 'en' ? "Dismiss" : "إغلاق"}
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left Column: Tally selection and presets (order-2 on mobile, order-1 / col-span-4 on desktop) */}
+              <div className="lg:col-span-4 bg-white border border-slate-205 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm order-2 lg:order-1">
                 
                 <div>
                   <h3 className="text-sm font-black text-slate-900 mb-1.5">{t.wirdSelectFocus}</h3>
@@ -1358,8 +1384,8 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
 
               </div>
 
-              {/* Middle Box: MAJESTIC LARGE TAPPING INTERFACE */}
-              <div className="lg:col-span-7 bg-gradient-to-br from-white to-[#fefcf8] border border-amber-900/10 shadow-xl rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center space-y-8 min-h-[500px]">
+              {/* Middle Box: MAJESTIC LARGE TAPPING INTERFACE (order-1 on mobile, order-2 / col-span-8 on desktop) */}
+              <div className="lg:col-span-8 bg-gradient-to-br from-white to-[#fefcf8] border border-amber-900/10 shadow-xl rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center space-y-8 min-h-[500px] order-1 lg:order-2">
                 
                 <div className="text-center space-y-2">
                   <span className="text-3xl font-extrabold text-amber-950 block leading-loose font-serif select-all" dir="rtl">
@@ -1528,19 +1554,52 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
 
             </div>
 
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
         )}
 
-        {/* SUBTAB C: GEOLOCATION ASTRONOMICAL PRAYER TIMES */}
-        {activeSubTab === 'prayers' && (
-          <motion.div
-            key="prayers-tab"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            className="space-y-8"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        {/* DRAWER C: GEOLOCATION ASTRONOMICAL PRAYER TIMES */}
+        {activeAdhkarDrawer === 'prayers' && (
+          <div key="prayers-drawer-root">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[200] cursor-pointer"
+              onClick={() => setActiveAdhkarDrawer(null)}
+            />
+            {/* Slide-Up Sheet */}
+            <motion.div
+              key="prayers-drawer"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "105%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 220 }}
+              className="fixed bottom-0 inset-x-0 bg-white text-slate-800 rounded-t-[2rem] shadow-2xl z-[201] max-h-[90vh] overflow-y-auto border-t border-slate-205 pb-12"
+            >
+              <div className="flex justify-center py-3.5">
+                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => setActiveAdhkarDrawer(null)} />
+              </div>
+              
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 space-y-6 pb-12">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="text-left">
+                    <span className="text-[10px] uppercase tracking-widest text-[#C59B32] font-mono font-bold leading-none mb-1 block">Astronomical Calculations</span>
+                    <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-sans">
+                      {lang === 'en' ? "Solar Timings Scheduler" : "رصد مواقيت الصلاة الشمسية"}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setActiveAdhkarDrawer(null)}
+                    type="button"
+                    className="p-1.5 px-4 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-black cursor-pointer border-0 transition-all active:scale-95"
+                  >
+                    {lang === 'en' ? "Dismiss" : "إغلاق"}
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
               
               {/* Left Column: Coordinates search */}
               <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col justify-between">
@@ -1837,18 +1896,51 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
               </div>
             </div>
 
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
         )}
 
-        {/* SUBTAB D: AI SUPPLICATION PLANNER & ARCHIVE */}
-        {activeSubTab === 'dua' && (
-          <motion.div
-            key="dua-tab"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            className="space-y-12"
-          >
+        {/* DRAWER D: AI SUPPLICATION PLANNER & ARCHIVE */}
+        {activeAdhkarDrawer === 'dua' && (
+          <div key="dua-drawer-root">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[200] cursor-pointer"
+              onClick={() => setActiveAdhkarDrawer(null)}
+            />
+            {/* Slide-Up Sheet */}
+            <motion.div
+              key="dua-drawer"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "105%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 220 }}
+              className="fixed bottom-0 inset-x-0 bg-white text-slate-800 rounded-t-[2rem] shadow-2xl z-[201] max-h-[90vh] overflow-y-auto border-t border-slate-205 pb-12"
+            >
+              <div className="flex justify-center py-3.5">
+                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => setActiveAdhkarDrawer(null)} />
+              </div>
+              
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 space-y-6 pb-12">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="text-left">
+                    <span className="text-[10px] uppercase tracking-widest text-[#C59B32] font-mono font-bold leading-none mb-1 block">Mental Counselor & Intentional Supplicator</span>
+                    <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-sans">
+                      {lang === 'en' ? "Counselor Supplications Planner" : "مرشد أدعية المؤمن الشخصي"}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setActiveAdhkarDrawer(null)}
+                    type="button"
+                    className="p-1.5 px-4 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-black cursor-pointer border-0 transition-all active:scale-95"
+                  >
+                    {lang === 'en' ? "Dismiss" : "إغلاق"}
+                  </button>
+                </div>
             {/* Planner Header */}
             <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6 md:p-8 space-y-6">
               
@@ -2091,10 +2183,52 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang }) => {
               )}
             </div>
 
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
         )}
 
       </AnimatePresence>
+
+      {/* BOTTOM PREMIUM FLOATING DOCK (only visible on index page of Adhkars) */}
+      {selectedAdhkarCategory === null && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm sm:max-w-md px-4 select-none animate-fadeIn">
+          <div className="bg-linear-to-b from-[#0e4b3b] to-[#062c21] border border-emerald-700/50 rounded-3xl shadow-2xl p-2 md:p-2.5 flex items-center justify-around text-white">
+            
+            <button 
+              onClick={() => setActiveAdhkarDrawer('prayers')}
+              type="button"
+              className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all w-1/3 hover:bg-emerald-800/40 cursor-pointer active:scale-95 ${activeAdhkarDrawer === 'prayers' ? 'bg-amber-900/45 text-amber-300 font-bold' : 'text-slate-200'}`}
+            >
+              <MapPin className="w-5 h-5 text-amber-400 mb-1 animate-pulse" />
+              <span className="text-[10px] font-bold tracking-tight">{lang === 'en' ? "Solar Timings" : "مواقيت الصلاة"}</span>
+            </button>
+
+            <div className="w-[1px] h-8 bg-emerald-800/40" />
+
+            <button 
+              onClick={() => setActiveAdhkarDrawer('tasbih')}
+              type="button"
+              className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all w-1/3 hover:bg-emerald-800/40 cursor-pointer active:scale-95 ${activeAdhkarDrawer === 'tasbih' ? 'bg-amber-900/45 text-amber-300 font-bold' : 'text-slate-200'}`}
+            >
+              <Compass className="w-5 h-5 text-amber-400 mb-1" />
+              <span className="text-[10px] font-bold tracking-tight">{lang === 'en' ? "Digital Tasbih" : "المسبحة الإلكترونية"}</span>
+            </button>
+
+            <div className="w-[1px] h-8 bg-emerald-800/40" />
+
+            <button 
+              onClick={() => setActiveAdhkarDrawer('dua')}
+              type="button"
+              className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all w-1/3 hover:bg-emerald-800/40 cursor-pointer active:scale-95 ${activeAdhkarDrawer === 'dua' ? 'bg-amber-900/45 text-amber-300 font-bold' : 'text-slate-200'}`}
+            >
+              <Sparkles className="w-5 h-5 text-amber-400 mb-1" />
+              <span className="text-[10px] font-bold tracking-tight">{lang === 'en' ? "AI Supplications" : "مرشد الأدعية"}</span>
+            </button>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

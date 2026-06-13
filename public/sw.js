@@ -87,3 +87,27 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// Native background push listener for Android/iOS phone alerts
+self.addEventListener('push', (event) => {
+  let data = { title: 'Ilm Naafi Academy', body: 'New alert received.' };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'Ilm Naafi Academy', body: event.data.text() };
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200],
+    data: data
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});

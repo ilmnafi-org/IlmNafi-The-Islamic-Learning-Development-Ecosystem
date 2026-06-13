@@ -22,6 +22,67 @@ export interface DhikrItem {
 }
 
 export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
+  // --- EXTREMELY IMPORTANT ADDITIONS (AYAT-UL-KURSI & KEY REMEMBRANCES) ---
+  {
+    id: "m_00_kursi",
+    category: "morning",
+    arabic: "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءِ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+    transliteration: "Allahu la ilaha illa Huwal-Hayyul-Qayyum, la ta'khudhuhu sinatun wa la nawm, lahu ma fis-samawati wa ma fil-ard. Man dhal-ladhi yashfa'u 'indahu illa bi-idhnihi, ya'lamu ma bayna aydeehim wa ma khalfahum, wa la yuheetuna bi-shay'im-min 'ilmihi illa bima sha'a. Wasi'a kursiyyuhus-samawati wal-arda, wa la ya'uduhu hifdhuhuma wa Huwal-'Aliyyul-'Adheem.",
+    translationEn: "Allah! There is no deity except Him, the Ever-Living, the Sustainer of all existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth. Who is it that can intercede with Him except by His permission? He knows what is [presently] before them and what will be after them, and they encompass not a thing of His knowledge except for what He wills. His Kursi extends over the heavens and the earth, and their preservation tires Him not. And He is the Most High, the Most Great.",
+    translationAr: "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ... آية الكرسي، أعظم آية في كتاب الله تبارك وتعالى، تقرأ مرة في الصباح للحفظ والكفاية.",
+    translationUr: "اللہ، اس کے سوا کوئی معبود نہیں، وہ ہمیشہ زندہ رہنے والا اور سب کو سنبھالنے والا ہے۔ آیہ الکرسی صبح کے وقت پڑھنے سے شام تک حفاظت رہتی ہے۔",
+    translationHa: "Allah, babu abin bautawa sai shi, Rayayye, Madawwami. Karanta Ayat-ul-Kursi don neman tsari.",
+    targetCount: 1,
+    source: "Hisnul Muslim 74 / Al-Baqarah 255",
+    virtueEn: "Whoever recites this when they rise in the morning will be protected from the jinn until they reach the evening.",
+    virtueAr: "من قرأها حين يصبح أجير من الجن حتى يمسي، وهي أعظم آية تدفع شر الشياطين.",
+    grade: "Sahih"
+  },
+  {
+    id: "ev_00_kursi",
+    category: "evening",
+    arabic: "اللَّهُمَّ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءِ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+    transliteration: "Allahu la ilaha illa Huwal-Hayyul-Qayyum, la ta'khudhuhu sinatun wa la nawm, lahu ma fis-samawati wa ma fil-ard. Man dhal-ladhi yashfa'u 'indahu illa bi-idhnihi, ya'lamu ma bayna aydeehim wa ma khalfahum, wa la yuheetuna bi-shay'im-min 'ilmihi illa bima sha'a. Wasi'a kursiyyuhus-samawati wal-arda, wa la ya'uduhu hifdhuhuma wa Huwal-'Aliyyul-'Adheem.",
+    translationEn: "Allah! There is no deity except Him, the Ever-Living, the Sustainer of all existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth. Who is it that can intercede with Him except by His permission? He knows what is [presently] before them and what will be after them, and they encompass not a thing of His knowledge except for what He wills. His Kursi extends over the heavens and the earth, and their preservation tires Him not. And He is the Most High, the Most Great.",
+    translationAr: "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ... آية الكرسي، أعظم آية في كتاب الله تبارك وتعالى، تقرأ مرة في المساء للحفظ من الشياطين والجن طوال ليلته.",
+    translationUr: "اللہ، اس کے سوا کوئی معبود نہیں، وہ ہمیشہ زندہ رہنے والا اور سب کو سنبھالنے والا ہے۔ آیہ الکرسی شام کے وقت پڑھنے سے صبح تک حفاظت رہتی ہے۔",
+    translationHa: "Karanta Ayat-ul-Kursi da yamma don kariya daga shaidanu har alfijir.",
+    targetCount: 1,
+    source: "Hisnul Muslim 74 / Al-Baqarah 255",
+    virtueEn: "Whoever recites this when they enter evening will be protected from the jinn until they reach the morning.",
+    virtueAr: "من قرأها حين يمسي أجير من الجن والشرور الشيطانية حتى يصبح.",
+    grade: "Sahih"
+  },
+  {
+    id: "m_20_ilman",
+    category: "morning",
+    arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا",
+    transliteration: "Allahumma innee as-aluka 'ilman nafi'an, wa rizqan tayyiban, wa 'amalan mutaqabbalan.",
+    translationEn: "O Allah, indeed I ask You for beneficial knowledge, a good provision, and accepted deeds.",
+    translationAr: "اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.",
+    translationUr: "اے اللہ! میں تجھ سے نفع بخش علم، پاکیزہ رزق اور قبول ہونے والے عمل کا سوال کرتا ہوں۔",
+    translationHa: "Ya Allah, ina rokon Ka ilimi mai amfani, da arziki mai kyau, da aiki karbabbe.",
+    targetCount: 1,
+    source: "Hisnul Muslim 92 / Ibn Majah 925",
+    virtueEn: "Recited after Fajr prayer to align one's daily goals with seeking beneficial knowledge, clean sustenance, and accepted deeds.",
+    virtueAr: "دعاء نبوي مبارك يقفل به بعد صلاة الفجر للاستعانة ببداية اليوم الأكاديمي والعملي والعبادي.",
+    grade: "Sahih"
+  },
+  {
+    id: "ev_18_baqarah",
+    category: "evening",
+    arabic: "آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ لَا نُفَرِّقُ بَيْنَ أَحَدٍ مِّن رُّسُلِهِ وَقَالُوا سَمِعْنَا وَأَطَعْنَا غُفْرَانَكَ رَبَّنَا وَإِليك مَصِيرُ ★ لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ رَبَّنَا لَا تُؤَاخِذْنَا إِن نَّسِينَا أَوْ أَخْطَأْنَا رَبَّنَا وَلا تَحْمِلْ عَلَيْنَا إِصْرًا كَمَا حَمَلْتَهُ عَلَى الَّذِينَ مِن قَبْلِنَا رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِ وَاعْفُ عَنَّا وَاغْفِرْ لَنَا وَارْحَمْنَا أَنتَ مَوْلَانَا فَانصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ",
+    transliteration: "Amanar-Rasulu bima unzila ilayhi mir-Rabbihi wal-mu'minun. Kullun amana billahi wa mala'ikatihi wa kutubihi wa rusulihi, la nufarriqu bayna ahadim-mir-rusulih. Wa qalu sami'na wa ata'na, ghufranaka Rabbana wa-ilaykal-maseer. La yukallifullahu nafsan illa wus'aha, laha ma kasabat wa 'alayha maktasabat. Rabbana la tu'akhidhna in-naseena aw akhta'na. Rabbana wa la tahmil 'alayna isran kama hamaltahu 'alal-ladheena min qablina. Rabbana wa la tuhammilna ma la taqata lana bih, wa'fu 'anna waghfir lana warhamna, Anta mawlana fansurna 'alal-qawmil-kafireen.",
+    translationEn: "The Messenger has believed in what was revealed to him from his Lord, and so have the believers... Our Lord, do not impose upon us that which we have no strength to bear. And pardon us; and forgive us; and have mercy upon us. You are our protector, so give us victory over the disbelieving people.",
+    translationAr: "آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ كُلٌّ آمَنَ بِاللَّهِ... خواتيم سورة البقرة، تقرأ في الليل كفاية وحفظًا.",
+    translationUr: "رسول اس پر ایمان لائے جو ان کے رب کی طرف سے ان پر اتارا گیا۔ آخر سورہ بقرہ کی یہ دو آیتیں رات کو پڑھنے سے کفایت کرتی ہیں۔",
+    translationHa: "Karanta karshen Suratul Baqarah domin samun kariya isasshiya da daddare.",
+    targetCount: 1,
+    source: "Bukhari 5009 / Muslim 808",
+    virtueEn: "Whoever recites the last two verses of Surah Al-Baqarah at night, they will be sufficient for him (against all harm, evil, and worries).",
+    virtueAr: "من قرأهما في ليلة كفتاه (أي كفتاه من شرور شياطين الإنس والجن، أو قامتا مقام قيام الليل).",
+    grade: "Sahih"
+  },
   // --- EXISTING DAILY LIFE ADHKAR ---
   {
     id: "wk_01",

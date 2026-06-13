@@ -6,6 +6,16 @@
 import fs from 'fs';
 import path from 'path';
 
+export interface ServerNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: 'forum_msg' | 'forum_reply' | 'scholarly_alert' | 'system';
+  referenceId?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface ServerUser {
   id: string;
   username: string;
@@ -17,6 +27,8 @@ export interface ServerUser {
   savedScholarships: string[];
   recentRecitations: { date: string; verse: string; score: number }[];
   certificates: { title: string; date: string; grade: string; key: string }[];
+  joinedForums?: string[]; // categories student has joined
+  notifications?: ServerNotification[]; // notification history
 }
 
 export interface ServerReply {

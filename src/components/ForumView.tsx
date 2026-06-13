@@ -66,6 +66,7 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<'jurisprudence' | 'history' | 'recitation' | 'scholarships' | 'general'>('general');
+  const [newCategoryDropdownOpen, setNewCategoryDropdownOpen] = useState(false);
   const [newBody, setNewBody] = useState('');
 
   // New comment state
@@ -324,22 +325,65 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
                     id="forum-new-title"
                   />
 
-                  <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-slate-600">
+                  <div className="flex items-center gap-3 relative font-sans" id="custom-forum-new-category-wrapper">
+                    <label className="text-xs font-bold text-slate-600 block shrink-0">
                       {lang === 'en' ? "Select Channel Topic:" : "حقل القناة:"}
                     </label>
-                    <select
-                      className="p-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-amber-600 focus:ring-1 focus:ring-amber-600 text-slate-900 outline-none shadow-sm font-bold"
-                      value={newCategory}
-                      onChange={(e: any) => setNewCategory(e.target.value)}
-                      id="forum-new-category"
-                    >
-                      <option value="recitation">✓ Tajweed & Recitation</option>
-                      <option value="history">✓ Golden Age History</option>
-                      <option value="jurisprudence">✓ Jurisprudence</option>
-                      <option value="scholarships">✓ Scholarships</option>
-                      <option value="general">✓ General Discuss</option>
-                    </select>
+                    <div className="relative flex-1">
+                      <button
+                        type="button"
+                        onClick={() => setNewCategoryDropdownOpen(!newCategoryDropdownOpen)}
+                        className="w-full text-left p-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-amber-600 focus:ring-1 focus:ring-amber-600 text-slate-900 outline-none shadow-sm font-bold flex items-center justify-between cursor-pointer"
+                        id="custom-forum-new-category-trigger"
+                      >
+                        <span>
+                          {newCategory === 'recitation'
+                            ? (lang === 'en' ? "✓ Tajweed & Recitation" : "✓ التجويد ومخارج الحروف")
+                            : newCategory === 'history'
+                              ? (lang === 'en' ? "✓ Golden Age History" : "✓ تاريخ الحقب والمخطوطات")
+                              : newCategory === 'jurisprudence'
+                                ? (lang === 'en' ? "✓ Jurisprudence" : "✓ الفقه ومباحث الأحكام")
+                                : newCategory === 'scholarships'
+                                  ? (lang === 'en' ? "✓ Scholarships" : "✓ منح التميز الأكاديمي")
+                                  : (lang === 'en' ? "✓ General Discuss" : "✓ المذاكرة والآداب العامة")}
+                        </span>
+                        <span className="text-[8px] text-slate-400">▼</span>
+                      </button>
+
+                      <AnimatePresence>
+                        {newCategoryDropdownOpen && (
+                          <>
+                            <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setNewCategoryDropdownOpen(false)} />
+                            <motion.div
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 5 }}
+                              className="absolute left-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 text-left"
+                            >
+                              {[
+                                { value: 'recitation', en: "Tajweed & Recitation", ar: "التجويد ومخارج الحروف" },
+                                { value: 'history', en: "Golden Age History", ar: "تاريخ الحقب والمخطوطات" },
+                                { value: 'jurisprudence', en: "Jurisprudence", ar: "الفقه ومباحث الأحكام" },
+                                { value: 'scholarships', en: "Scholarships", ar: "منح التميز الأكاديمي" },
+                                { value: 'general', en: "General Discuss", ar: "المذاكرة والآداب العامة" }
+                              ].map(opt => (
+                                <button
+                                  key={`forum-cat-opt-${opt.value}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setNewCategory(opt.value as any);
+                                    setNewCategoryDropdownOpen(false);
+                                  }}
+                                  className={`w-full text-left px-3.5 py-2 text-xs border-0 cursor-pointer ${newCategory === opt.value ? 'bg-amber-50 text-amber-900 font-extrabold' : 'bg-transparent text-slate-700 hover:bg-slate-50'}`}
+                                >
+                                  ✓ {lang === 'en' ? opt.en : opt.ar}
+                                </button>
+                              ))}
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
 
                   <textarea

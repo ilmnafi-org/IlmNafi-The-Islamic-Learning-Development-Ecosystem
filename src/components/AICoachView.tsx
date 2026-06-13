@@ -48,15 +48,17 @@ function cleanArabicLetters(text: string): string[] {
 interface AICoachViewProps {
   progress: UserProgress;
   onAddRecitation: (verse: string, score: number) => void;
+  practiceVerse?: any;
+  onClearPracticeVerse?: () => void;
 }
 
 // Map presets to saad al-ghamadi audio streams on everyayah
 const EVERY_AYAH_AUDIO: { [key: string]: string } = {
-  "Al-Fatihah": "https://everyayah.com/data/Al_Ghamadi_40kbps/001001.mp3",
-  "Al-Ikhlas": "https://everyayah.com/data/Al_Ghamadi_40kbps/112001.mp3",
-  "Al-Kawthar": "https://everyayah.com/data/Al_Ghamadi_40kbps/108001.mp3",
-  "An-Nas": "https://everyayah.com/data/Al_Ghamadi_40kbps/114001.mp3",
-  "Al-Asr": "https://everyayah.com/data/Al_Ghamadi_40kbps/103001.mp3"
+  "Al-Fatihah": "https://everyayah.com/data/Ghamadi_40kbps/001001.mp3",
+  "Al-Ikhlas": "https://everyayah.com/data/Ghamadi_40kbps/112001.mp3",
+  "Al-Kawthar": "https://everyayah.com/data/Ghamadi_40kbps/108001.mp3",
+  "An-Nas": "https://everyayah.com/data/Ghamadi_40kbps/114001.mp3",
+  "Al-Asr": "https://everyayah.com/data/Ghamadi_40kbps/103001.mp3"
 };
 
 interface DeterministicToken {
@@ -82,12 +84,56 @@ interface DeterministicToken {
   }[];
 }
 
-export default function AICoachView({ progress, onAddRecitation }: AICoachViewProps) {
+export default function AICoachView({ 
+  progress, 
+  onAddRecitation,
+  practiceVerse,
+  onClearPracticeVerse
+}: AICoachViewProps) {
   const [selectedVerse, setSelectedVerse] = useState<QuranVerse>(RECITATION_PRESETS[0]);
   const [customArabicMode, setCustomArabicMode] = useState(false);
   const [customText, setCustomText] = useState('');
   const [customSurah, setCustomSurah] = useState('');
-  const [selectedQiraat, setSelectedQiraat] = useState<'hafs' | 'warsh' | 'qaloon'>('hafs');
+  const selectedQiraat = 'hafs';
+  const [activeReciterRef, setActiveReciterRef] = useState<'ghamadi' | 'husary'>(() => {
+    return (localStorage.getItem('ilm_naafi_primary_reciter') as 'ghamadi' | 'husary') || 'husary';
+  });
+
+  // Load custom practice verse passed down from QuranExplorer
+  useEffect(() => {
+    if (practiceVerse) {
+      setSelectedVerse(practiceVerse);
+      setCustomArabicMode(false);
+    }
+  }, [practiceVerse]);
+
+  // Determine dynamic reference audio link from everyayah
+  useEffect(() => {
+    if (customArabicMode) {
+      setRefUrl(null);
+      return;
+    }
+
+    let paddedSurah = "001";
+    if (selectedVerse.surah) {
+      const match = String(selectedVerse.surah).match(/\d+/);
+      if (match) {
+        paddedSurah = String(match[0]).padStart(3, '0');
+      } else {
+        const surahLower = String(selectedVerse.surah).toLowerCase();
+        if (surahLower.includes("fatihah") || surahLower === "1" || surahLower.includes("opening")) paddedSurah = "001";
+        else if (surahLower.includes("baqarah") || surahLower === "2") paddedSurah = "002";
+        else if (surahLower.includes("kawthar") || surahLower === "108") paddedSurah = "108";
+        else if (surahLower.includes("ikhlas") || surahLower === "112" || surahLower.includes("sincer") || surahLower.includes("purity")) paddedSurah = "112";
+        else if (surahLower.includes("nas") || surahLower === "114" || surahLower.includes("mankind")) paddedSurah = "114";
+        else if (surahLower.includes("asr") || surahLower === "103" || surahLower.includes("declining")) paddedSurah = "103";
+      }
+    }
+    const paddedAyah = String(selectedVerse.ayah || 1).padStart(3, '0');
+    const audioFolder = activeReciterRef === 'ghamadi' ? 'Ghamadi_40kbps' : 'Husary_64kbps';
+    const audioLink = `https://everyayah.com/data/${audioFolder}/${paddedSurah}${paddedAyah}.mp3`;
+    setRefUrl(audioLink);
+  }, [selectedVerse, customArabicMode, activeReciterRef]);
 
   // Tokenization breakdown from Rules Engine
   const [parsedTokens, setParsedTokens] = useState<DeterministicToken[]>([]);
@@ -172,34 +218,74 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
     } else {
       setMicState('blocked');
     }
+  }, []);
 
-    // Set standard URL for reference voice
-    if (!customArabicMode) {
-      setRefUrl(EVERY_AYAH_AUDIO[selectedVerse.surah] || null);
-    } else {
-      setRefUrl(null);
+  // Reset audio playback object when reference URL changes
+  useEffect(() => {
+    if (refAudioPlayerRef.current) {
+      refAudioPlayerRef.current.pause();
+      refAudioPlayerRef.current = null;
     }
-  }, [selectedVerse, customArabicMode]);
+    setIsPlayingRef(false);
+  }, [refUrl]);
 
-  // Handle playing refernce audio
-  const toggleRefPlayback = () => {
+  // Handle playing reference audio (offline cached fallback)
+  const toggleRefPlayback = async () => {
     if (!refUrl) return;
 
-    if (!refAudioPlayerRef.current) {
-      refAudioPlayerRef.current = new Audio(refUrl);
-      refAudioPlayerRef.current.onended = () => setIsPlayingRef(false);
+    if (isPlayingRef) {
+      if (refAudioPlayerRef.current) {
+        refAudioPlayerRef.current.pause();
+      }
+      setIsPlayingRef(false);
+      return;
     }
 
-    if (isPlayingRef) {
-      refAudioPlayerRef.current.pause();
-      setIsPlayingRef(false);
-    } else {
+    try {
+      if (!refAudioPlayerRef.current) {
+        let finalUrl = refUrl;
+        
+        // Dynamic offline support intercept
+        try {
+          if (typeof window !== 'undefined' && 'caches' in window) {
+            const cache = await caches.open('quran-audio-cache');
+            const matched = await cache.match(refUrl);
+            if (matched) {
+              const audioBlob = await matched.blob();
+              finalUrl = URL.createObjectURL(audioBlob);
+              console.log("Playing AI Coach reference from offline store:", refUrl);
+            } else {
+              finalUrl = `/api/audio-proxy?url=${encodeURIComponent(refUrl)}`;
+            }
+          } else {
+            finalUrl = `/api/audio-proxy?url=${encodeURIComponent(refUrl)}`;
+          }
+        } catch (err) {
+          console.warn("Reference cache check skipped:", err);
+          finalUrl = `/api/audio-proxy?url=${encodeURIComponent(refUrl)}`;
+        }
+
+        refAudioPlayerRef.current = new Audio(finalUrl);
+        refAudioPlayerRef.current.onerror = () => {
+          console.warn("Reference audio failed to load:", refUrl);
+          setIsPlayingRef(false);
+        };
+        refAudioPlayerRef.current.onended = () => setIsPlayingRef(false);
+      }
+
       if (audioPlayerRef.current) {
         audioPlayerRef.current.pause();
         setIsPlaying(false);
       }
-      refAudioPlayerRef.current.play();
+
+      refAudioPlayerRef.current.play().catch(e => {
+        console.warn("Failed playing reference audio:", e);
+        setIsPlayingRef(false);
+      });
       setIsPlayingRef(true);
+    } catch (err) {
+      console.warn("Ref audio play catch:", err);
+      setIsPlayingRef(false);
     }
   };
 
@@ -253,6 +339,10 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
     
     if (!audioPlayerRef.current) {
       audioPlayerRef.current = new Audio(audioUrl);
+      audioPlayerRef.current.onerror = () => {
+        console.warn("Recorded playback failed to load");
+        setIsPlaying(false);
+      };
       audioPlayerRef.current.onended = () => setIsPlaying(false);
     }
 
@@ -264,7 +354,10 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
         refAudioPlayerRef.current.pause();
         setIsPlayingRef(false);
       }
-      audioPlayerRef.current.play();
+      audioPlayerRef.current.play().catch(e => {
+        console.warn("Failed playing recorded audio:", e);
+        setIsPlaying(false);
+      });
       setIsPlaying(true);
     }
   };
@@ -460,26 +553,16 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
         >
           <div>
             <div className="inline-flex gap-2 items-center px-3.5 py-1.5 rounded-full bg-white/10 text-emerald-300 text-[10px] font-bold uppercase tracking-widest border border-white/10 shadow mb-5">
-              <Activity className="w-3.5 h-3.5" /> High-Resolution Acoustic
+              <Activity className="w-3.5 h-3.5" /> Canonical Hafs Mode
             </div>
-            <h1 className="text-3xl font-black tracking-tight leading-none mb-3">Acoustic Tajweed Recitor</h1>
+            <h1 className="text-3xl font-black tracking-tight leading-none mb-3">Tajweed Pronunciation Coach</h1>
             <p className="text-emerald-100/90 text-xs md:text-sm leading-relaxed font-sans font-medium">
-              A dual-stage full-stack coaching environment. Our deterministic **Rules Engine** parses exact letter boundaries, vowel extension beat counts (Madd), and articulation points (Makhārij). The secondary **Gemini AI Evaluator** analyzes your captured recitation.
+              Practice and verify your pronunciation, vowel elongations, and letter articulation points word-by-word against classical Hafs criteria. Access real-time anatomical feedback and vocal duration analytics.
             </p>
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-white/15 space-y-3">
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Deterministic Rules</span>
-            <div className="grid grid-cols-2 gap-3.5 text-[10px] uppercase font-bold text-emerald-200/90 tracking-wider">
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Noon Saakin</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Meem Saakin</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Madd (Beats)</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Qalqalah Echo</span>
-            </div>
           </div>
         </motion.div>
 
-        {/* INPUT WORKSPACE WITH QIRAAT SELECTOR AND REFERENCE ENGINE */}
+        {/* INPUT WORKSPACE AND REFERENCE ENGINE */}
         <motion.div 
           initial={{ opacity: 0, x: 15 }}
           animate={{ opacity: 1, x: 0 }}
@@ -487,7 +570,7 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
           id="workspace-container"
         >
           <div className="space-y-6">
-            {/* Header controls for Qiraat select */}
+            {/* Header controls for Preset/Custom select */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div className="flex gap-4">
                 <button 
@@ -508,23 +591,35 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
                 </button>
               </div>
 
-              {/* QIRAAT SELECT SWITCHER */}
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1.5 rounded-xl self-start sm:self-auto">
-                <Sliders className="w-3.5 h-3.5 text-slate-500 scale-90" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1.5">Qiraat:</span>
-                {(['hafs', 'warsh', 'qaloon'] as const).map(q => (
-                  <button
-                    key={q}
-                    onClick={() => { setSelectedQiraat(q); }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition scale-90 cursor-pointer ${
-                      selectedQiraat === q 
-                        ? 'bg-emerald-900 text-white shadow-sm font-black' 
-                        : 'text-slate-550 hover:text-slate-900 bg-white hover:bg-slate-100/50'
-                    }`}
-                  >
-                    {q}
-                  </button>
-                ))}
+              {/* Dynamic Qari Selector inside AICoachView */}
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl self-start sm:self-auto shrink-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Reciter:</span>
+                <button
+                  onClick={() => {
+                    setActiveReciterRef('husary');
+                    localStorage.setItem('ilm_naafi_primary_reciter', 'husary');
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition cursor-pointer ${
+                    activeReciterRef === 'husary' 
+                      ? 'bg-emerald-900 text-white shadow-xs' 
+                      : 'text-slate-500 hover:text-slate-800 bg-white'
+                  }`}
+                >
+                  Sheikh Al-Husary
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveReciterRef('ghamadi');
+                    localStorage.setItem('ilm_naafi_primary_reciter', 'ghamadi');
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition cursor-pointer ${
+                    activeReciterRef === 'ghamadi' 
+                      ? 'bg-emerald-900 text-white shadow-xs' 
+                      : 'text-slate-500 hover:text-slate-800 bg-white'
+                  }`}
+                >
+                  Saad Al-Ghamidi
+                </button>
               </div>
             </div>
 
@@ -728,8 +823,8 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
           <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-6">
             <span className="w-2.5 h-2.5 bg-emerald-600 rounded-full animate-ping"></span>
             <div className="flex flex-col">
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Phase 1 — Interactive Tajweed Word Checker</h2>
-              <span className="text-[10px] text-slate-400 font-bold">Deterministic rules evaluated based on {selectedQiraat.toUpperCase()} Qira'at mode. Click any word to vizualize its anatomical Makhraj.</span>
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Hafs Tajweed Word Analyzer</h2>
+              <span className="text-[10px] text-slate-400 font-bold">Interactive word-by-word Tajweed verification. Click any word to visualize its anatomical articulation point (Makhraj).</span>
             </div>
           </div>
 
@@ -872,9 +967,9 @@ export default function AICoachView({ progress, onAddRecitation }: AICoachViewPr
           <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto shadow border border-emerald-950/5">
             <Sparkles className="w-8 h-8 text-emerald-805 animate-spin" />
           </div>
-          <h3 className="font-extrabold text-xl text-slate-900">Comparing Vocal Nodes (Hafs/Warsh/Qaloon)</h3>
+          <h3 className="font-extrabold text-xl text-slate-900">Evaluating Hafs Tajweed Recitation</h3>
           <p className="text-slate-500 text-xs md:text-sm max-w-md mx-auto leading-relaxed">
-            Running waveform duration checks, matching consonant resonance markers (Qalqalah), and verifying nasal flow counts against core classical rules...
+            Running wave checks, verifying vowel duration markers, and tracking nasal flow counts against canonical Hafs guidelines...
           </p>
         </motion.div>
       )}

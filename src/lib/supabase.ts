@@ -13,6 +13,8 @@ export interface UserSession {
   savedScholarships: string[];
   recentRecitations: { date: string; verse: string; score: number }[];
   certificates: { title: string; date: string; grade: string; key: string }[];
+  joinedForums?: string[];
+  notifications?: any[];
 }
 
 export interface LocalThread {
@@ -52,10 +54,23 @@ function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<strin
 export const dbService = {
   // --- AUTH SERVICES ---
   async signUp(email: string, password: string, name: string, role: 'student' | 'researcher' | 'teacher'): Promise<UserSession> {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const finalName = name.trim() || email.split('@')[0];
+
+    // Backup locally FIRST
+    try {
+      const localUsers = JSON.parse(localStorage.getItem('ilm_naafi_local_users') || '[]');
+      if (!localUsers.some((u: any) => u.email.toLowerCase() === trimmedEmail.toLowerCase())) {
+        localUsers.push({ email: trimmedEmail, name: finalName, password: trimmedPassword, role });
+        localStorage.setItem('ilm_naafi_local_users', JSON.stringify(localUsers));
+      }
+    } catch (err) {}
+
     const response = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name, role })
+      body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword, name: finalName, role })
     });
 
     if (!response.ok) {
@@ -72,13 +87,48 @@ export const dbService = {
   },
 
   async login(email: string, password: string): Promise<UserSession> {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword })
     });
 
     if (!response.ok) {
+      // Direct restoration fallback: check local ledger
+      try {
+        const localUsers = JSON.parse(localStorage.getItem('ilm_naafi_local_users') || '[]');
+        const localMatch = localUsers.find((u: any) => u.email.toLowerCase() === trimmedEmail.toLowerCase() && u.password === trimmedPassword);
+        if (localMatch) {
+          // Re-register silently on server
+          const registerResp = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: localMatch.email, password: localMatch.password, name: localMatch.name, role: localMatch.role })
+          });
+          if (registerResp.ok) {
+            // Retry login
+            const retryResponse = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword })
+            });
+            if (retryResponse.ok) {
+              const data = await retryResponse.json();
+              if (data.token) {
+                localStorage.setItem('ilm_token', data.token);
+              }
+              clientInMemorySession = data.user;
+              return data.user;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Silent recovery check failed:", e);
+      }
+
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `Login failed with status code ${response.status}`);
     }
@@ -88,6 +138,16 @@ export const dbService = {
       localStorage.setItem('ilm_token', data.token);
     }
     clientInMemorySession = data.user;
+
+    // Cache to client local storage if not already there to ensure continuity
+    try {
+      const localUsers = JSON.parse(localStorage.getItem('ilm_naafi_local_users') || '[]');
+      if (!localUsers.some((u: any) => u.email.toLowerCase() === trimmedEmail.toLowerCase())) {
+        localUsers.push({ email: trimmedEmail, name: data.user.username, password: trimmedPassword, role: data.user.role });
+        localStorage.setItem('ilm_naafi_local_users', JSON.stringify(localUsers));
+      }
+    } catch (err) {}
+
     return data.user;
   },
 

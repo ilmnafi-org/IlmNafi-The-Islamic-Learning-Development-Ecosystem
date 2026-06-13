@@ -67,6 +67,73 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
     }
   ];
 
+  const subProjects = [
+    {
+      id: "nafi-core",
+      name: lang === 'en' ? "Nafi Phonology Engine (nafi-core)" : "محرك الأداء الصوتي (nafi-core)",
+      desc: lang === 'en' ? "Client-side vocal tract contour mapping, phoneme parser, and Web Audio API spectrogram analyses." : "الخوارزميات الأساسية لتحليل المخارج الصوتية، واكتشاف الأحرف، ورسم المخطط النطقي بالمتصفح.",
+      progress: 75,
+      status: "active",
+      statusLabel: lang === 'en' ? "Active Development" : "تطوير نشط",
+      tech: ["TypeScript", "Web Audio API", "DSP"],
+      stars: 124,
+      forks: 18,
+      tasks: [
+        { label: lang === 'en' ? "Web Audio API Analysis" : "معالجة الترددات بالمتصفح", done: true },
+        { label: lang === 'en' ? "Vocal Tract Canvas Layout" : "رسم خارطة تجويف الفم حركياً", done: true },
+        { label: lang === 'en' ? "Pitch Auto-Normalization Limits" : "خوارزمية موازنة النغمة الحركية", done: false }
+      ]
+    },
+    {
+      id: "curriculums",
+      name: lang === 'en' ? "Al-Hikmah Lessons Registry (hikmah-registry)" : "قاعدة بيانات المنهاج الدراسي (hikmah-registry)",
+      desc: lang === 'en' ? "Verified datasets, granular lesson structures, and interactive quiz models for the 3 main curriculums." : "مصفوفة المناهج والمسارات الأكاديمية والامتحانات الشاملة لعلوم الشرع والقرآن واللغة.",
+      progress: 100,
+      status: "stable",
+      statusLabel: lang === 'en' ? "Completed & Stable" : "مستقر ومكتمل",
+      tech: ["JSON Schema", "Markdown", "ESM"],
+      stars: 89,
+      forks: 12,
+      tasks: [
+        { label: lang === 'en' ? "Quranic Makhraj Schemas" : "بنية ملفات المخرجات المخارجية", done: true },
+        { label: lang === 'en' ? "Interactive Study Quiz Definitions" : "مصفوفة أسئلة الاختبارات الذاتية", done: true },
+        { label: lang === 'en' ? "Linguistic Audio Registry Links" : "أشرطة التلاوة النموذجية السليمة", done: true }
+      ]
+    },
+    {
+      id: "db-gateway",
+      name: lang === 'en' ? "Unified Student Database Gateway (nafi-gateway)" : "بوابة خادم الطلاب الموحدة (nafi-gateway)",
+      desc: lang === 'en' ? "Server auth proxy, secure forums exchange, encrypted cookie handling, and forum rate limiting." : "بوابة خوادم التوثيق، لوحات الحوار المشتركة، وحمايات خفض تدفق البيانات والطلبات المتكررة.",
+      progress: 85,
+      status: "beta",
+      statusLabel: lang === 'en' ? "Integration (Beta)" : "مرحلة الدمج والبيتا",
+      tech: ["Express", "JWT", "Cryptography"],
+      stars: 67,
+      forks: 9,
+      tasks: [
+        { label: lang === 'en' ? "Express Endpoint Routing" : "سيرفر التوثيق وحماية الجلسات", done: true },
+        { label: lang === 'en' ? "Secure JWT Session Cookies" : "تشفير ملفات كوكيز الجلسات الحية", done: true },
+        { label: lang === 'en' ? "Durable Database Synchronization" : "ربط قواعد البيانات السحابية الحية", done: false }
+      ]
+    },
+    {
+      id: "mobile-qari",
+      name: lang === 'en' ? "Android Native Qari Coach (nafi-android)" : "تطبيق أندرويد المساعد (nafi-android)",
+      desc: lang === 'en' ? "Native Android app companion in Kotlin/Compose for low-latency offline vocal scoring." : "تطبيق الهواتف للمساعدة الصوتية والتصحيح المحلي دون اتصال شبكي في البيئات التعليمية.",
+      progress: 15,
+      status: "proposed",
+      statusLabel: lang === 'en' ? "Proposed / Researching" : "مقترح ومرحلة البحث",
+      tech: ["Kotlin", "Jetpack Compose", "Oboe C++"],
+      stars: 32,
+      forks: 3,
+      tasks: [
+        { label: lang === 'en' ? "Jetpack Compose Visual Wireframe" : "تصميم الواجهات الرسومية بلغة Kotlin", done: true },
+        { label: lang === 'en' ? "Low-Latency Oboe C++ Core" : "مكتبة معالجة ليفية صخرية C++ Oboe", done: false },
+        { label: lang === 'en' ? "Continuous Speech Record Buffers" : "التقاط وتسجيل الذبذبات غير المتصل", done: false }
+      ]
+    }
+  ];
+
   // List of upcoming features (Roadmap)
   const roadmapFeatures = [
     {
@@ -236,9 +303,116 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
 
         </div>
 
-        {/* RIGHT COLUMN: ROADMAPS & CURRENT IMPLEMENTED FEATURES */}
+        {/* RIGHT COLUMN: ROADMAPS, PROJECT STATUS REGISTER & LIVE FEATURES */}
         <div className="col-span-1 lg:col-span-2 space-y-8">
           
+          {/* ACTIVE SUB-PROJECTS STATE REGISTRY (NEW) */}
+          <div className="bg-white border border-slate-205 rounded-3xl p-6 md:p-8 shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 mb-6 gap-3">
+              <div className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-amber-700 animate-pulse" />
+                <h2 className="text-lg font-extrabold text-slate-900 select-none">
+                  {lang === 'en' ? "Modular Sub-Projects Directory" : "سجل وإحصاءات الأنظمة البرمجية الفرعية"}
+                </h2>
+              </div>
+              <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-black shrink-0">
+                {lang === 'en' ? "STATUS: 4 SYSTEMS ONLINE" : "الحالة: ٤ أنظمة قيد الفحص الحركي"}
+              </span>
+            </div>
+
+            <p className="text-slate-500 text-xs leading-relaxed mb-6">
+              {lang === 'en' 
+                ? "Below is the real-time compilation status and architecture progress of individual modular repositories powering Al-Hikmah Academy."
+                : "الحالة البرمجية الحية ونسب الإنجاز الفعلي للمكتبات ومستودعات الأكواد المستقلة المغذية لمنصة ومحاكيات أكاديمية الحكمة."}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {subProjects.map((proj) => {
+                const statusColors = {
+                  stable: "bg-emerald-100 text-emerald-900 border-emerald-200",
+                  active: "bg-blue-100 text-blue-900 border-blue-200",
+                  beta: "bg-purple-100 text-purple-900 border-purple-200",
+                  proposed: "bg-amber-100 text-amber-900 border-amber-200"
+                };
+                
+                const progressColors = {
+                  stable: "bg-emerald-600",
+                  active: "bg-blue-600",
+                  beta: "bg-purple-600",
+                  proposed: "bg-amber-400"
+                };
+
+                return (
+                  <div key={proj.id} className="border border-slate-150 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-350 transition-all bg-[#FAF9F5]/40 hover:bg-white">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-extrabold text-slate-900 text-xs line-clamp-1">{proj.name}</h4>
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${statusColors[proj.status]}`}>
+                          {proj.statusLabel}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-[10px] sm:text-[11px] leading-relaxed line-clamp-2 min-h-[32px]">
+                        {proj.desc}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2.5 pt-4 border-t border-slate-100/60 mt-3">
+                      {/* Progress meter */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[9px] font-mono font-bold">
+                          <span className="text-slate-400">{lang === 'en' ? "Calibration progress" : "جاهزية المعيار"}</span>
+                          <span className="text-slate-800">{proj.progress}%</span>
+                        </div>
+                        <div className="w-full bg-slate-150 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${progressColors[proj.status]}`} 
+                            style={{ width: `${proj.progress}%` }} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Subtasks and Status Details */}
+                      {proj.tasks && (
+                        <div className="space-y-1.5 pt-2 border-t border-dashed border-slate-100 mb-2">
+                          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">
+                            {lang === 'en' ? "Tracking Subtasks" : "متابعة المهام التفصيلية"}
+                          </span>
+                          <div className="space-y-1">
+                            {proj.tasks.map((task, tidx) => (
+                              <div key={tidx} className="flex items-center gap-1.5 text-[9px]">
+                                <span className={`w-3 h-3 rounded flex items-center justify-center font-bold text-[7px] shrink-0 ${task.done ? 'bg-emerald-50 text-emerald-700 border border-emerald-250/20' : 'bg-slate-50 text-slate-400 border border-slate-150'}`}>
+                                  {task.done ? "✓" : "⋯"}
+                                </span>
+                                <span className={task.done ? "text-slate-400 line-through decoration-slate-200 font-sans" : "text-slate-700 font-medium font-sans"}>
+                                  {task.label}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tech stack & stats info */}
+                      <div className="flex items-center justify-between gap-1.5 pt-0.5 flex-wrap">
+                        <div className="flex gap-1">
+                          {proj.tech.map((t) => (
+                            <span key={t} className="bg-white border border-slate-200 text-slate-400 text-[8px] font-mono px-1.5 py-0.5 rounded font-black">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 text-[9px] text-slate-400 font-mono font-bold">
+                          <span className="flex items-center gap-0.5">⭐ {proj.stars}</span>
+                          <span className="flex items-center gap-0.5">⑂ {proj.forks}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* INSTALLED AND LIVE FEATURES (COMPLETED) */}
           <div className="bg-white border border-slate-205 rounded-3xl p-6 md:p-8 shadow-md">
             <div className="flex items-center gap-2 mb-6">

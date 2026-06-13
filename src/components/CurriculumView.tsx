@@ -29,9 +29,10 @@ import { Subject, Lesson, UserProgress } from '../types';
 interface CurriculumViewProps {
   progress: UserProgress;
   onCompleteLesson: (lessonId: string) => void;
+  lang?: 'en' | 'ar';
 }
 
-export default function CurriculumView({ progress, onCompleteLesson }: CurriculumViewProps) {
+export default function CurriculumView({ progress, onCompleteLesson, lang = 'en' }: CurriculumViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -42,6 +43,7 @@ export default function CurriculumView({ progress, onCompleteLesson }: Curriculu
   // Suggestion contribution modal state
   const [showContribute, setShowContribute] = useState(false);
   const [contribSubject, setContribSubject] = useState('sub-quran');
+  const [subjectDropdownOpen, setSubjectDropdownOpen] = useState(false);
   const [contribTitle, setContribTitle] = useState('');
   const [contribContent, setContribContent] = useState('');
   const [contribSubmitted, setContribSubmitted] = useState(false);
@@ -500,7 +502,7 @@ export default function CurriculumView({ progress, onCompleteLesson }: Curriculu
               <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
                   <Edit className="w-5 h-5 text-emerald-700" />
-                  Community Manuscript Submission
+                  {lang === 'en' ? "Community Manuscript Submission" : "تقديم مخطوطة ومساهمة علمية جديدة"}
                 </h3>
                 <button 
                   onClick={() => setShowContribute(false)}
@@ -512,41 +514,82 @@ export default function CurriculumView({ progress, onCompleteLesson }: Curriculu
 
               <form onSubmit={handleSuggestSubmit} className="p-6 space-y-4 font-sans">
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Thank you for contributing to the Al-Hikmah open academy! Your historical or linguistic submission enters a scholarly blind peer review for factual and doctrinal verification.
+                  {lang === 'en'
+                    ? "Thank you for contributing to the Al-Hikmah open academy! Your historical or linguistic submission enters a scholarly blind peer review for factual and doctrinal verification."
+                    : "نشكر مساهمتكم في إثراء أكاديمية الحكمة المفتوحة! تدخل المخطوطات والبحوث المقترحة مرحلة التحكيم الثنائي السري للتدقيق العلمي والأكاديمي."}
                 </p>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-705 uppercase mb-1">Select Subject Field</label>
-                  <select 
-                    value={contribSubject}
-                    onChange={(e) => setContribSubject(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl p-2.5 text-xs bg-slate-50/55 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                <div className="relative" id="custom-curriculum-subject-dropdown-wrapper">
+                  <label className="block text-[10px] font-bold text-slate-705 uppercase mb-1">
+                    {lang === 'en' ? "Select Subject Field" : "اختر التخصص الشرعي / المعرفي المخصص:"}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setSubjectDropdownOpen(!subjectDropdownOpen)}
+                    className="w-full border border-slate-200 rounded-xl p-2.5 text-xs bg-slate-50/55 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-600 font-bold flex items-center justify-between cursor-pointer"
+                    id="custom-curriculum-subject-trigger"
                   >
-                    {CURRICULUM_DATA.map(sub => (
-                      <option key={sub.id} value={sub.id}>{sub.name}</option>
-                    ))}
-                  </select>
+                    <span>
+                      {(() => {
+                        const matched = CURRICULUM_DATA.find(sub => sub.id === contribSubject);
+                        return matched ? (lang === 'en' ? matched.name : matched.arabicName || matched.name) : "";
+                      })()}
+                    </span>
+                    <span className="text-[8px] text-slate-400">▼</span>
+                  </button>
+
+                  <AnimatePresence>
+                    {subjectDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setSubjectDropdownOpen(false)} />
+                        <motion.div
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          className="absolute left-0 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 text-left"
+                        >
+                          {CURRICULUM_DATA.map(sub => (
+                            <button
+                              key={`curriculum-sub-opt-${sub.id}`}
+                              type="button"
+                              onClick={() => {
+                                setContribSubject(sub.id);
+                                setSubjectDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3.5 py-2 text-xs border-0 cursor-pointer ${contribSubject === sub.id ? 'bg-emerald-50 text-emerald-900 font-extrabold' : 'bg-transparent text-slate-700 hover:bg-slate-50'}`}
+                            >
+                              {lang === 'en' ? sub.name : sub.arabicName || sub.name}
+                            </button>
+                          ))}
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-705 uppercase mb-1">Article or Draft Title</label>
+                  <label className="block text-[10px] font-bold text-slate-705 uppercase mb-1">
+                    {lang === 'en' ? "Article or Draft Title" : "عنوان المقال أو المسودة المقترحة:"}
+                  </label>
                   <input 
                     type="text" 
                     value={contribTitle}
                     onChange={(e) => setContribTitle(e.target.value)}
-                    placeholder="e.g., Al-Farabi's Classification of the Sciences"
+                    placeholder={lang === 'en' ? "e.g., Al-Farabi's Classification of the Sciences" : "مثال: موازين التلاوة وقواعد النبر والصلة"}
                     className="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-705 uppercase mb-1">Article Content (Markdown supported)</label>
+                  <label className="block text-[10px] font-bold text-slate-705 uppercase mb-1">
+                    {lang === 'en' ? "Article Content (Markdown supported)" : "المتن والنص المقترح (يدعم التنسيق الغني):"}
+                  </label>
                   <textarea 
                     rows={5}
                     value={contribContent}
                     onChange={(e) => setContribContent(e.target.value)}
-                    placeholder="Provide your structured text block, citations, and linguistic notes..."
+                    placeholder={lang === 'en' ? "Provide your structured text block, citations, and linguistic notes..." : "اكتب هنا نصوص الأبحاث، حواشي المتون، المراجع المعتمدة، والملاحظات بالتفصيل..."}
                     className="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600"
                     required
                   />
@@ -558,7 +601,7 @@ export default function CurriculumView({ progress, onCompleteLesson }: Curriculu
                     onClick={() => setShowContribute(false)}
                     className="border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer"
                   >
-                    Cancel
+                    {lang === 'en' ? "Cancel" : "إلغاء"}
                   </button>
                   <button 
                     type="submit"
@@ -566,7 +609,7 @@ export default function CurriculumView({ progress, onCompleteLesson }: Curriculu
                     className="bg-emerald-805 hover:bg-emerald-950 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-1 cursor-pointer"
                     id="btn-contrib-submit"
                   >
-                    {contribSubmitted ? "Uploading Submission..." : "Submit Manuscript"}
+                    {contribSubmitted ? (lang === 'en' ? "Uploading..." : "جاري الرفع والتدقيق...") : (lang === 'en' ? "Submit Manuscript" : "إرسال المخطوطة للمجلس")}
                     <Send className="w-3.5 h-3.5 ml-1" />
                   </button>
                 </div>

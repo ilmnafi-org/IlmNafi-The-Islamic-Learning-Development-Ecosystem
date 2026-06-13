@@ -62,6 +62,16 @@ export interface Scholarship {
   websiteUrl: string;
 }
 
+export interface ClientNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: 'forum_msg' | 'forum_reply' | 'scholarly_alert' | 'system';
+  referenceId?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface UserProgress {
   weeklyMinutes: number;
   lessonsCompleted: string[]; // lessonIds
@@ -73,4 +83,8 @@ export interface UserProgress {
   }[];
   username?: string;
   email?: string;
+  joinedForums?: string[]; // categories student is subscribed to
+  notifications?: ClientNotification[];
+  qiraat?: 'hafs' | 'warsh';
+  tajweedMode?: boolean;
 }

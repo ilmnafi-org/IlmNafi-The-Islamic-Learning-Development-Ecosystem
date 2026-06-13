@@ -23,7 +23,15 @@ import {
   Hash,
   Heart,
   CalendarRange,
-  Volume2
+  Volume2,
+  Radio,
+  Smartphone,
+  Bell,
+  MessageSquare,
+  Trash2,
+  Plus,
+  X,
+  Send
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { UserProgress } from '../types';
@@ -33,9 +41,16 @@ interface StudentDashboardProps {
   progress: UserProgress;
   onNavigateToTab: (tab: any) => void;
   onRemoveBookmark: (id: string) => void;
+  onUpdateProgress?: (newProgress: any) => void;
 }
 
-export default function StudentDashboard({ lang, progress, onNavigateToTab, onRemoveBookmark }: StudentDashboardProps) {
+export default function StudentDashboard({ 
+  lang, 
+  progress, 
+  onNavigateToTab, 
+  onRemoveBookmark,
+  onUpdateProgress
+}: StudentDashboardProps) {
   const [dailyChecklist, setDailyChecklist] = useState<{
     fajr: boolean;
     dhuhr: boolean;
@@ -65,6 +80,133 @@ export default function StudentDashboard({ lang, progress, onNavigateToTab, onRe
       adhkar: false
     };
   });
+
+  const [activeTabSub, setActiveTabSub] = useState<'notifications' | 'forums'>('notifications');
+  const [submittingJoin, setSubmittingJoin] = useState<string | null>(null);
+  const [simulationCategory, setSimulationCategory] = useState<string>('general');
+  const [simulationType, setSimulationType] = useState<'topic' | 'reply'>('reply');
+  const [phoneNotifications, setPhoneNotifications] = useState<any[]>([]);
+  const [phoneSound, setPhoneSound] = useState<boolean>(true);
+
+  // Bind custom handler on global window to push sockets to smart-phone lock-screen
+  React.useEffect(() => {
+    (window as any).onPhoneNotificationTriggered = (notif: any) => {
+      setPhoneNotifications(prev => [notif, ...prev.slice(0, 3)]);
+      if (phoneSound) {
+        try {
+          const alertSfx = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-600.wav");
+          alertSfx.volume = 0.35;
+          alertSfx.play().catch(() => {});
+        } catch (e) {}
+      }
+    };
+
+    return () => {
+      delete (window as any).onPhoneNotificationTriggered;
+    };
+  }, [phoneSound]);
+
+  const handleJoinLeaveForum = async (category: string, isCurrentlyJoined: boolean) => {
+    if (!progress.email) {
+      alert(lang === 'en' 
+        ? "Please sign in or create an account to subscribe to study boards and receive live notifications." 
+        : "برجاء تسجيل الدخول أو إنشاء حساب أولاً للانضمام للرابط وحلقات المذاكرة ومزامنة التنبيهات.");
+      onNavigateToTab('auth');
+      return;
+    }
+
+    setSubmittingJoin(category);
+    try {
+      const endpoint = isCurrentlyJoined ? '/api/forum/leave' : '/api/forum/join';
+      const token = localStorage.getItem('ilm_token');
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ category })
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (onUpdateProgress && result.joinedForums) {
+          onUpdateProgress({
+            ...progress,
+            joinedForums: result.joinedForums
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Failed to alter forum membership:", e);
+    } finally {
+      setSubmittingJoin(null);
+    }
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      const token = localStorage.getItem('ilm_token');
+      const response = await fetch('/api/notifications/read', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ notificationId: id })
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (onUpdateProgress && result.notifications) {
+          onUpdateProgress({
+            ...progress,
+            notifications: result.notifications
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Mark notification read error:", e);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const token = localStorage.getItem('ilm_token');
+      const response = await fetch('/api/notifications/clear', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (onUpdateProgress && result.notifications) {
+          onUpdateProgress({
+            ...progress,
+            notifications: result.notifications
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Clear notifications error:", e);
+    }
+  };
+
+  const handleTriggerActivity = async () => {
+    try {
+      const token = localStorage.getItem('ilm_token');
+      await fetch('/api/forum/simulate-activity', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ category: simulationCategory, type: simulationType })
+      });
+    } catch (e) {
+      console.error("Simulated activity trigger failure:", e);
+    }
+  };
 
   const toggleCheck = (item: keyof typeof dailyChecklist) => {
     setDailyChecklist(prev => {
@@ -158,6 +300,39 @@ export default function StudentDashboard({ lang, progress, onNavigateToTab, onRe
       adhkarCheck: "أوراد الصباح والمساء والاستغفار"
     }
   }[lang];
+
+  const forumBoards = [
+    { 
+      id: 'recitation', 
+      title: lang === 'en' ? "Tajweed & Accentuation Study Panel" : "حلقة التجويد وتحقيق المخارج",
+      desc: lang === 'en' ? "Clarifications regarding throat letters, Ghunnah rules, and classical vocal feedback loops." : "مخارج الحروف، جهارة الأصوات، والمدود والتدقيقات الصوتية لورش وحفص.",
+      tag: lang === 'en' ? "Tajweed" : "التجويد"
+    },
+    { 
+      id: 'history', 
+      title: lang === 'en' ? "Historic Manuscripts & Civilizations" : "حلقة العلوم الشرعية وتراجم المخطوطات",
+      desc: lang === 'en' ? "Discussions tracking ancient Andalusian texts, translation epochs, and scholars of Maghreb." : "المباحث التاريخية، المراجع النادرة، وتاريخ تدوين المخطوطات والعلوم.",
+      tag: lang === 'en' ? "History" : "التاريخ"
+    },
+    { 
+      id: 'jurisprudence', 
+      title: lang === 'en' ? "Comparative Legal Fiqh Consensus" : "حلقة دراسات الفقه العقدي المقارن",
+      desc: lang === 'en' ? "Classical legal analysis of acts, text verification, and contemporary jurisprudence models." : "المدارس الفقهية الأربع، تحقيق المسائل، ومداولات الاجتهاد والنوازل المعاصرة.",
+      tag: lang === 'en' ? "Jurisprudence" : "الفقه والمقاصد"
+    },
+    { 
+      id: 'scholarships', 
+      title: lang === 'en' ? "Global Grants Placement Office" : "حلقة المنح والإيفاد الأكاديمي المباشر",
+      desc: lang === 'en' ? "Peer matching and notifications for specialized Islamic University statements." : "مشاركة ملفات التقديم، ورش كتابة المقترحات البحثية، والقبول الجامعي.",
+      tag: lang === 'en' ? "Scholarships" : "المنح والدراسات"
+    },
+    { 
+      id: 'general', 
+      title: lang === 'en' ? "General Scholar Assembly Hall" : "بهو المذاكرة والآداب العامة",
+      desc: lang === 'en' ? "General student chat, review methods, and peer-to-peer memorization support queues." : "الآداب المنهجية لطلب العلم الشرعي، ومناقشة البرامج الإثرائية والتعارف.",
+      tag: lang === 'en' ? "General" : "المذاكرة العامة"
+    }
+  ];
 
   // Average accuracy calculation from recitations
   const averageAccuracy = progress.recentRecitations.length > 0
@@ -450,6 +625,79 @@ export default function StudentDashboard({ lang, progress, onNavigateToTab, onRe
 
           </div>
 
+          {/* STUDENT DISCUSSION FORUMS AND CHANNELS (MIGRATED FROM NOTIFICATIONS) */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 md:p-8 space-y-4 shadow-sm">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                <GraduationCap className="w-5 h-5 text-amber-800 shrink-0" />
+                <span>{lang === 'en' ? "Student Discussion Forums & Channels" : "قنوات المذاكرة الشرعية والحلقات الفنية"}</span>
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-1" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                {lang === 'en' 
+                  ? "Join discussion forums to automatically subscribe for real-time WebSocket notifications whenever a peer or الشيخ posts a thread or response."
+                  : "اشترك بالحلقات والديوان لتتلقى تحديثات مباشرة فور قيام أحد المشايخ بطرح الأسئلة أو الإجابات."}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 text-left">
+              {forumBoards.map((item) => {
+                const isJoined = progress.joinedForums?.includes(item.id);
+                return (
+                  <div 
+                    key={item.id}
+                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
+                      isJoined 
+                        ? 'bg-emerald-500/5 border-emerald-650/30' 
+                        : 'bg-[#FAF8F5] border-slate-200/80 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="space-y-1.5" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                      <div className="flex items-center justify-between" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                        <span className="text-[9px] font-black tracking-wider uppercase text-slate-400 font-mono">
+                          {item.tag}
+                        </span>
+                        {isJoined ? (
+                          <span className="text-[8px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-250 px-2 rounded">
+                            ✓ {lang === 'en' ? "SUBSCRIBED" : "مشترك"}
+                          </span>
+                        ) : (
+                          <span className="text-[8px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 rounded">
+                            {lang === 'en' ? "SILENT" : "صامت"}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-xs font-extrabold text-slate-900 leading-tight block">{item.title}</h4>
+                      <p className="text-[10px] text-slate-500 leading-normal block">{item.desc}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                      <button
+                        disabled={submittingJoin === item.id}
+                        onClick={() => handleJoinLeaveForum(item.id, isJoined)}
+                        className={`text-[9.5px] font-black px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                          isJoined 
+                            ? 'bg-transparent border-red-200 text-red-650 hover:bg-red-50' 
+                            : 'bg-emerald-800 border-emerald-800 text-white hover:bg-emerald-900'
+                        }`}
+                      >
+                        {submittingJoin === item.id ? "..." : isJoined 
+                          ? (lang === 'en' ? "Leave Board" : "مغادرة الحلقة") 
+                          : (lang === 'en' ? "Join Board & Sync" : "انضمام ومزامنة الإشعار")}
+                      </button>
+                      
+                      <button
+                        onClick={() => onNavigateToTab('forum')}
+                        className="text-[9.5px] font-black text-[#704214] hover:underline cursor-pointer bg-transparent"
+                      >
+                        {lang === 'en' ? "View Feed →" : "عرض التدفق ←"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* SCHOLARSHIP BOOKMARKS TRACKING WORKSPACE */}
           <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 space-y-4 shadow-sm">
             <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -514,7 +762,7 @@ export default function StudentDashboard({ lang, progress, onNavigateToTab, onRe
                 {progress.recentRecitations.map((rec, index) => (
                   <div 
                     key={index} 
-                    className="p-4 rounded-2xl border border-slate-150 bg-white hover:border-slate-300 transition flex items-center justify-between gap-4"
+                    className="p-4 rounded-2xl border border-slate-150 bg-[#FAF8F5] flex items-center justify-between gap-4"
                     style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
                   >
                     <div className="space-y-1 text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
@@ -523,7 +771,7 @@ export default function StudentDashboard({ lang, progress, onNavigateToTab, onRe
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                      <span className="text-[11px] text-slate-500 font-semibold">{lang === 'en' ? "Accoustic Score:" : "دقة المخارج والغنّة:"}</span>
+                      <span className="text-[11px] text-slate-500 font-semibold">{lang === 'en' ? "Acoustic Score:" : "دقة المخارج والغنّة:"}</span>
                       <span className={`text-sm md:text-base font-black px-3 py-1 rounded-xl border font-mono ${
                         rec.score >= 90 
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 

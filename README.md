@@ -84,6 +84,18 @@ Join us on our journey to democratize Quranic knowledge. Our complete launch seq
 
 ---
 
+## 🔒 Production Security, Idempotency, and Metrics
+
+Nafi Platform values robust data integrity and user identity defenses. The following items have been configured for production:
+*   **Secure API Rate Limiting**: Our zero-dependency, in-memory rate-limiting middleware blocks excessive or fast-repeating request spikes on sensitive interfaces (signup, login, and Gemini AI Coach).
+*   **Idempotency Guards**: Support for standard `x-idempotency-key` requests has been implemented in student forums, ensuring duplicative forum posts or replies never bypass the parser.
+*   **Credential Hashing & JWT Scope**: Stored passwords undergo custom salt key cryptographic encoding, and authenticated sessions are handled using secure, client-scope `HttpOnly` cookie stores.
+*   **Privacy & Legal Charters**: Full interactive charters for GDPR-compliant Privacy Policies, Terms of Service, and Academic Integrity codes are accessible via the platform footer, in both English and Arabic.
+*   **Performance Monitoring & Insights**: Fully integrated lightweight CDN tracking hooks for **Vercel Web Analytics** and **Vercel Speed Insights** are injected inside `index.html`.
+*   **Focal Security Enquiries Contact**: For safety or deletion inquiries, contact our chief security engineer at **apatirasulayman@gmail.com**.
+
+---
+
 ## 🤝 Contribution Documents
 
 Please review our supplementary files to start contributing:
