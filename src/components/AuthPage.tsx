@@ -75,20 +75,9 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
     } catch (err: any) {
       await minWait;
       setLoading(false);
-      const rawMsg = err?.message || '';
-      let cleanMsg = lang === 'en' 
-        ? "No account was found matching these credentials. Please check your spelling or register a new identity." 
-        : "لم يتم العثور على حساب يطابق هذه البيانات. يرجى التحقق من المدخلات أو تسجيل حساب جديد.";
-
-      if (rawMsg.includes("already registered") || rawMsg.includes("internal server") || rawMsg.includes("Duplicate email")) {
-        cleanMsg = lang === 'en' 
-          ? "This academic email address is already registered on our global ledger." 
-          : "البريد الإلكتروني المعتمد مسجل بالفعل في ديوان الأكاديمية.";
-      } else if (rawMsg.includes("password") || rawMsg.includes("PIN")) {
-        cleanMsg = lang === 'en' 
-          ? "Incorrect password PIN. Please double check your key entry and try again." 
-          : "رمز المرور السري خاطئ. يرجى التحقق من الرمز المدخل والمحاولة مجدداً.";
-      }
+      const cleanMsg = err?.message || (lang === 'en'
+        ? "An authorization error occurred. Please try again."
+        : "حدث خطأ في الاعتماد الأكاديمي. يرجى المحاولة مجدداً.");
       
       setErrorMessage(cleanMsg);
       setIsFailureModalOpen(true);

@@ -403,6 +403,127 @@ export default function QuranExplorer({
     return matches / maxLen;
   };
 
+  const syncGlobalAudioState = (audioEl: HTMLAudioElement, isPlayingLocal: boolean, idx: number | null = null) => {
+    if (typeof window === 'undefined') return;
+    const win = window as any;
+    win.__nafiAudioPlayer = audioEl;
+
+    let surahLabel = "";
+    if (currentSurahMeta) {
+      surahLabel = lang === 'en' ? currentSurahMeta.englishName : currentSurahMeta.name;
+    } else {
+      surahLabel = `Surah ${selectedSurahNum}`;
+    }
+
+    let currentAyahNum = 1;
+    if (idx !== null && activeSurahData[idx]) {
+      currentAyahNum = activeSurahData[idx].numberInSurah;
+    } else if (playingAyahKey) {
+      const parts = playingAyahKey.split(':');
+      if (parts.length === 2) currentAyahNum = parseInt(parts[1], 10);
+    }
+
+    let friendlyReciverName = "Sheikh Al-Husary";
+    if (primaryReciter === 'ghamadi') friendlyReciverName = "Saad Al-Ghamidi";
+    else if (primaryReciter === 'sudais') friendlyReciverName = "Abdul Rahman Al-Sudais";
+    else if (primaryReciter === 'shuraim') friendlyReciverName = "Saood ash-Shuraym";
+    else if (primaryReciter === 'muaiqly') friendlyReciverName = "Maher Al-Muaiqly";
+    else if (activeQiraat === 'warsh') friendlyReciverName = "Sheikh Al-Husary (Warsh)";
+
+    win.__nafiAudioState = {
+      isPlaying: isPlayingLocal,
+      surahName: surahLabel,
+      surahNumber: selectedSurahNum,
+      ayahNumber: currentAyahNum,
+      reciterName: friendlyReciverName,
+      playMode: playMode,
+      onNext: () => {
+        if (playMode === 'continuous_stream') {
+          if (selectedSurahNum < 114) {
+            autoplayNextSurahRef.current = true;
+            setSelectedSurahNum(prev => prev + 1);
+          }
+        } else {
+          const currentIdx = idx !== null ? idx : (surahPlayAyahIdx !== null ? surahPlayAyahIdx : 0);
+          skipToNextAyahConsecutive(currentIdx);
+        }
+      },
+      onPrev: () => {
+        if (playMode === 'continuous_stream') {
+          if (selectedSurahNum > 1) {
+            autoplayNextSurahRef.current = true;
+            setSelectedSurahNum(prev => prev - 1);
+          }
+        } else {
+          const currentIdx = idx !== null ? idx : (surahPlayAyahIdx !== null ? surahPlayAyahIdx : 0);
+          skipToPrevAyahConsecutive(currentIdx);
+        }
+      },
+      onTogglePlayPause: () => {
+        if (audioEl.paused) {
+          audioEl.play().catch(e => console.warn(e));
+          if (win.__nafiAudioState) win.__nafiAudioState.isPlaying = true;
+        } else {
+          audioEl.pause();
+          if (win.__nafiAudioState) win.__nafiAudioState.isPlaying = false;
+        }
+        win.__nafiAudioUpdate?.();
+      },
+      onStop: () => {
+        stopWholeSurahPlayback();
+        win.__nafiAudioState = null;
+        win.__nafiAudioUpdate?.();
+      }
+    };
+
+    // Keep events in sync
+    audioEl.onplay = () => {
+      if (win.__nafiAudioState) win.__nafiAudioState.isPlaying = true;
+      win.__nafiAudioUpdate?.();
+    };
+    audioEl.onpause = () => {
+      if (win.__nafiAudioState) win.__nafiAudioState.isPlaying = false;
+      win.__nafiAudioUpdate?.();
+    };
+    audioEl.onended = () => {
+      if (playMode === 'continuous_stream') {
+        if (selectedSurahNum < 114) {
+          autoplayNextSurahRef.current = true;
+          setSelectedSurahNum(prev => prev + 1);
+        } else {
+          stopWholeSurahPlayback();
+          win.__nafiAudioState = null;
+          win.__nafiAudioUpdate?.();
+        }
+      } else {
+        const currentIdx = idx !== null ? idx : 0;
+        skipToNextAyahConsecutive(currentIdx);
+      }
+    };
+
+    win.__nafiAudioUpdate?.();
+  };
+
+  useEffect(() => {
+    if (audioPlayerRef.current) {
+      syncGlobalAudioState(audioPlayerRef.current, !audioPlayerRef.current.paused, surahPlayAyahIdx);
+    }
+  }, [playingAyahKey, surahPlayAyahIdx, selectedSurahNum, primaryReciter, playMode, currentSurahMeta]);
+
+  // Auto-scroll list view to the currently playing verse
+  useEffect(() => {
+    if (playingAyahKey) {
+      const parts = playingAyahKey.split(':');
+      if (parts.length === 2 && Number(parts[0]) === selectedSurahNum) {
+        const ayahNum = parts[1];
+        const el = document.getElementById(`ayah-card-${ayahNum}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  }, [playingAyahKey, selectedSurahNum]);
+
   // Generate Ghost Word List when scope parameters or current surah slides change
   useEffect(() => {
     if (!activeSurahData || activeSurahData.length === 0) return;

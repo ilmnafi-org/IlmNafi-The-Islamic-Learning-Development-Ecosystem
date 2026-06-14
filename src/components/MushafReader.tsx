@@ -216,6 +216,20 @@ export default function MushafReader({
   const [readingLayout, setReadingLayout] = React.useState<'continuous' | 'interactive'>('interactive');
   const [expandedRuleId, setExpandedRuleId] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (playingAyahKey) {
+      const parts = playingAyahKey.split(':');
+      if (parts.length === 2 && Number(parts[0]) === selectedSurahNum) {
+        const ayahNum = parts[1];
+        const elementId = `mushaf-span-${selectedSurahNum}-${ayahNum}`;
+        const scrollTarget = document.getElementById(elementId) || document.getElementById(`mushaf-block-${selectedSurahNum}-${ayahNum}`);
+        if (scrollTarget) {
+          scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  }, [playingAyahKey, selectedSurahNum]);
+
   return (
     <div className={`${themeStyles.bg} ${themeStyles.text} transition-all duration-300 min-h-screen pb-24 font-sans select-none`} id="quran-reader-hub">
       
@@ -411,12 +425,13 @@ export default function MushafReader({
                           return (
                             <span 
                               key={`mushaf-span-${v.number}`}
+                              id={`mushaf-span-${selectedSurahNum}-${v.numberInSurah}`}
                               onClick={() => setSelectedAyahInMushaf(v)}
                               className={`inline transition-all duration-200 cursor-pointer rounded-sm px-1.5 py-0.5 relative ${
                                 isSelected 
                                   ? 'bg-amber-500/15 ring-2 ring-amber-500/35 text-amber-800 font-extrabold' 
                                   : isPlaying
-                                    ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400'
+                                    ? 'bg-emerald-500/25 text-emerald-950 dark:text-emerald-100 ring-2 ring-emerald-500/45 font-extrabold scale-102 inline-block'
                                     : 'hover:bg-amber-500/5'
                               }`}
                             >
@@ -445,12 +460,13 @@ export default function MushafReader({
                           return (
                             <div 
                               key={`mushaf-block-${v.number}`}
+                              id={`mushaf-block-${selectedSurahNum}-${v.numberInSurah}`}
                               onClick={() => setSelectedAyahInMushaf(v)}
                               className={`p-4 rounded-2xl transition-all duration-200 cursor-pointer block border text-right relative ${
                                 isSelected 
                                   ? 'bg-amber-500/10 border-amber-500/30 shadow-inner' 
                                   : isPlaying
-                                    ? 'bg-emerald-500/10 border-emerald-500/25'
+                                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-950 dark:text-emerald-50 shadow-xs ring-1 ring-emerald-400/30'
                                     : 'hover:bg-amber-500/10 bg-black/5 border-slate-200/40 text-slate-800'
                               }`}
                             >

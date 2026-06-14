@@ -354,9 +354,26 @@ app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), (req, res) => {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
+
+  // Strict email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(normalizedEmail)) {
+    return res.status(400).json({ error: "The provided academic email address format is invalid." });
+  }
+
+  // Name validation
+  if (name.trim().length < 2) {
+    return res.status(400).json({ error: "Please enter your full academic name (minimum 2 characters)." });
+  }
+
+  // Password length validation
+  if (password.trim().length < 6) {
+    return res.status(400).json({ error: "Your access password PIN should be at least 6 characters in length to safeguard your study history." });
+  }
+
   const existingUser = dbStore.findUserByEmail(normalizedEmail);
   if (existingUser) {
-    return res.status(400).json({ error: "The provided academic email is already registered." });
+    return res.status(400).json({ error: "This academic email is already registered on our global ledger." });
   }
 
   const userId = "usr_" + Math.random().toString(36).substr(2, 9);

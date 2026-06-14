@@ -43,7 +43,12 @@ import {
   RefreshCw,
   GraduationCap,
   Lock,
-  Terminal
+  Terminal,
+  Play,
+  Pause,
+  SkipForward,
+  Volume2,
+  Square
 } from 'lucide-react';
 
 import CurriculumView from './components/CurriculumView';
@@ -213,6 +218,70 @@ export default function App() {
   const [adhkarDrawerActive, setAdhkarDrawerActive] = useState<'tasbih' | 'prayers' | 'dua' | null>(null);
   const [appLoading, setAppLoading] = useState(true);
   const [loadingQuoteIdx] = useState(() => Math.floor(Math.random() * WISDOM_QUOTES.length));
+
+  const [globalAudio, setGlobalAudio] = useState<{
+    isPlaying: boolean;
+    surahName: string;
+    surahNumber: number;
+    ayahNumber: number;
+    reciterName: string;
+    playMode: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const updateHandler = () => {
+      const state = (window as any).__nafiAudioState;
+      if (state) {
+        setGlobalAudio({
+          isPlaying: state.isPlaying,
+          surahName: state.surahName,
+          surahNumber: state.surahNumber,
+          ayahNumber: state.ayahNumber,
+          reciterName: state.reciterName,
+          playMode: state.playMode,
+        });
+      } else {
+        setGlobalAudio(null);
+      }
+    };
+
+    (window as any).__nafiAudioUpdate = updateHandler;
+    updateHandler(); // Check initially
+
+    const interval = setInterval(() => {
+      const player = (window as any).__nafiAudioPlayer;
+      const state = (window as any).__nafiAudioState;
+      if (player && state) {
+        const isPaused = player.paused;
+        if (state.isPlaying === isPaused) {
+          state.isPlaying = !isPaused;
+          updateHandler();
+        }
+      }
+    }, 1000);
+
+    return () => {
+      (window as any).__nafiAudioUpdate = undefined;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleMiniNext = () => {
+    const state = (window as any).__nafiAudioState;
+    if (state && state.onNext) state.onNext();
+  };
+
+  const handleMiniToggle = () => {
+    const state = (window as any).__nafiAudioState;
+    if (state && state.onTogglePlayPause) state.onTogglePlayPause();
+  };
+
+  const handleMiniStop = () => {
+    const state = (window as any).__nafiAudioState;
+    if (state && state.onStop) state.onStop();
+    (window as any).__nafiAudioState = null;
+    setGlobalAudio(null);
+  };
   
   // Landing dynamics states
   const [landingQiblah, setLandingQiblah] = useState<number | null>(null);
@@ -2635,6 +2704,99 @@ export default function App() {
               </div>
             </section>
 
+            {/* DAILY SCHOLARLY GOALS & SPIRITUAL PLANNER SECTION */}
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-8" id="daily-planner-section">
+              <div className="bg-white border border-slate-200/90 rounded-[2rem] p-6 md:p-10 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative overflow-hidden">
+                <div className="lg:col-span-12 xl:col-span-5 space-y-4">
+                  <span className="inline-block text-[10px] font-bold text-amber-800 bg-amber-100 rounded-full py-1 px-3">
+                    {lang === 'en' ? "✨ Daily Tracker" : "✨ برنامج المتابعة والورد اليومي"}
+                  </span>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 font-sans tracking-tight leading-none">
+                    {lang === 'en' ? "Student Daily Learning Checklist" : "الخطة المقترحة والورد اليومي لطلب العلم"}
+                  </h3>
+                  <p className="text-xs text-slate-500 leading-relaxed font-sans" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                    {lang === 'en' 
+                      ? "Establish a consistent daily routine. Check off your learning and recitation goals to track your growth as an active student of knowledge."
+                      : "احرص على بناء عادات يومية راسخة. تتبّع أوراد القراءة والحفظ ومطالعة المتون لترقى في معارج العلم والعمل النافع."}
+                  </p>
+                  
+                  {/* Digital Progress Circle / Stats bar */}
+                  <div className="bg-[#FAF8F5] p-5 rounded-2xl border border-amber-500/10 flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">
+                        {lang === 'en' ? "TODAY'S PROGRESS" : "نسبة الإنجاز لليوم"}
+                      </span>
+                      <span className="text-2xl font-black text-slate-800 font-mono">
+                        {Math.round((
+                          ((localStorage.getItem('nafi_goal_quran') === 'true' ? 1 : 0) +
+                           (localStorage.getItem('nafi_goal_dhikr') === 'true' ? 1 : 0) +
+                           (localStorage.getItem('nafi_goal_coach') === 'true' ? 1 : 0) +
+                           (localStorage.getItem('nafi_goal_lesson') === 'true' ? 1 : 0)) / 4
+                        ) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-1/2 bg-slate-250 h-2.5 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-amber-600 h-full transition-all duration-500"
+                        style={{
+                          width: `${((
+                            (localStorage.getItem('nafi_goal_quran') === 'true' ? 1 : 0) +
+                            (localStorage.getItem('nafi_goal_dhikr') === 'true' ? 1 : 0) +
+                            (localStorage.getItem('nafi_goal_coach') === 'true' ? 1 : 0) +
+                            (localStorage.getItem('nafi_goal_lesson') === 'true' ? 1 : 0)
+                          ) / 4) * 100}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Checklist options */}
+                <div className="lg:col-span-12 xl:col-span-7 space-y-3">
+                  {[
+                    { key: 'nafi_goal_quran', label_en: "Recite or Listen to 15 Minutes of Quran", label_ar: "ورد القرآن اليومي: تلاوة أو استماع (ربع ساعة)", desc_en: "Read from the Mushaf Explorer or listen to your preferred reciter.", desc_ar: "طالع السور والآيات من المصحف المفسر لورد تالٍ وقاطع لليوم." },
+                    { key: 'nafi_goal_dhikr', label_en: "Morning & Evening Athkar Routine", label_ar: "أذكار الصباح والمساء والسنن الرواتب", desc_en: "Keep your heart soft and tongue moist with supplications.", desc_ar: "احرص على أوراد الحفظ والتعوذ للتطهير والنشاط الوجداني." },
+                    { key: 'nafi_goal_coach', label_en: "Completed 1 Pronunciation Practice Session", label_ar: "جلسة تتبع وتصحيح نطق الآيات الصوتي", desc_en: "Open the AI Speech Coach to align your articulation of Arabic consonants.", desc_ar: "استخدم المصحح الأكاديمي الصوتي لتأكيد جودة المخارج والترتيل." },
+                    { key: 'nafi_goal_lesson', label_en: "Study a Curriculum Lesson segment", label_ar: "حضور درس أو مراجعة متن علمي مقترن", desc_en: "Strengthen your understanding of classical Fiqh, Tajweed or History.", desc_ar: "اختر مبحثاً فقهياً أو باباً تأصيلياً من المناهج للارتقاء الفكري." }
+                  ].map((item) => {
+                    const isChecked = localStorage.getItem(item.key) === 'true';
+                    return (
+                      <div 
+                        key={item.key}
+                        onClick={() => {
+                          const nextVal = !isChecked;
+                          localStorage.setItem(item.key, nextVal ? 'true' : 'false');
+                          // Simple state bump to re-render App.tsx
+                          setFaqOpenIdx(prev => prev === 999 ? null : 999);
+                        }}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex gap-4 ${
+                          isChecked 
+                            ? 'bg-emerald-500/5 border-emerald-500/35 shadow-2xs' 
+                            : 'bg-slate-50 border-slate-200 hover:border-slate-350 hover:bg-white'
+                        }`}
+                      >
+                        <div className="pt-0.5 shrink-0" style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
+                          <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                            isChecked ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-white border-slate-300'
+                          }`}>
+                            {isChecked && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                          </div>
+                        </div>
+                        <div className="min-w-0 text-left flex-1" style={{ direction: lang === 'ar' ? 'rtl' : 'ltr', textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                          <h4 className={`text-xs font-extrabold ${isChecked ? 'text-slate-800 line-through opacity-70' : 'text-slate-800'}`}>
+                            {lang === 'en' ? item.label_en : item.label_ar}
+                          </h4>
+                          <p className="text-[10px] text-slate-400 mt-0.5 font-sans leading-normal">
+                            {lang === 'en' ? item.desc_en : item.desc_ar}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
           </motion.div>
         )}
 
@@ -2673,13 +2835,12 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* QURAN EXPLORER SCREEN */}
-        {activeTab === 'quran' && (
+        {/* QURAN EXPLORER SCREEN - kept mounted to allow background audio thread to keep playing across tabs */}
+        <div className={activeTab === 'quran' ? "block" : "hidden"}>
           <motion.div
             key="quran"
             initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
+            animate={activeTab === 'quran' ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
             transition={{ duration: 0.25 }}
           >
             <QuranExplorer 
@@ -2708,7 +2869,7 @@ export default function App() {
               }}
             />
           </motion.div>
-        )}
+        </div>
 
         {/* DAILY SPIRITUAL TOOLS */}
         {activeTab === 'daily' && (
@@ -2990,6 +3151,66 @@ export default function App() {
               <span className="text-[8px] text-slate-500 font-mono block mt-2 text-left">
                 Live Alert Socket • Just Now
               </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PERSISTENT GLOBAL MINI PLAYER FOR BACKGROUND QURAN READING */}
+      <AnimatePresence>
+        {globalAudio && activeTab !== 'quran' && (
+          <motion.div
+            key="global-mini-player"
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+            className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 md:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-2xl z-50 p-4 font-sans flex items-center justify-between gap-3"
+            id="global-mini-audio-container"
+          >
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-md animate-pulse shrink-0">
+                <Volume2 className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <div className="font-sans text-xs font-bold text-slate-800 dark:text-slate-150 truncate">
+                  {globalAudio.surahName}
+                  {globalAudio.playMode === 'verse_by_verse' && globalAudio.ayahNumber > 0 && (
+                    <span className="ml-1 text-amber-600 dark:text-amber-400 font-mono">
+                      • {lang === 'en' ? 'Verse' : 'آية'} {globalAudio.ayahNumber}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                  {globalAudio.reciterName}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={handleMiniToggle}
+                className="p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-md hover:scale-105 transition active:scale-95 cursor-pointer flex items-center justify-center"
+                title={globalAudio.isPlaying ? "Pause" : "Play"}
+              >
+                {globalAudio.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </button>
+
+              <button
+                onClick={handleMiniNext}
+                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-755 text-slate-700 dark:text-slate-300 rounded-full transition active:scale-95 cursor-pointer flex items-center justify-center"
+                title="Play Next Verse"
+              >
+                <SkipForward className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={handleMiniStop}
+                className="p-2 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white rounded-full transition active:scale-95 cursor-pointer flex items-center justify-center"
+                title="Stop Audio"
+              >
+                <Square className="w-3.5 h-3.5" />
+              </button>
             </div>
           </motion.div>
         )}

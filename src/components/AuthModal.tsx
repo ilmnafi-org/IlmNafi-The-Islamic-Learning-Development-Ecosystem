@@ -53,16 +53,7 @@ export default function AuthModal({ onClose, onSuccess }: AuthModalProps) {
     } catch (err: any) {
       await minWait;
       setLoading(false);
-      const rawMsg = err?.message || '';
-      let cleanMsg = "No account was found matching these credentials. Please check your spelling or register a new identity.";
-
-      if (rawMsg.includes("already registered") || rawMsg.includes("internal server") || rawMsg.includes("Duplicate email")) {
-        cleanMsg = "This academic email address is already registered on our global ledger.";
-      } else if (rawMsg.includes("password") || rawMsg.includes("PIN")) {
-        cleanMsg = "Incorrect password PIN. Please double check your key entry and try again.";
-      } else if (rawMsg.includes("exist")) {
-        cleanMsg = "The account with this email address does not exist. Please register first.";
-      }
+      const cleanMsg = err?.message || "An authentication query error occurred. Please check your entry and try again.";
       
       setErrorMessage(cleanMsg);
       setIsFailureModalOpen(true);
