@@ -5,6 +5,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 export interface ServerNotification {
   id: string;
@@ -60,7 +61,23 @@ interface DBStructure {
   threads: ServerThread[];
 }
 
-const DB_FILE = path.join(process.cwd(), 'server', 'db.json');
+const DEFAULT_DB_FILE = path.join(process.cwd(), 'server', 'db.json');
+let DB_FILE = DEFAULT_DB_FILE;
+
+// Under Cloud Run or read-only container platforms, local filesystems are read-only except /tmp
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction) {
+  DB_FILE = path.join(os.tmpdir(), 'db.json');
+  try {
+    if (!fs.existsSync(DB_FILE) && fs.existsSync(DEFAULT_DB_FILE)) {
+      // Seed /tmp/db.json with pre-seeded data if it doesn't already exist
+      fs.copyFileSync(DEFAULT_DB_FILE, DB_FILE);
+      console.log(`[Database] Seeded database successfully in temp path: ${DB_FILE}`);
+    }
+  } catch (err: any) {
+    console.warn(`[Database] Failed to copy pre-seeded database to ${DB_FILE}:`, err.message);
+  }
+}
 
 // Default initial forum threads to seed the Discussion Board with premium scholarly discussions
 const DEFAULT_THREADS: ServerThread[] = [
@@ -165,8 +182,25 @@ class ServerDB {
         fs.mkdirSync(dir, { recursive: true });
       }
       fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
-    } catch (e) {
-      console.error("Failed to write to JSON db file:", e);
+    } catch (e: any) {
+      console.error(`[Database] Failed to write to primary path ${DB_FILE}:`, e.message);
+      // Fallback on-the-fly to temp directory to avoid application crash/unusable state
+      const fallbackPath = path.join(os.tmpdir(), 'db.json');
+      if (DB_FILE !== fallbackPath) {
+        console.warn(`[Database] Attempting write fallback to temp directory: ${fallbackPath}`);
+        try {
+          if (!fs.existsSync(fallbackPath) && fs.existsSync(DEFAULT_DB_FILE)) {
+            try {
+              fs.copyFileSync(DEFAULT_DB_FILE, fallbackPath);
+            } catch (copyErr) {}
+          }
+          DB_FILE = fallbackPath;
+          fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+          console.log(`[Database] Successfully wrote database to fallback path: ${DB_FILE}`);
+        } catch (fbErr: any) {
+          console.error(`[Database] Fallback write failed:`, fbErr.message);
+        }
+      }
     }
   }
 

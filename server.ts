@@ -13,21 +13,90 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import http from "http";
+import https from "https";
 import { WebSocketServer, WebSocket } from "ws";
 import { analyzeTajweedText } from "./server/tajweedEngine.js";
 import { dbStore, ServerUser, ServerThread, ServerReply } from "./server/db.js";
 
 dotenv.config();
 
-// Mute all backend logging for privacy & storage-cleanliness
-console.log = () => {};
-console.info = () => {};
-console.debug = () => {};
-console.warn = () => {};
-console.error = () => {};
+// Mute debug logging in production, but preserve errors and warnings for proper diagnostics
+if (process.env.NODE_ENV === "production") {
+  console.log = () => {};
+  console.info = () => {};
+  console.debug = () => {};
+}
+
+// Resilient helper to fetch external audio assets without SSL/TLS chain rejections (critical for everyayah.com)
+function fetchWithNoTLS(urlStr: string): Promise<{ buffer: Buffer; contentType: string }> {
+  return new Promise((resolve, reject) => {
+    const handleRequest = (currentUrlStr: string) => {
+      const isHttps = currentUrlStr.startsWith("https://");
+      const client = isHttps ? https : http;
+      
+      const options: any = {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+      };
+
+      if (isHttps) {
+        options.agent = new https.Agent({ rejectUnauthorized: false });
+      }
+      
+      const req = client.get(currentUrlStr, options, (response) => {
+        const { statusCode } = response;
+        
+        // Handle redirect
+        if (statusCode && statusCode >= 300 && statusCode < 400 && response.headers.location) {
+          let redirectUrl = response.headers.location;
+          if (!redirectUrl.startsWith("http")) {
+            try {
+              const parsedCurrent = new URL(currentUrlStr);
+              redirectUrl = new URL(redirectUrl, parsedCurrent.origin).toString();
+            } catch (err) {
+              reject(new Error("Failed to parse relative redirect URL: " + redirectUrl));
+              return;
+            }
+          }
+          handleRequest(redirectUrl);
+          return;
+        }
+        
+        if (statusCode !== 200) {
+          reject(new Error(`Server responded with status code ${statusCode}`));
+          return;
+        }
+        
+        const chunks: any[] = [];
+        response.on("data", (chunk) => {
+          chunks.push(chunk);
+        });
+        
+        response.on("end", () => {
+          resolve({
+            buffer: Buffer.concat(chunks),
+            contentType: response.headers["content-type"] || "audio/mpeg"
+          });
+        });
+      });
+      
+      req.on("error", (err) => {
+        reject(err);
+      });
+      
+      req.setTimeout(12000, () => {
+        req.destroy();
+        reject(new Error("Request timed out fetching audio"));
+      });
+    };
+    
+    handleRequest(urlStr);
+  });
+}
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -1119,46 +1188,126 @@ app.get("/api/audio-proxy", async (req, res) => {
     return res.status(400).json({ error: "Missing url parameter" });
   }
 
-  // Restrict proxy to everyayah.com or trusted hostnames to prevent open proxy vulnerability
+  // Restrict proxy to trusted hostnames to prevent open proxy vulnerability
   const isTrusted = 
     audioUrl.includes("everyayah.com") || 
-    audioUrl.includes("www.everyayah.com") || 
-    audioUrl.includes("everyayah.com/data") ||
+    audioUrl.includes("alquran.cloud") || 
+    audioUrl.includes("quranicaudio.com") || 
     audioUrl.includes("qurancentral.com") ||
     audioUrl.includes("mp3quran.net") ||
-    audioUrl.includes("archive.org");
+    audioUrl.includes("archive.org") ||
+    audioUrl.includes("islamic.network");
 
   if (!isTrusted) {
     return res.status(403).json({ error: "Access to target domain not allowed. Trusted domain only." });
   }
 
   try {
-    let target = audioUrl;
-    // We try to fetch the audio file over http first to bypass any insecure ssl of everyayah.com
-    if (target.startsWith("https://")) {
-      target = target.replace("https://", "http://");
-    }
-
-    console.log(`[AudioProxy] Fetching: ${target}`);
-    const fetchResponse = await fetch(target).catch(async (e) => {
-      console.warn(`[AudioProxy] HTTP fetch failed, trying HTTPS:`, e.message);
-      return await fetch(audioUrl); // try original
-    });
-
-    if (!fetchResponse.ok) {
-      throw new Error(`EveryAyah responded with ${fetchResponse.status}`);
-    }
-
-    const arrayBuffer = await fetchResponse.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    res.setHeader("Content-Type", "audio/mpeg");
+    const { buffer, contentType } = await fetchWithNoTLS(audioUrl);
+    res.setHeader("Content-Type", contentType);
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Cache-Control", "public, max-age=31536000"); // cache audio for up to a year
     res.status(200).send(buffer);
   } catch (err: any) {
-    console.error(`[AudioProxy] Error proxying:`, err.message);
-    res.status(500).json({ error: "Audio proxying failed: " + err.message });
+    console.warn(`[AudioProxy] Primary fetch failed for: ${audioUrl}. Error:`, err.message);
+    
+    let fallbackBuffer: Buffer | null = null;
+    let fallbackContentType = "audio/mpeg";
+
+    // Detect everyayah.com URLs and translate to high-availability cdn.alquran.cloud securely on server
+    if (audioUrl.includes("everyayah.com")) {
+      try {
+        const parts = audioUrl.split("/");
+        const fileName = parts[parts.length - 1]; // e.g. "001001.mp3"
+        const folderName = parts[parts.length - 2]; // e.g. "Ghamadi_40kbps"
+        
+        if (fileName && fileName.endsWith(".mp3")) {
+          // Remove prefix/extension to get numbers
+          const digitsMatch = fileName.match(/(\d{6})/);
+          if (digitsMatch) {
+            const rawDigits = digitsMatch[1];
+            const surahStr = rawDigits.substring(0, 3);
+            const ayahStr = rawDigits.substring(3, 6);
+            const surah = parseInt(surahStr, 10);
+            const ayah = parseInt(ayahStr, 10);
+            
+            if (!isNaN(surah) && !isNaN(ayah)) {
+              let edition = "ar.husary";
+              if (folderName.includes("Ghamadi") || folderName.includes("ghamadi")) edition = "ar.alghamadi";
+              else if (folderName.includes("Sudais") || folderName.includes("sudais")) edition = "ar.abdurrahmaansudais";
+              else if (folderName.includes("Shuraym") || folderName.includes("shuraym") || folderName.includes("Saood")) edition = "ar.saoodshuraym";
+              else if (folderName.includes("Muaiqly") || folderName.includes("muaiqly")) edition = "ar.mahermuaiqly";
+              
+              const cloudUrl = `https://cdn.alquran.cloud/media/audio/ayah/${edition}/${surah}:${ayah}`;
+              console.log(`[AudioProxy] Resilient fallback: Redirecting request to CDN: ${cloudUrl}`);
+              const fbResult = await fetchWithNoTLS(cloudUrl);
+              fallbackBuffer = fbResult.buffer;
+              fallbackContentType = fbResult.contentType;
+            }
+          }
+        }
+      } catch (fbErr: any) {
+        console.warn(`[AudioProxy] Resilient CDN fallback translation failed:`, fbErr.message);
+      }
+    }
+
+    // Detect mp3quran.net URLs and translate to high-availability download.quranicaudio.com securely on server
+    if (!fallbackBuffer && audioUrl.includes("mp3quran.net")) {
+      try {
+        const parts = audioUrl.split("/");
+        const fileName = parts[parts.length - 1]; // e.g. "001.mp3"
+        const folderName = parts[parts.length - 2]; // e.g. "shrm"
+        
+        if (fileName && fileName.endsWith(".mp3") && folderName) {
+          let alternativeUrl = "";
+          if (folderName === "shrm") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/saud_ash-shuraim/${fileName}`;
+          } else if (folderName === "sds") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${fileName}`;
+          } else if (folderName === "husr") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${fileName}`;
+          } else if (folderName === "s_gmd") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/sa3d_al_ghaamidi/complete/${fileName}`;
+          } else if (folderName === "maher") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/maher_al_muaiqly/${fileName}`;
+          }
+
+          if (alternativeUrl) {
+            console.log(`[AudioProxy] Resilient mp3quran fallback: Fetching from: ${alternativeUrl}`);
+            try {
+              const fbResult = await fetchWithNoTLS(alternativeUrl);
+              fallbackBuffer = fbResult.buffer;
+              fallbackContentType = fbResult.contentType;
+            } catch (innerErr: any) {
+              console.warn(`[AudioProxy] Inner fallback failed for ${alternativeUrl}:`, innerErr.message);
+              if (folderName === "maher") {
+                const altMaher = `https://download.quranicaudio.com/quran/maher_al_muaiqly/complete/${fileName}`;
+                console.log(`[AudioProxy] Secondary maher fallback: Fetching from: ${altMaher}`);
+                try {
+                  const fbResult = await fetchWithNoTLS(altMaher);
+                  fallbackBuffer = fbResult.buffer;
+                  fallbackContentType = fbResult.contentType;
+                } catch (e2: any) {
+                  console.warn(`[AudioProxy] Secondary maher fallback failed:`, e2.message);
+                }
+              }
+            }
+          }
+        }
+      } catch (fbErr: any) {
+        console.warn(`[AudioProxy] Resilient mp3quran fallback translation failed:`, fbErr.message);
+      }
+    }
+
+    if (fallbackBuffer) {
+      res.setHeader("Content-Type", fallbackContentType);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cache-Control", "public, max-age=31536000"); // cache for up to a year
+      return res.status(200).send(fallbackBuffer);
+    }
+
+    // Direct redirection fallback as absolute last resort
+    res.redirect(audioUrl);
   }
 });
 

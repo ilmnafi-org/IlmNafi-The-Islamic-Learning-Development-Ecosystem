@@ -1321,7 +1321,7 @@ export default function App() {
             
             {/* PRESTIGE DESIGN HERO HERO SECTION WITH PICTURE OVERLAY LAYER */}
             <section 
-              className="relative overflow-hidden py-24 md:py-36 text-center px-4 rounded-[2rem] mx-[3%] bg-cover bg-center text-white"
+              className="relative overflow-hidden py-24 md:py-36 text-center px-4 rounded-[2rem] w-[94%] max-w-7xl mx-auto bg-cover bg-center text-white"
               style={{
                 backgroundImage: "linear-gradient(to bottom, rgba(7, 28, 23, 0.94), rgba(12, 20, 18, 0.88)), url('https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=1600')"
               }}
