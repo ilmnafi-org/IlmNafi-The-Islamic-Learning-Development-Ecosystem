@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronLeft, Type, ZoomOut, ZoomIn, Cloud, Volume2, Bookmark, Check, Copy, 
   Sparkles, Play, Pause, ChevronRight, Square, Compass, Mic, Trash, AlertCircle, LayoutList, RefreshCw,
-  Info, Activity, HeartPulse
+  Info, Activity, HeartPulse, X
 } from 'lucide-react';
 import { analyzeTajweedText } from '../../server/tajweedEngine';
 
@@ -272,6 +272,7 @@ export default function MushafReader({
   const [displayModeDropdownOpen, setDisplayModeDropdownOpen] = React.useState(false);
   const [showTopQariDropdown, setShowTopQariDropdown] = React.useState(false);
   const [showBottomQariDropdown, setShowBottomQariDropdown] = React.useState(false);
+  const [showQariDrawer, setShowQariDrawer] = React.useState(false);
   const [readingLayout, setReadingLayout] = React.useState<'continuous' | 'interactive'>('interactive');
   const [expandedRuleId, setExpandedRuleId] = React.useState<string | null>(null);
 
@@ -421,10 +422,10 @@ export default function MushafReader({
                 })}
               </div>
 
-              {/* Reciter selector (Custom dropdown) */}
+              {/* Reciter selector (Custom bottom panel trigger) */}
               <div className="relative select-none shrink-0" id="top-qari-dropdown-trigger">
                 <button
-                  onClick={() => setShowTopQariDropdown(!showTopQariDropdown)}
+                  onClick={() => setShowQariDrawer(true)}
                   className="bg-white hover:bg-slate-50 text-slate-800 text-[10px] font-extrabold py-1.5 px-3 rounded-lg border border-slate-250 cursor-pointer outline-none transition-all flex items-center gap-1.5 shadow-xs"
                   title="Choose Audio Reciter"
                 >
@@ -435,47 +436,8 @@ export default function MushafReader({
                       return found ? (lang === 'en' ? found.nameEn.split(' ').pop() : found.nameAr.split(' ').pop()) : primaryReciter;
                     })()}
                   </span>
-                  <span className="text-[7px] text-slate-400">▼</span>
+                  <span className="text-[7px] text-slate-400">▲</span>
                 </button>
-
-                {showTopQariDropdown && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setShowTopQariDropdown(false)} 
-                    />
-                    <div className="absolute right-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 max-h-80 overflow-y-auto">
-                      <div className="px-3 py-1 border-b border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left">
-                        {lang === 'en' ? 'Select Reciter (Qari)' : 'اختر القارئ المجود'}
-                      </div>
-                      {RECITERS_LIST.map((qari) => {
-                        const isSelected = primaryReciter === qari.id;
-                        return (
-                          <button
-                            key={`top-qari-opt-${qari.id}`}
-                            onClick={() => {
-                              setPrimaryReciter(qari.id);
-                              setShowTopQariDropdown(false);
-                            }}
-                            className={`w-full text-left px-3 py-2 hover:bg-slate-50 transition-colors flex items-center justify-between border-0 bg-transparent cursor-pointer ${isSelected ? 'bg-amber-50/50' : ''}`}
-                          >
-                            <div className="min-w-0 pr-1.5 text-left">
-                              <p className={`text-xs font-bold leading-tight ${isSelected ? 'text-amber-700' : 'text-slate-800'}`}>
-                                {lang === 'en' ? qari.nameEn : qari.nameAr}
-                              </p>
-                              <p className="text-[9px] text-slate-400 truncate mt-0.5 text-left">
-                                {lang === 'en' ? qari.styleEn : qari.styleAr}
-                              </p>
-                            </div>
-                            {isSelected && (
-                              <Check className="w-3.5 h-3.5 text-amber-600 shrink-0 select-none" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
               </div>
 
             </div>
@@ -1348,12 +1310,12 @@ export default function MushafReader({
 
         {/* Lower row controllers */}
         <div className="flex items-center justify-between gap-2.5 mt-1 border-t border-zinc-900 pt-3">
-          {/* Reciter dropdown list (Custom dark theme) */}
+          {/* Reciter selector (Custom bottom panel trigger) */}
           <div className="relative select-none shrink-0" id="bottom-qari-dropdown-container">
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-mono hidden sm:inline">Qari:</span>
               <button
-                onClick={() => setShowBottomQariDropdown(!showBottomQariDropdown)}
+                onClick={() => setShowQariDrawer(true)}
                 className="bg-zinc-900 hover:bg-zinc-850 text-white text-[10px] sm:text-xs font-black py-1.5 px-3 rounded-xl border border-zinc-800 cursor-pointer outline-none transition-all flex items-center gap-1.5 shadow-md"
               >
                 <span>
@@ -1362,54 +1324,9 @@ export default function MushafReader({
                     return found ? found.nameEn : "Select Reciter";
                   })()}
                 </span>
-                <span className="text-[8px] text-zinc-500">▼</span>
+                <span className="text-[8px] text-zinc-500">▲</span>
               </button>
             </div>
-
-            {showBottomQariDropdown && (
-              <>
-                <div 
-                  className="fixed inset-0 z-40" 
-                  onClick={() => setShowBottomQariDropdown(false)} 
-                />
-                <div className="absolute left-0 bottom-full mb-2 w-72 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl z-50 py-2 max-h-80 overflow-y-auto">
-                  <div className="px-3.5 py-1.5 border-b border-zinc-900 text-[9px] font-bold text-zinc-500 uppercase tracking-wider text-left">
-                    {lang === 'en' ? 'Select Reciter (Classical Qari)' : 'اختر الرواية والتلاوة المطهرة'}
-                  </div>
-                  {RECITERS_LIST.map((qari) => {
-                    const isSelected = primaryReciter === qari.id;
-                    return (
-                      <button
-                        key={`bottom-qari-opt-${qari.id}`}
-                        onClick={() => {
-                          stopWholeSurahPlayback();
-                          setPrimaryReciter(qari.id);
-                          setShowBottomQariDropdown(false);
-                        }}
-                        className={`w-full text-left px-3.5 py-2.5 hover:bg-zinc-900/80 transition-colors flex items-center justify-between border-0 bg-transparent cursor-pointer ${isSelected ? 'bg-zinc-900' : ''}`}
-                      >
-                        <div className="min-w-0 pr-2 text-left">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`text-[11px] sm:text-xs font-black leading-tight ${isSelected ? 'text-amber-500' : 'text-zinc-200'}`}>
-                              {lang === 'en' ? qari.nameEn : qari.nameAr}
-                            </span>
-                            <span className="text-[8px] font-extrabold bg-[#A37B12]/20 text-[#D4AF37] px-1 rounded uppercase tracking-wider shrink-0 select-none">
-                              {lang === 'en' ? qari.tagEn : qari.tagAr}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-zinc-500 truncate mt-1 text-left">
-                            {lang === 'en' ? qari.styleEn : qari.styleAr}
-                          </p>
-                        </div>
-                        {isSelected && (
-                          <Check className="w-4 h-4 text-amber-500 shrink-0" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            )}
           </div>
 
           {/* Core Player Center actions */}
@@ -1492,6 +1409,94 @@ export default function MushafReader({
           </div>
         </div>
       </div>
+
+      {/* Reciters Selection Bottom Drawer Sheet */}
+      <AnimatePresence>
+        {showQariDrawer && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-[300] cursor-pointer"
+              onClick={() => setShowQariDrawer(false)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 240 }}
+              className={`fixed bottom-0 left-0 right-0 z-[301] ${
+                ['midnight', 'charcoal', 'emerald'].includes(activeTheme)
+                  ? 'bg-zinc-950 border-t border-zinc-850 text-zinc-100'
+                  : 'bg-white border-t border-slate-250 text-slate-800'
+              } rounded-t-[2rem] shadow-2xl p-6 md:max-w-xl md:mx-auto md:bottom-4 md:rounded-3xl md:border md:mb-0 max-h-[85vh] overflow-y-auto`}
+            >
+              <div className="flex flex-col items-center pb-4 select-none border-b border-slate-100 dark:border-zinc-900 mb-4 h-12 relative">
+                <div 
+                  className="w-14 h-1.5 bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 rounded-full cursor-pointer transition-colors" 
+                  onClick={() => setShowQariDrawer(false)} 
+                />
+                <h3 className="text-sm font-black mt-2 tracking-tight">
+                  {lang === 'en' ? "Select Audio Reciter" : "اختر رواية تلاوة المقرئ الكريم"}
+                </h3>
+                <button
+                  onClick={() => setShowQariDrawer(false)}
+                  className="absolute right-0 top-1 p-1.5 bg-slate-100 dark:bg-zinc-900 rounded-full text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-400 transition border-0 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-2.5">
+                {RECITERS_LIST.map((qari) => {
+                  const isSelected = primaryReciter === qari.id;
+                  return (
+                    <button
+                      key={`drawer-qari-opt-${qari.id}`}
+                      onClick={() => {
+                        stopWholeSurahPlayback();
+                        setPrimaryReciter(qari.id);
+                        setShowQariDrawer(false);
+                      }}
+                      className={`w-full text-left p-3.5 rounded-2xl transition-all flex items-center justify-between border cursor-pointer ${
+                        isSelected 
+                          ? 'border-amber-500/50 bg-amber-500/10' 
+                          : ['midnight', 'charcoal', 'emerald'].includes(activeTheme)
+                            ? 'border-zinc-900 bg-zinc-900/30 hover:bg-zinc-900/70 text-zinc-300'
+                            : 'border-slate-150 bg-slate-50/40 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="min-w-0 pr-3 text-left">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs sm:text-sm font-extrabold leading-tight ${
+                            isSelected 
+                              ? 'text-amber-500 font-black' 
+                              : ['midnight', 'charcoal', 'emerald'].includes(activeTheme)
+                                ? 'text-zinc-100'
+                                : 'text-slate-800'
+                          }`}>
+                            {lang === 'en' ? qari.nameEn : qari.nameAr}
+                          </span>
+                          <span className="text-[8px] font-extrabold bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 select-none">
+                            {lang === 'en' ? qari.tagEn : qari.tagAr}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 truncate mt-1 text-left">
+                          {lang === 'en' ? qari.styleEn : qari.styleAr}
+                        </p>
+                      </div>
+                      {isSelected && (
+                        <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
     </div>
   );

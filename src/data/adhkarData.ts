@@ -1017,6 +1017,66 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
     virtueEn: "Instantly re-invokes Allah's blessing on the food and keeps Satan away even if the meal is halfway finished.",
     virtueAr: "تدارك للنعمة وطرد للشيطان عند نسيان البسملة بالبدء.",
     grade: "Sahih"
+  },
+  {
+    id: "s_06_muawwidhat",
+    category: "after_salah",
+    arabic: "الْمُعَوِّذَاتِ (سُورَةُ الإِخْلَاصِ، وَالْفَلَقِ، وَالنَّاسِ) - دبر كل صلاة",
+    transliteration: "Al-Mu'awwidhat (Surah Al-Ikhlas, Al-Falaq, An-Nas) after every prayer.",
+    translationEn: "Recitation of Surah Al-Ikhlas, Surah Al-Falaq, and Surah An-Nas once after Zuhr, Asr and Isha, and three times after Fajr and Maghrib.",
+    translationAr: "قراءة المعوذات الثلاث (الإخلاص، الفلق، الناس) دبر كل صلاة مكتوبة.",
+    translationUr: "ہر فرض نماز کے بعد سورہ اخلاص، سورہ فلق، اور سورہ ناس پڑھنا (ظہر، عصر اور عشاء کے بعد ایک ایک بار، فجر اور مغرب کے بعد تین تین بار)۔",
+    translationHa: "Karanta surorin kariya guda uku (Sura ta 112, 113 da 114) bayan kowace sallah.",
+    targetCount: 1,
+    source: "Abu Dawud 1523 / At-Tirmidhi 2903",
+    virtueEn: "Protects the slave from all evils throughout the morning and evening.",
+    virtueAr: "تكفي المسلم وتحفظه من الشرور والآفات.",
+    grade: "Sahih"
+  },
+  {
+    id: "s_07_la_ilaha_10x",
+    category: "after_salah",
+    arabic: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، يُحْيِي وَيُمِيتُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ (عشر مرات بعد الفجر والمغرب)",
+    transliteration: "La ilaha illallahu wahdahu la shareeka lah, lahul-mulku wa lahul-hamdu, yuhyi wa yumeetu, wa Huwa 'ala kulli shay'in Qadeer (10 times after Fajr & Maghrib).",
+    translationEn: "There is no deity except Allah alone, without partner. To Him belongs sovereignty and to Him belongs praise, He gives life and causes death, and He is over all things competent (10 times).",
+    translationAr: "لا إله إلا الله وحده لا شريك له، له الملك وله الحمد يحيي ويميت وهو على كل شيء قدير (عشر مرات بعد صلاتي الفجر والمغرب).",
+    translationUr: "اللہ کے سوا کوئی معبود نہیں، وہ اکیلا ہے، اس کا کوئی شریک نہیں، وہی زندگی دیتا ہے اور موت دیتا ہے اور ہر چیز پر قادر ہے (فجر اور مغرب کے بعد 10 بار)۔",
+    translationHa: "Babu abin bautawa da gaskiya sai Allah shi kaɗai mara tarayya, gare shi mulki yake, kuma gare shi godiya take, yana raye yana kashewa, kuma shi mai iko ne a kan komai (sau 10 bayan asuba da magariba).",
+    targetCount: 10,
+    source: "At-Tirmidhi 3534 / Ahmad 4/227",
+    virtueEn: "Earns ten rewards, wipes ten sins, raises ten ranks, and shields from Satan.",
+    virtueAr: "كتب الله له بكل واحدة عشر حسنات ومحيت عنه عشر سيئات.. وكانت له حرزاً من الشيطان.",
+    grade: "Sahih"
+  },
+  {
+    id: "s_08_ilman_nafia",
+    category: "after_salah",
+    arabic: "اللَّهُمَّ إِنِّي أَسْالُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا",
+    transliteration: "Allahumma inni as'aluka 'ilman nafi'an, wa rizqan tayyiban, wa 'amalan mutaqabbalan (after Fajr).",
+    translationEn: "O Allah, indeed I ask You for beneficial knowledge, a good provision, and acceptable deeds.",
+    translationAr: "اللهم إني أسألك علماً نافعاً، ورزقاً طيباً، وعملاً متقبلاً.",
+    translationUr: "اے اللہ! میں تجھ سے نفع بخش علم، پاکیزہ رزق، اور قبول ہونے والے عمل کا سوال کرتا ہوں۔",
+    translationHa: "Ya Allah, ina rokon Ka ilimi mai amfani, da arziki madauwami, da aiki mabuɗi.",
+    targetCount: 1,
+    source: "Ibn Majah 925 / Ahmad 6/294",
+    virtueEn: "The standard prophetic morning prayer of productivity, learning, and acceptance.",
+    virtueAr: "دعاء نبوي رائع للبدء بيوم حافل بالعلم والإنتاج والبركة والقبول.",
+    grade: "Sahih"
+  },
+  {
+    id: "s_09_la_ilaha_la_shareeka_lah_full",
+    category: "after_salah",
+    arabic: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ. لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ، لَا إِلَهَ إِلَّا اللَّهُ، وَلَا نَعْبُدُ إِلَّا إِيَّاهُ، لَهُ النِّعْمَةُ وَلَهُ الْفَضْلُ، وَلَهُ الثَّنَاءُ الْحَسَنُ، لَا إِلَهَ إِلَّا اللَّهُ مُخْلِصِينَ لَهُ الدِّينَ وَلَوْ كَرِهَ الْكَافِرُونَ",
+    transliteration: "La ilaha illallahu wahdahu la shareeka lah, lahul-mulku walahul-hamdu wa Huwa 'ala kulli shay'in Qadeer. La hawla wa la quwwata illa billah, la ilaha illallahu, wa la na'budu illa iyyah, Lahu-n-ni'matu walahul-fadlu walahuth-thana'ul-hasan, la ilaha illallahu mukhliseena lahud-deena walaw karihal-kafiroon.",
+    translationEn: "There is no deity except Allah alone, without partner. To Him belongs sovereignty and to Him belongs praise, and He is competent over all things. There is no power and no strength except with Allah. There is no deity except Allah, and we worship none but Him. To Him belongs all grace, all bounty, and all beautiful praise. There is no deity except Allah, we are sincere to Him in religion, even if the disbelievers dislike it.",
+    translationAr: "لا إله إلا الله وحده لا شريك له... لا حول ولا قوة إلا بالله، لا إله إلا الله، ولا نعبد إلا إياه، له النعمة وله الفضل...",
+    translationUr: "اللہ کے سوا کوئی معبود نہیں، وہ اکیلا ہے، اس کا کوئی شریک نہیں، گناہوں سے بچنے کی طاقت اور نیکی کرنے کی توفیق صرف اللہ کی مدد سے ہے۔",
+    translationHa: "Babu abin bautawa da gaskiya sai Allah shi kaɗai mara tarayya, mulki gare shi yake, babu dabara babu iko sai ga Allah.",
+    targetCount: 1,
+    source: "Sahih Muslim 594",
+    virtueEn: "Sunnah of declaring ultimate monotheism and complete detachment from worldly powers, recited at the end of every obligatory prayer.",
+    virtueAr: "سنة عظيمة لتثبيت أصول عقيدة التوحيد ونفي الشريك عن رب العالمين دبر الصلوات.",
+    grade: "Sahih"
   }
 ];
 
