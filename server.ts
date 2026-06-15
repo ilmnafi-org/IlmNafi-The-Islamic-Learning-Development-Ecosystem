@@ -1226,8 +1226,7 @@ app.get("/api/audio-proxy", async (req, res) => {
     res.setHeader("Cache-Control", "public, max-age=31536000"); // cache audio for up to a year
     res.status(200).send(buffer);
   } catch (err: any) {
-    console.warn(`[AudioProxy] Primary fetch failed for: ${audioUrl}. Error:`, err.message);
-    
+    // Only log warning if the entire fallback cascade below fails to produce a viable buffer
     let fallbackBuffer: Buffer | null = null;
     let fallbackContentType = "audio/mpeg";
 
@@ -1264,7 +1263,7 @@ app.get("/api/audio-proxy", async (req, res) => {
           }
         }
       } catch (fbErr: any) {
-        console.warn(`[AudioProxy] Resilient CDN fallback translation failed:`, fbErr.message);
+        console.log(`[AudioProxy] Resilient CDN fallback translation failed:`, fbErr.message);
       }
     }
 
@@ -1296,7 +1295,7 @@ app.get("/api/audio-proxy", async (req, res) => {
               fallbackBuffer = fbResult.buffer;
               fallbackContentType = fbResult.contentType;
             } catch (innerErr: any) {
-              console.warn(`[AudioProxy] Inner fallback failed for ${alternativeUrl}:`, innerErr.message);
+              console.log(`[AudioProxy] Inner fallback failed for ${alternativeUrl}:`, innerErr.message);
               if (folderName === "maher") {
                 const altMaher = `https://download.quranicaudio.com/quran/maher_al_muaiqly/complete/${fileName}`;
                 console.log(`[AudioProxy] Secondary maher fallback: Fetching from: ${altMaher}`);
@@ -1305,18 +1304,18 @@ app.get("/api/audio-proxy", async (req, res) => {
                   fallbackBuffer = fbResult.buffer;
                   fallbackContentType = fbResult.contentType;
                 } catch (e2: any) {
-                  console.warn(`[AudioProxy] Secondary maher fallback failed:`, e2.message);
+                  console.log(`[AudioProxy] Secondary maher fallback failed:`, e2.message);
                 }
               }
             }
           }
         }
       } catch (fbErr: any) {
-        console.warn(`[AudioProxy] Resilient mp3quran fallback translation failed:`, fbErr.message);
+        console.log(`[AudioProxy] Resilient mp3quran fallback translation failed:`, fbErr.message);
       }
     }
 
-    // Detect archive.org URLs and translate to high-availability Al-Husary secure CDN on server
+    // Detect archive.org URLs and translate to high-availability Al-Husary/Maher secure CDNs on server
     if (!fallbackBuffer && audioUrl.includes("archive.org")) {
       try {
         const parts = audioUrl.split("/");
@@ -1326,15 +1325,31 @@ app.get("/api/audio-proxy", async (req, res) => {
           const surahNum = parseInt(digitsMatch[1], 10);
           if (!isNaN(surahNum) && surahNum >= 1 && surahNum <= 114) {
             const paddedSurah = String(surahNum).padStart(3, "0");
-            const alternativeUrl = `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`;
-            console.log(`[AudioProxy] Resilient archive.org fallback: Fetching Al-Husary archive fallback from: ${alternativeUrl}`);
-            const fbResult = await fetchWithNoTLS(alternativeUrl);
-            fallbackBuffer = fbResult.buffer;
-            fallbackContentType = fbResult.contentType;
+            
+            // Define active sequential backups starting with the most robust CDN hosts
+            const backupUrls = [
+              `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`,
+              `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`,
+              `https://server12.mp3quran.net/maher/${paddedSurah}.mp3`
+            ];
+
+            for (const backupUrl of backupUrls) {
+              try {
+                console.log(`[AudioProxy] Resilient archive.org fallback: Fetching from: ${backupUrl}`);
+                const fbResult = await fetchWithNoTLS(backupUrl);
+                fallbackBuffer = fbResult.buffer;
+                fallbackContentType = fbResult.contentType;
+                if (fallbackBuffer) {
+                  break; // found working fallback
+                }
+              } catch (backupErr: any) {
+                console.log(`[AudioProxy] Resilient backup URL failed: ${backupUrl} - ${backupErr.message}`);
+              }
+            }
           }
         }
       } catch (fbErr: any) {
-        console.warn(`[AudioProxy] Resilient archive.org fallback translation failed:`, fbErr.message);
+        console.log(`[AudioProxy] Resilient archive.org fallback translation failed:`, fbErr.message);
       }
     }
 
@@ -1344,6 +1359,9 @@ app.get("/api/audio-proxy", async (req, res) => {
       res.setHeader("Cache-Control", "public, max-age=31536000"); // cache for up to a year
       return res.status(200).send(fallbackBuffer);
     }
+
+    // Only issues a warning/alarm log if the entire cascade fails
+    console.warn(`[AudioProxy] Primary fetch failed and no fallback succeeded for: ${audioUrl}. Error:`, err.message);
 
     // Direct redirection fallback as absolute last resort
     res.redirect(audioUrl);
