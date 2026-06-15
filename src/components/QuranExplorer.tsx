@@ -211,14 +211,14 @@ export default function QuranExplorer({
   const [localTajweed, setLocalTajweed] = useState<boolean>(() => {
     return localStorage.getItem('ilm_naafi_tajweed_mode') !== 'false';
   });
-  const [primaryReciter, setPrimaryReciter] = useState<'ghamadi' | 'husary' | 'kameny' | 'sudais' | 'shuraim' | 'muaiqly'>(() => {
-    return (localStorage.getItem('ilm_naafi_primary_reciter') as any) || 'husary';
+  const [primaryReciter, setPrimaryReciter] = useState<string>(() => {
+    return localStorage.getItem('ilm_naafi_primary_reciter') || 'husary';
   });
 
   const [activeQiraat] = useState<'hafs' | 'warsh'>('hafs');
   const activeTajweed = tajweedMode !== undefined ? tajweedMode : localTajweed;
 
-  const selectPrimaryReciter = (r: 'ghamadi' | 'husary' | 'kameny' | 'sudais' | 'shuraim' | 'muaiqly') => {
+  const selectPrimaryReciter = (r: string) => {
     setPrimaryReciter(r);
     localStorage.setItem('ilm_naafi_primary_reciter', r);
   };
@@ -1029,10 +1029,16 @@ export default function QuranExplorer({
             const paddedSurah = String(selectedSurahNum).padStart(3, '0');
             const paddedAyah = String(ar.numberInSurah).padStart(3, '0');
             let audioFolder = 'Husary_64kbps';
-            if (primaryReciter === 'ghamadi') audioFolder = 'Ghamadi_40kbps';
+            if (primaryReciter === 'ghamadi') audioFolder = 'Al_Ghamadi_40kbps';
             else if (primaryReciter === 'sudais') audioFolder = 'Sudais_64kbps';
             else if (primaryReciter === 'shuraim') audioFolder = 'Saood_ash-Shuraym_128kbps';
             else if (primaryReciter === 'muaiqly') audioFolder = 'Maher_AlMuaiqly_64kbps';
+            else if (primaryReciter === 'matrood') audioFolder = 'Abdullah_Matroud_128kbps';
+            else if (primaryReciter === 'tunaiji') audioFolder = 'Khalifa_Al_Tonaeijy_64kbps';
+            else if (primaryReciter === 'basit') audioFolder = 'Abdul_Basit_Mujawwad_128kbps';
+            else if (primaryReciter === 'ayyub') audioFolder = 'Muhammad_Ayyub_128kbps';
+            else if (primaryReciter === 'minshawi') audioFolder = 'Minshawy_Mujawwad_128kbps';
+            else if (primaryReciter === 'afasy') audioFolder = 'Alafasy_128kbps';
             else if (primaryReciter === 'kameny') audioFolder = 'Husary_64kbps'; // fallback to Husary for verse-by-verse, while streaming plays his actual audio
             const audioLink = `https://everyayah.com/data/${audioFolder}/${paddedSurah}${paddedAyah}.mp3`;
             
@@ -1224,19 +1230,33 @@ export default function QuranExplorer({
     const paddedSurah = String(surahNum).padStart(3, '0');
     switch (reciter) {
       case 'husary':
-        return `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`;
+        return `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`;
       case 'ghamadi':
-        return `https://server7.mp3quran.net/s_gmd/${paddedSurah}.mp3`;
+        return `https://download.quranicaudio.com/quran/sa3d_al_ghaamidi/complete/${paddedSurah}.mp3`;
       case 'shuraim':
-        return `https://server7.mp3quran.net/shrm/${paddedSurah}.mp3`;
+        return `https://download.quranicaudio.com/quran/saud_ash-shuraim/${paddedSurah}.mp3`;
       case 'sudais':
-        return `https://server11.mp3quran.net/sds/${paddedSurah}.mp3`;
+        return `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${paddedSurah}.mp3`;
       case 'muaiqly':
-        return `https://server12.mp3quran.net/maher/${paddedSurah}.mp3`;
+        return `https://download.quranicaudio.com/quran/maher_al_muaiqly/${paddedSurah}.mp3`;
+      case 'matrood':
+        return `https://download.quranicaudio.com/quran/abdullaah_al-matrood/${paddedSurah}.mp3`;
+      case 'tunaiji':
+        return `https://download.mp3quran.net/download/qra/${paddedSurah}.mp3`;
+      case 'basit':
+        return `https://download.quranicaudio.com/quran/abdul_basit_mujawwad/${paddedSurah}.mp3`;
+      case 'ayyub':
+        return `https://download.quranicaudio.com/quran/muhammad_ayyoob/${paddedSurah}.mp3`;
+      case 'minshawi':
+        return `https://download.quranicaudio.com/quran/muhammad_siddeeq_al-minshawee_mujawwad/${paddedSurah}.mp3`;
+      case 'afasy':
+        return `https://download.quranicaudio.com/quran/mishari_rashid_al_afasy/${paddedSurah}.mp3`;
+      case 'mansoor':
+        return `https://server14.mp3quran.net/mansor/${paddedSurah}.mp3`;
       case 'kameny':
         return `https://archive.org/download/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`;
       default:
-        return `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`;
+        return `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`;
     }
   };
 

@@ -1253,6 +1253,12 @@ app.get("/api/audio-proxy", async (req, res) => {
               else if (folderName.includes("Sudais") || folderName.includes("sudais")) edition = "ar.abdurrahmaansudais";
               else if (folderName.includes("Shuraym") || folderName.includes("shuraym") || folderName.includes("Saood")) edition = "ar.saoodshuraym";
               else if (folderName.includes("Muaiqly") || folderName.includes("muaiqly")) edition = "ar.mahermuaiqly";
+              else if (folderName.includes("Matroud") || folderName.includes("matroud")) edition = "ar.abdullahmatroud";
+              else if (folderName.includes("Tonaeijy") || folderName.includes("tunaiji")) edition = "ar.khalifatuntunaiji";
+              else if (folderName.includes("Basit") || folderName.includes("basit")) edition = "ar.abdulbasitmurattal";
+              else if (folderName.includes("Ayyub") || folderName.includes("ayyub")) edition = "ar.muhammadayyoub";
+              else if (folderName.includes("Minshawy") || folderName.includes("minshawi")) edition = "ar.minshawi";
+              else if (folderName.includes("Alafasy") || folderName.includes("afasy")) edition = "ar.alafasy";
               
               const cloudUrl = `https://cdn.alquran.cloud/media/audio/ayah/${edition}/${surah}:${ayah}`;
               console.log(`[AudioProxy] Resilient fallback: Redirecting request to CDN: ${cloudUrl}`);
@@ -1286,6 +1292,20 @@ app.get("/api/audio-proxy", async (req, res) => {
             alternativeUrl = `https://download.quranicaudio.com/quran/sa3d_al_ghaamidi/complete/${fileName}`;
           } else if (folderName === "maher") {
             alternativeUrl = `https://download.quranicaudio.com/quran/maher_al_muaiqly/${fileName}`;
+          } else if (folderName === "mtrod") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/abdullaah_al-matrood/${fileName}`;
+          } else if (folderName === "qra") {
+            alternativeUrl = `https://download.mp3quran.net/download/qra/${fileName}`;
+          } else if (folderName === "basit") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/abdul_basit_mujawwad/${fileName}`;
+          } else if (folderName === "ayoub") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/muhammad_ayyoob/${fileName}`;
+          } else if (folderName === "minsh") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/muhammad_siddeeq_al-minshawee_mujawwad/${fileName}`;
+          } else if (folderName === "afs") {
+            alternativeUrl = `https://download.quranicaudio.com/quran/mishari_rashid_al_afasy/${fileName}`;
+          } else if (folderName === "mansor") {
+            alternativeUrl = `https://server14.mp3quran.net/mansor/${fileName}`;
           }
 
           if (alternativeUrl) {
@@ -1326,24 +1346,49 @@ app.get("/api/audio-proxy", async (req, res) => {
           if (!isNaN(surahNum) && surahNum >= 1 && surahNum <= 114) {
             const paddedSurah = String(surahNum).padStart(3, "0");
             
-            // Define active sequential backups starting with the most robust CDN hosts
-            const backupUrls = [
-              `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`,
-              `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`,
-              `https://server12.mp3quran.net/maher/${paddedSurah}.mp3`
-            ];
-
-            for (const backupUrl of backupUrls) {
-              try {
-                console.log(`[AudioProxy] Resilient archive.org fallback: Fetching from: ${backupUrl}`);
-                const fbResult = await fetchWithNoTLS(backupUrl);
-                fallbackBuffer = fbResult.buffer;
-                fallbackContentType = fbResult.contentType;
-                if (fallbackBuffer) {
-                  break; // found working fallback
+            // If it is Okasha Kameny, try different direct high-speed archive.org storage nodes first!
+            if (audioUrl.includes("Okasha_Kameny_Full_Quran")) {
+              const okashaBackups = [
+                `https://ia800100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`,
+                `https://ia600100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`,
+                `https://archive.org/download/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`
+              ];
+              for (const okUrl of okashaBackups) {
+                try {
+                  console.log(`[AudioProxy] okasha direct-node fallback: Fetching from: ${okUrl}`);
+                  const fbResult = await fetchWithNoTLS(okUrl);
+                  fallbackBuffer = fbResult.buffer;
+                  fallbackContentType = fbResult.contentType;
+                  if (fallbackBuffer) {
+                    console.log(`[AudioProxy] okasha direct-node fallback succeeded for: ${okUrl}`);
+                    break;
+                  }
+                } catch (e: any) {
+                  console.log(`[AudioProxy] okasha direct-node fallback failed for ${okUrl}:`, e.message);
                 }
-              } catch (backupErr: any) {
-                console.log(`[AudioProxy] Resilient backup URL failed: ${backupUrl} - ${backupErr.message}`);
+              }
+            }
+
+            if (!fallbackBuffer) {
+              // Define active sequential backups starting with the most robust CDN hosts
+              const backupUrls = [
+                `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`,
+                `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`,
+                `https://server12.mp3quran.net/maher/${paddedSurah}.mp3`
+              ];
+
+              for (const backupUrl of backupUrls) {
+                try {
+                  console.log(`[AudioProxy] Resilient archive.org fallback: Fetching from: ${backupUrl}`);
+                  const fbResult = await fetchWithNoTLS(backupUrl);
+                  fallbackBuffer = fbResult.buffer;
+                  fallbackContentType = fbResult.contentType;
+                  if (fallbackBuffer) {
+                    break; // found working fallback
+                  }
+                } catch (backupErr: any) {
+                  console.log(`[AudioProxy] Resilient backup URL failed: ${backupUrl} - ${backupErr.message}`);
+                }
               }
             }
           }

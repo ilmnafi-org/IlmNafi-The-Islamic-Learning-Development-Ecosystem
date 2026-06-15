@@ -72,6 +72,69 @@ const RECITERS_LIST = [
     styleAr: "ترتيل أفريقي قوي متزن",
     tagAr: "مقامات عريقة",
     tagEn: "African Rhythm"
+  },
+  {
+    id: 'matrood',
+    nameEn: "Abdullah Al Matrood",
+    nameAr: "عبد الله المطرود",
+    styleEn: "Calm & Deep Resonance",
+    styleAr: "تلاوة خاشعة هادئة",
+    tagAr: "الترتيل الهادئ",
+    tagEn: "Deep Serenity"
+  },
+  {
+    id: 'tunaiji',
+    nameEn: "Khalifa Al Tunaiji",
+    nameAr: "خليفة الطنيجي",
+    styleEn: "Clear Educational Cadence",
+    styleAr: "نبرة واضحة معلمة",
+    tagAr: "التعليم الترتيلي",
+    tagEn: "Exemplary Cadence"
+  },
+  {
+    id: 'basit',
+    nameEn: "Abdul Basit Abdus Samad",
+    nameAr: "عبد الباسط عبد الصمد",
+    styleEn: "Majestic Golden Era",
+    styleAr: "الحنجرة الذهبية",
+    tagAr: "صوت السماء",
+    tagEn: "Legendary Voice"
+  },
+  {
+    id: 'ayyub',
+    nameEn: "Muhammad Ayyub",
+    nameAr: "محمد أيوب",
+    styleEn: "Madinah Sanctuary Style",
+    styleAr: "محراب المسجد النبوي",
+    tagAr: "إمام المحراب",
+    tagEn: "Madinah Sanctuary"
+  },
+  {
+    id: 'minshawi',
+    nameEn: "Mohamed Siddiq Al-Minshawi",
+    nameAr: "محمد صديق المنشاوي",
+    styleEn: "Spiritual & Sorrowful",
+    styleAr: "صوت باكٍ خاشع",
+    tagAr: "القلب الخاشع",
+    tagEn: "Spiritual Echo"
+  },
+  {
+    id: 'afasy',
+    nameEn: "Mishary Rashid Al-Afasy",
+    nameAr: "مشاري راشد العفاسي",
+    styleEn: "Sweet & Intoned",
+    styleAr: "عذب النغم متقن الأحكام",
+    tagAr: "العذوبة النغمية",
+    tagEn: "Sweet Cadence"
+  },
+  {
+    id: 'mansoor',
+    nameEn: "Mansoor Al-Salimi",
+    nameAr: "منصور السالمي",
+    styleEn: "Youthful & Emotive",
+    styleAr: "صوت مؤثر ملهم",
+    tagAr: "تأثير معاصر",
+    tagEn: "Youthful Spark"
   }
 ];
 
@@ -1395,6 +1458,13 @@ export default function MushafReader({
                 primaryReciter === 'shuraim' ? 'https://download.mp3quran.net/download/shrm/shrm_complete.zip' :
                 primaryReciter === 'muaiqly' ? 'https://download.mp3quran.net/download/maher/maher_complete.zip' :
                 primaryReciter === 'husary' ? 'https://download.mp3quran.net/download/husr/husr_complete.zip' :
+                primaryReciter === 'matrood' ? 'https://download.mp3quran.net/download/mtrod/mtrod_complete.zip' :
+                primaryReciter === 'tunaiji' ? 'https://download.mp3quran.net/download/qra/qra_complete.zip' :
+                primaryReciter === 'basit' ? 'https://download.mp3quran.net/download/basit/basit_complete.zip' :
+                primaryReciter === 'ayyub' ? 'https://download.mp3quran.net/download/ayoub/ayoub_complete.zip' :
+                primaryReciter === 'minshawi' ? 'https://download.mp3quran.net/download/minsh/minsh_complete.zip' :
+                primaryReciter === 'afasy' ? 'https://download.mp3quran.net/download/afs/afs_complete.zip' :
+                primaryReciter === 'mansoor' ? 'https://download.mp3quran.net/download/mansor/mansor_complete.zip' :
                 'https://archive.org/compress/Okasha_Kameny_Full_Quran/formats=VBR%20MP3'
               }
               target="_blank"
