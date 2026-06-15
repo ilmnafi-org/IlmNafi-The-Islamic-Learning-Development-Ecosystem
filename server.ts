@@ -1316,6 +1316,28 @@ app.get("/api/audio-proxy", async (req, res) => {
       }
     }
 
+    // Detect archive.org URLs and translate to high-availability Al-Husary secure CDN on server
+    if (!fallbackBuffer && audioUrl.includes("archive.org")) {
+      try {
+        const parts = audioUrl.split("/");
+        const fileName = parts[parts.length - 1]; // e.g. "005.mp3"
+        const digitsMatch = fileName.match(/(\d+)/);
+        if (digitsMatch) {
+          const surahNum = parseInt(digitsMatch[1], 10);
+          if (!isNaN(surahNum) && surahNum >= 1 && surahNum <= 114) {
+            const paddedSurah = String(surahNum).padStart(3, "0");
+            const alternativeUrl = `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`;
+            console.log(`[AudioProxy] Resilient archive.org fallback: Fetching Al-Husary archive fallback from: ${alternativeUrl}`);
+            const fbResult = await fetchWithNoTLS(alternativeUrl);
+            fallbackBuffer = fbResult.buffer;
+            fallbackContentType = fbResult.contentType;
+          }
+        }
+      } catch (fbErr: any) {
+        console.warn(`[AudioProxy] Resilient archive.org fallback translation failed:`, fbErr.message);
+      }
+    }
+
     if (fallbackBuffer) {
       res.setHeader("Content-Type", fallbackContentType);
       res.setHeader("Access-Control-Allow-Origin", "*");
