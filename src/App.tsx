@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, 
@@ -264,7 +264,7 @@ export default function App() {
       (window as any).__nafiAudioUpdate = undefined;
       clearInterval(interval);
     };
-  }, []);
+  }, [activeTab]);
 
   const handleMiniNext = () => {
     const state = (window as any).__nafiAudioState;
@@ -482,6 +482,182 @@ export default function App() {
   const [liveToast, setLiveToast] = useState<any>(null);
   const [practiceVerse, setPracticeVerse] = useState<any>(null);
   const [showDeenSuiteModal, setShowDeenSuiteModal] = useState(false);
+
+  // ADHAN & PRAYER NOTIFICATION ENGINE STATES
+  const [showAdhanModal, setShowAdhanModal] = useState(false);
+  const [activeAdhanName, setActiveAdhanName] = useState("");
+  const [activeAdhanLabelAr, setActiveAdhanLabelAr] = useState("");
+  const [adhanPlaying, setAdhanPlaying] = useState(false);
+  const adhanAudioRef = useRef<HTMLAudioElement | null>(null);
+  const prayerTimesRef = useRef<any>(null);
+  const lastNotifiedRef = useRef<{[key: string]: boolean}>({});
+
+  // Synchronize prayer timings with Aladhan API or fall back to scholarly standard
+  useEffect(() => {
+    // Standard Scholarly Timings (Fajr, Dhuhr, Asr, Maghrib, Isha)
+    const fallbackTimings = {
+      Fajr: "04:12",
+      Sunrise: "05:45",
+      Dhuhr: "12:35",
+      Asr: "16:15",
+      Maghrib: "19:42",
+      Isha: "21:18"
+    };
+
+    prayerTimesRef.current = fallbackTimings;
+
+    // Fetch live timings if geolocation is active
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          try {
+            const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`);
+            if (res.ok) {
+              const json = await res.json();
+              const timings = json?.data?.timings;
+              if (timings) {
+                prayerTimesRef.current = {
+                  Fajr: timings.Fajr,
+                  Sunrise: timings.Sunrise,
+                  Dhuhr: timings.Dhuhr,
+                  Asr: timings.Asr,
+                  Maghrib: timings.Maghrib,
+                  Isha: timings.Isha
+                };
+              }
+            }
+          } catch (e) {
+            console.warn("Notification engine prayer timings fallback used:", e);
+          }
+        },
+        () => {}
+      );
+    }
+  }, []);
+
+  // Time ticking loop checking every 10 seconds for notifications, Adhan, Iqamah, and Adhkar reminders
+  useEffect(() => {
+    const checkSchedule = () => {
+      const now = new Date();
+      const hrs = now.getHours();
+      const mins = now.getMinutes();
+      const timeString = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+
+      // 1. Bedtime Adhkar check (Exactly at 22:00 / 10:00 PM)
+      if (timeString === "22:00") {
+        const key = `sleep-${now.toDateString()}`;
+        if (!lastNotifiedRef.current[key]) {
+          lastNotifiedRef.current[key] = true;
+          setLiveToast({
+            title: lang === 'en' ? "💤 Bedtime Remembrance" : "💤 أذكار النوم المباركة",
+            body: lang === 'en' 
+              ? "It is now 10:00 PM. Tap to recite your protective Bedtime Remembrances and Surah Al-Mulk." 
+              : "حان الآن موعد أذكار النوم المأثورة وسورة الملك المنجية. اضغط للقراءة والتحصين."
+          });
+        }
+      }
+
+      // Check each prayer time
+      const timings = prayerTimesRef.current;
+      if (!timings) return;
+
+      const prayersList = [
+        { name: "Fajr", labelAr: "الفجر", timeStr: timings.Fajr },
+        { name: "Dhuhr", labelAr: "الظهر", timeStr: timings.Dhuhr },
+        { name: "Asr", labelAr: "العصر", timeStr: timings.Asr },
+        { name: "Maghrib", labelAr: "المغرب", timeStr: timings.Maghrib },
+        { name: "Isha", labelAr: "العشاء", timeStr: timings.Isha }
+      ];
+
+      prayersList.forEach((prayer) => {
+        const [pHrs, pMins] = prayer.timeStr.split(':').map(Number);
+        
+        // Target Date minutes
+        const prayerTotalMins = pHrs * 60 + pMins;
+        const currentTotalMins = hrs * 60 + mins;
+        
+        const diff = prayerTotalMins - currentTotalMins;
+
+        // A. 15-Minute Left Alert
+        if (diff === 15) {
+          const key = `${prayer.name}-15min-${now.toDateString()}`;
+          if (!lastNotifiedRef.current[key]) {
+            lastNotifiedRef.current[key] = true;
+            setLiveToast({
+              title: lang === 'en' ? `🕌 ${prayer.name} Prayer Alert` : `🕌 تنبيه صلاة ${prayer.labelAr}`,
+              body: lang === 'en'
+                ? `15 minutes left before the Adhan of ${prayer.name} Salat. Prepare yourself for Ablution (Wudu).`
+                : `بقي ١٥ دقيقة على أذان صلاة ${prayer.labelAr}. تهيأ الآن بالوضوء للوقوف بين يدي الله.`
+            });
+          }
+        }
+
+        // B. Entry Time / Adhan Call
+        if (diff === 0) {
+          const key = `${prayer.name}-adhan-${now.toDateString()}`;
+          if (!lastNotifiedRef.current[key]) {
+            lastNotifiedRef.current[key] = true;
+            
+            // Pop the stunning Adhan Modal!
+            setActiveAdhanName(prayer.name);
+            setActiveAdhanLabelAr(prayer.labelAr);
+            setShowAdhanModal(true);
+            setAdhanPlaying(true);
+
+            // Play the soul-stirring Adhan audio
+            if (adhanAudioRef.current) {
+              adhanAudioRef.current.pause();
+            }
+            const audio = new Audio("https://archive.org/download/Adhan_201602/adhan.mp3");
+            adhanAudioRef.current = audio;
+            audio.play().catch(err => console.warn("Adhan autoplay prevented:", err));
+
+            setLiveToast({
+              title: lang === 'en' ? `🕌 Adhan Is Calling` : `🕌 الأذان يرتفع الآن`,
+              body: lang === 'en'
+                ? `The Adhan is now calling for ${prayer.name} Salat! Prepare for prayer.`
+                : `حي على الصلاة.. ارتفع الآن أذان صلاة ${prayer.labelAr}، بادر بالوقوف بالصف.`
+            });
+          }
+        }
+
+        // C. 10-Minute After Iqamah Alert
+        if (diff === -10) {
+          const key = `${prayer.name}-iqama-${now.toDateString()}`;
+          if (!lastNotifiedRef.current[key]) {
+            lastNotifiedRef.current[key] = true;
+            setLiveToast({
+              title: lang === 'en' ? "✨ Iqamah Gathering" : "✨ إقامة الصلاة",
+              body: lang === 'en'
+                ? `Iqamah is now being called for ${prayer.name} Salat. Join the congregation prayer.`
+                : `تقام الآن الصلاة المفروضة فرداً وجماعة لصلاة ${prayer.labelAr}. أسرع بالإنضمام.`
+            });
+          }
+        }
+
+        // D. 15-Minute After Post-Salah Adhkar Reminder
+        if (diff === -15) {
+          const key = `${prayer.name}-adhkar-${now.toDateString()}`;
+          if (!lastNotifiedRef.current[key]) {
+            lastNotifiedRef.current[key] = true;
+            setLiveToast({
+              title: lang === 'en' ? "📿 Post-Salah Remembrance" : "📿 أذكار دبر الصلاة",
+              body: lang === 'en'
+                ? `Don't forget your post-prayer remembrances. Tap to recite your Tasbih & Ayah Al-Kursi.`
+                : `لا تحرم نفسك الأجر؛ حان وقت قراءة التحصين والتسبيحات وأوراد ما بعد صلاة ${prayer.labelAr}.`
+            });
+          }
+        }
+      });
+    };
+
+    // Check once immediately
+    checkSchedule();
+
+    const intervalId = setInterval(checkSchedule, 10000); // Ticks every 10 seconds for high-precision
+    return () => clearInterval(intervalId);
+  }, [lang]);
 
   // Auto-restore secure HttpOnly session on load
   useEffect(() => {
@@ -3213,6 +3389,146 @@ export default function App() {
               </button>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* BEAUTIFUL STUNNING INTERACTIVE ADHAN MODAL OVERLAY */}
+      <AnimatePresence>
+        {showAdhanModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-950/85 backdrop-blur-md p-4 animate-fade-in" id="adhan-modal-overlay">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-lg bg-emerald-950 border border-amber-500/40 rounded-[32px] p-6 text-center relative overflow-hidden shadow-2xl"
+              style={{
+                backgroundImage: 'radial-gradient(circle at top, rgba(16, 185, 129, 0.15), transparent 70%)',
+              }}
+              id="adhan-modal-card"
+            >
+              {/* Decorative top Islamic arch */}
+              <div className="mx-auto w-24 h-12 bg-amber-500/10 border border-amber-500/20 border-b-0 rounded-t-full flex items-end justify-center pb-1">
+                <span className="text-amber-500 text-lg">🕌</span>
+              </div>
+
+              <div className="space-y-1 mt-4">
+                <span className="text-[10px] uppercase tracking-widest font-mono text-amber-500 font-extrabold px-3 py-1 bg-amber-500/10 rounded-full inline-block">
+                  {lang === 'en' ? 'Call to Prayer' : 'أذان الصلاة'}
+                </span>
+                <h2 className="text-2xl font-serif font-semibold text-amber-400 mt-2">
+                  {lang === 'en' ? `${activeAdhanName} Adhan` : `أذان صلاة ${activeAdhanLabelAr}`}
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  {lang === 'en' ? 'Live soul-stirring recitation' : 'النداء الخالد للصلوات المفروضة'}
+                </p>
+              </div>
+
+              {/* Calligraphy illustration placeholder / animated wave */}
+              <div className="my-6 py-8 px-4 bg-emerald-900/30 rounded-2xl border border-emerald-500/10 flex flex-col items-center justify-center space-y-4">
+                <span className="text-4xl font-serif text-emerald-400 tracking-widest leading-relaxed">
+                  حَيَّ عَلَى الصَّلَاةِ
+                </span>
+                
+                {/* Waving Sound Bar Visualizer */}
+                {adhanPlaying ? (
+                  <div className="flex items-end justify-center gap-1.5 h-10 w-32">
+                    <span className="w-1.5 bg-amber-500 rounded-full animate-[ping_1.2s_infinite] h-8" />
+                    <span className="w-1.5 bg-amber-400 rounded-full animate-[ping_0.8s_infinite] h-4" />
+                    <span className="w-1.5 bg-amber-500 rounded-full animate-[ping_1s_infinite] h-10" />
+                    <span className="w-1.5 bg-amber-300 rounded-full animate-[ping_1.4s_infinite] h-6" />
+                    <span className="w-1.5 bg-amber-500 rounded-full animate-[ping_0.9s_infinite] h-8" />
+                  </div>
+                ) : (
+                  <div className="flex items-end justify-center gap-1.5 h-10 w-32 opacity-40">
+                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
+                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
+                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
+                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
+                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
+                  </div>
+                )}
+              </div>
+
+              {/* Translation list of Adhan phrases */}
+              <div className="text-left bg-zinc-950/40 rounded-2xl p-4 max-h-[140px] overflow-y-auto text-xs text-zinc-300 space-y-2 border border-zinc-800 scrollbar-thin">
+                <div className="flex justify-between border-b border-zinc-850 pb-1">
+                  <span className="text-amber-500 font-bold">٢x اللَّهُ أَكْبَرُ</span>
+                  <span>Allah is the Greatest (2x)</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-850 pb-1">
+                  <span className="text-emerald-400 font-bold">٢x أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ</span>
+                  <span>I bear witness that there is no deity except Allah (2x)</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-850 pb-1">
+                  <span className="text-emerald-400 font-bold">٢x أَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ اللَّهِ</span>
+                  <span>I bear witness that Muhammad is the Messenger of Allah (2x)</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-850 pb-1">
+                  <span className="text-amber-500 font-bold">٢x حَيَّ عَلَى الصَّلَاةِ</span>
+                  <span>Hasten to prayer (2x)</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-850 pb-1">
+                  <span className="text-amber-500 font-bold">٢x حَيَّ عَلَى الْفَلَاحِ</span>
+                  <span>Hasten to success (2x)</span>
+                </div>
+                {activeAdhanName === 'Fajr' && (
+                  <div className="flex justify-between border-b border-zinc-850 pb-1">
+                    <span className="text-amber-400 font-bold">٢x الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ</span>
+                    <span>Prayer is better than sleep (2x)</span>
+                  </div>
+                )}
+                <div className="flex justify-between pb-1">
+                  <span className="text-amber-500 font-bold">١x لَا إِلَهَ إِلَّا اللَّهُ</span>
+                  <span>There is no deity except Allah (1x)</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
+                <button
+                  id="adhan-toggle-play-btn"
+                  onClick={() => {
+                    if (adhanAudioRef.current) {
+                      if (adhanPlaying) {
+                        adhanAudioRef.current.pause();
+                        setAdhanPlaying(false);
+                      } else {
+                        adhanAudioRef.current.play().catch(err => console.warn(err));
+                        setAdhanPlaying(true);
+                      }
+                    }
+                  }}
+                  className="w-full sm:w-1/2 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 font-extrabold transition cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md shadow-amber-500/20"
+                >
+                  {adhanPlaying ? (
+                    <>
+                      <Pause className="w-4 h-4" />
+                      <span>{lang === 'en' ? "Mute / Pause" : "إيقاف مؤقت"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4" />
+                      <span>{lang === 'en' ? "Play Recitation" : "تشغيل الأذان"}</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  id="adhan-close-btn"
+                  onClick={() => {
+                    if (adhanAudioRef.current) {
+                      adhanAudioRef.current.pause();
+                    }
+                    setShowAdhanModal(false);
+                    setAdhanPlaying(false);
+                  }}
+                  className="w-full sm:w-1/2 py-3 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 font-bold transition cursor-pointer active:scale-95"
+                >
+                  {lang === 'en' ? "Dismiss & Close" : "إغلاق نافذة الأذان"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

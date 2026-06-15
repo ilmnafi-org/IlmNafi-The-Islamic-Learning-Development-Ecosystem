@@ -18,6 +18,63 @@ interface AyahPair {
   page?: number;
 }
 
+const RECITERS_LIST = [
+  {
+    id: 'husary',
+    nameEn: "Mahmoud Khalil Al-Husary",
+    nameAr: "محمود خليل الحصري",
+    styleEn: "Tajweed Precision",
+    styleAr: "ترتيل وتحقيق متقن",
+    tagAr: "شيخ المقارئ",
+    tagEn: "Preservation Pioneer"
+  },
+  {
+    id: 'ghamadi',
+    nameEn: "Saad Al-Ghamidi",
+    nameAr: "سعد الغامدي",
+    styleEn: "Warm & Melodic",
+    styleAr: "عذب هادئ",
+    tagAr: "طمأنينة القلوب",
+    tagEn: "Melodic & Serene"
+  },
+  {
+    id: 'sudais',
+    nameEn: "Abdul Rahman Al-Sudais",
+    nameAr: "عبد الرحمن السديس",
+    styleEn: "Energetic Makkah pulpit",
+    styleAr: "نبر جهوري مهيب",
+    tagAr: "إمام الحرمين",
+    tagEn: "Makkah Lead Qari"
+  },
+  {
+    id: 'shuraim',
+    nameEn: "Saud Al-Shuraim",
+    nameAr: "سعود الشريم",
+    styleEn: "Rhythmic classic cadence",
+    styleAr: "ترتيل متزن رزين",
+    tagAr: "تلاوة عريقة",
+    tagEn: "Classic Cadence"
+  },
+  {
+    id: 'muaiqly',
+    nameEn: "Maher Al-Muaiqly",
+    nameAr: "ماهر المعيقلي",
+    styleEn: "Emotive & Gentle",
+    styleAr: "خاشع رقراق",
+    tagAr: "تأثير دافئ",
+    tagEn: "Sanctuary Echo"
+  },
+  {
+    id: 'kameny',
+    nameEn: "Sheikh Okasha Kameny",
+    nameAr: "عكاشة كميني",
+    styleEn: "West-African rhythmic tempos",
+    styleAr: "ترتيل أفريقي قوي متزن",
+    tagAr: "مقامات عريقة",
+    tagEn: "African Rhythm"
+  }
+];
+
 interface SurahMeta {
   number: number;
   name: string;
@@ -213,6 +270,8 @@ export default function MushafReader({
 
   const themeStyles = MUSHAF_THEMES[activeTheme];
   const [displayModeDropdownOpen, setDisplayModeDropdownOpen] = React.useState(false);
+  const [showTopQariDropdown, setShowTopQariDropdown] = React.useState(false);
+  const [showBottomQariDropdown, setShowBottomQariDropdown] = React.useState(false);
   const [readingLayout, setReadingLayout] = React.useState<'continuous' | 'interactive'>('interactive');
   const [expandedRuleId, setExpandedRuleId] = React.useState<string | null>(null);
 
@@ -362,21 +421,61 @@ export default function MushafReader({
                 })}
               </div>
 
-              {/* Reciter selector */}
-              <div className="flex items-center gap-1.5 select-none shrink-0">
-                <select
-                  value={primaryReciter}
-                  onChange={(e) => setPrimaryReciter(e.target.value)}
-                  className="bg-white hover:bg-slate-50 text-slate-800 text-[10px] font-extrabold py-1 px-2 rounded-lg border border-slate-250 cursor-pointer outline-none transition-all"
+              {/* Reciter selector (Custom dropdown) */}
+              <div className="relative select-none shrink-0" id="top-qari-dropdown-trigger">
+                <button
+                  onClick={() => setShowTopQariDropdown(!showTopQariDropdown)}
+                  className="bg-white hover:bg-slate-50 text-slate-800 text-[10px] font-extrabold py-1.5 px-3 rounded-lg border border-slate-250 cursor-pointer outline-none transition-all flex items-center gap-1.5 shadow-xs"
                   title="Choose Audio Reciter"
                 >
-                  <option value="husary">{lang === 'en' ? 'Al-Husary' : 'الحصري'}</option>
-                  <option value="ghamadi">{lang === 'en' ? 'Al-Ghamidi' : 'الغامدي'}</option>
-                  <option value="sudais">{lang === 'en' ? 'Al-Sudais' : 'السديس'}</option>
-                  <option value="shuraim">{lang === 'en' ? 'Al-Shuraim' : 'الشريم'}</option>
-                  <option value="muaiqly">{lang === 'en' ? 'Al-Muaiqly' : 'المعيقلي'}</option>
-                  <option value="kameny">{lang === 'en' ? 'Okasha Kameny' : 'عكاشة كميني'}</option>
-                </select>
+                  <Volume2 className="w-3 h-3 text-amber-600 animate-pulse" />
+                  <span>
+                    {(() => {
+                      const found = RECITERS_LIST.find(r => r.id === primaryReciter);
+                      return found ? (lang === 'en' ? found.nameEn.split(' ').pop() : found.nameAr.split(' ').pop()) : primaryReciter;
+                    })()}
+                  </span>
+                  <span className="text-[7px] text-slate-400">▼</span>
+                </button>
+
+                {showTopQariDropdown && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowTopQariDropdown(false)} 
+                    />
+                    <div className="absolute right-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 max-h-80 overflow-y-auto">
+                      <div className="px-3 py-1 border-b border-slate-100 text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left">
+                        {lang === 'en' ? 'Select Reciter (Qari)' : 'اختر القارئ المجود'}
+                      </div>
+                      {RECITERS_LIST.map((qari) => {
+                        const isSelected = primaryReciter === qari.id;
+                        return (
+                          <button
+                            key={`top-qari-opt-${qari.id}`}
+                            onClick={() => {
+                              setPrimaryReciter(qari.id);
+                              setShowTopQariDropdown(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 hover:bg-slate-50 transition-colors flex items-center justify-between border-0 bg-transparent cursor-pointer ${isSelected ? 'bg-amber-50/50' : ''}`}
+                          >
+                            <div className="min-w-0 pr-1.5 text-left">
+                              <p className={`text-xs font-bold leading-tight ${isSelected ? 'text-amber-700' : 'text-slate-800'}`}>
+                                {lang === 'en' ? qari.nameEn : qari.nameAr}
+                              </p>
+                              <p className="text-[9px] text-slate-400 truncate mt-0.5 text-left">
+                                {lang === 'en' ? qari.styleEn : qari.styleAr}
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <Check className="w-3.5 h-3.5 text-amber-600 shrink-0 select-none" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
 
             </div>
@@ -1249,24 +1348,68 @@ export default function MushafReader({
 
         {/* Lower row controllers */}
         <div className="flex items-center justify-between gap-2.5 mt-1 border-t border-zinc-900 pt-3">
-          {/* Reciter dropdown list */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-mono hidden sm:inline">Qari:</span>
-            <select
-              value={primaryReciter}
-              onChange={(e) => {
-                stopWholeSurahPlayback();
-                setPrimaryReciter(e.target.value);
-              }}
-              className="bg-zinc-900 text-white hover:bg-zinc-850 text-[10px] sm:text-xs font-black py-1.5 px-2 rounded-xl border border-zinc-800 cursor-pointer outline-none transition-all"
-            >
-              <option value="husary">Sheikh Al-Husary</option>
-              <option value="ghamadi">Saad Al-Ghamidi</option>
-              <option value="sudais">Abdul Rahman Al-Sudais</option>
-              <option value="shuraim">Saud Al-Shuraim</option>
-              <option value="muaiqly">Maher Al-Muaiqly</option>
-              <option value="kameny">Okasha Kameny</option>
-            </select>
+          {/* Reciter dropdown list (Custom dark theme) */}
+          <div className="relative select-none shrink-0" id="bottom-qari-dropdown-container">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-mono hidden sm:inline">Qari:</span>
+              <button
+                onClick={() => setShowBottomQariDropdown(!showBottomQariDropdown)}
+                className="bg-zinc-900 hover:bg-zinc-850 text-white text-[10px] sm:text-xs font-black py-1.5 px-3 rounded-xl border border-zinc-800 cursor-pointer outline-none transition-all flex items-center gap-1.5 shadow-md"
+              >
+                <span>
+                  {(() => {
+                    const found = RECITERS_LIST.find(r => r.id === primaryReciter);
+                    return found ? found.nameEn : "Select Reciter";
+                  })()}
+                </span>
+                <span className="text-[8px] text-zinc-500">▼</span>
+              </button>
+            </div>
+
+            {showBottomQariDropdown && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowBottomQariDropdown(false)} 
+                />
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl z-50 py-2 max-h-80 overflow-y-auto">
+                  <div className="px-3.5 py-1.5 border-b border-zinc-900 text-[9px] font-bold text-zinc-500 uppercase tracking-wider text-left">
+                    {lang === 'en' ? 'Select Reciter (Classical Qari)' : 'اختر الرواية والتلاوة المطهرة'}
+                  </div>
+                  {RECITERS_LIST.map((qari) => {
+                    const isSelected = primaryReciter === qari.id;
+                    return (
+                      <button
+                        key={`bottom-qari-opt-${qari.id}`}
+                        onClick={() => {
+                          stopWholeSurahPlayback();
+                          setPrimaryReciter(qari.id);
+                          setShowBottomQariDropdown(false);
+                        }}
+                        className={`w-full text-left px-3.5 py-2.5 hover:bg-zinc-900/80 transition-colors flex items-center justify-between border-0 bg-transparent cursor-pointer ${isSelected ? 'bg-zinc-900' : ''}`}
+                      >
+                        <div className="min-w-0 pr-2 text-left">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[11px] sm:text-xs font-black leading-tight ${isSelected ? 'text-amber-500' : 'text-zinc-200'}`}>
+                              {lang === 'en' ? qari.nameEn : qari.nameAr}
+                            </span>
+                            <span className="text-[8px] font-extrabold bg-[#A37B12]/20 text-[#D4AF37] px-1 rounded uppercase tracking-wider shrink-0 select-none">
+                              {lang === 'en' ? qari.tagEn : qari.tagAr}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-zinc-500 truncate mt-1 text-left">
+                            {lang === 'en' ? qari.styleEn : qari.styleAr}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Core Player Center actions */}
@@ -1335,7 +1478,7 @@ export default function MushafReader({
                 primaryReciter === 'shuraim' ? 'https://download.mp3quran.net/download/shrm/shrm_complete.zip' :
                 primaryReciter === 'muaiqly' ? 'https://download.mp3quran.net/download/maher/maher_complete.zip' :
                 primaryReciter === 'husary' ? 'https://download.mp3quran.net/download/husr/husr_complete.zip' :
-                'https://archive.org/compress/okasha-kameny-quran/formats=VBR%20MP3'
+                'https://archive.org/compress/Okasha_Kameny_Full_Quran/formats=VBR%20MP3'
               }
               target="_blank"
               rel="noopener noreferrer"

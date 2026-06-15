@@ -1154,7 +1154,9 @@ export default function QuranExplorer({
       setPlayingAyahKey(null);
     };
     audioPlayerRef.current = audio;
-    audio.play().catch(e => {
+    audio.play().then(() => {
+      syncGlobalAudioState(audio, true, null);
+    }).catch(e => {
       setPlayingAyahKey(null);
     });
 
@@ -1173,10 +1175,12 @@ export default function QuranExplorer({
       preloadedAudioRef.current = null;
     }
     preloadedIndexRef.current = null;
-    setSurahPlayActive(false);
+    if (isMountedRef.current) {
+      setSurahPlayActive(false);
+      setSurahPlayAyahIdx(null);
+      setPlayingAyahKey(null);
+    }
     surahPlayActiveRef.current = false;
-    setSurahPlayAyahIdx(null);
-    setPlayingAyahKey(null);
     consecutiveErrorsRef.current = 0;
   };
 
@@ -1230,7 +1234,7 @@ export default function QuranExplorer({
       case 'muaiqly':
         return `https://server12.mp3quran.net/maher/${paddedSurah}.mp3`;
       case 'kameny':
-        return `https://download.qurancentral.com/okasha-kameny/okasha-kameny-${paddedSurah}.mp3`;
+        return `https://archive.org/download/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`;
       default:
         return `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`;
     }
@@ -1282,7 +1286,9 @@ export default function QuranExplorer({
         }
       };
 
-      audio.play().catch(e => {
+      audio.play().then(() => {
+        syncGlobalAudioState(audio, true, null);
+      }).catch(e => {
         console.warn("Failed playing continuous stream:", e);
       });
       return;
@@ -1363,6 +1369,7 @@ export default function QuranExplorer({
 
     audio.play().then(() => {
       consecutiveErrorsRef.current = 0;
+      syncGlobalAudioState(audio, true, startIndex);
     }).catch(err => {
       console.warn("Consecutive audio play catch interrupted:", err);
       if (surahPlayActiveRef.current) {
@@ -1530,12 +1537,11 @@ export default function QuranExplorer({
     }, 2000);
   };
 
-  // Clean memory on unmount
+  const isMountedRef = useRef(true);
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.pause();
-      }
+      isMountedRef.current = false;
     };
   }, []);
 

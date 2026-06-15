@@ -144,6 +144,95 @@ If followed by any of the remaining 15 letters, the Nūn sound is concealed or m
             explanation: "Iqlāb literally means transformation or conversion—converting Nun into Meem when followed by Ba."
           }
         ]
+      },
+      {
+        id: "les-taj-3",
+        title: "Rules of Madd (Elongation & Cadence)",
+        duration: "15 min",
+        summary: "Understand how to stretch vowels (Madd Letters) from 2 to 6 beats depending on subsequent Hamzah or Sakoon conditions.",
+        content: `### Introduction to Madd
+        
+**Madd** (مد) translates literally to "prolongation" or "extension." In Tajweed terminology, it represents the lengthening of a vowel or a sound when reciting specific letters under defined conditions.
+        
+#### The Three Natural Madd Letters
+    
+All elongation rules revolve around three letters, collectively known as the *Letters of Madd*, when preceded by their matching short vowels:
+1. **Silent Alif (أ)** preceded by a Fathah (e.g., *kā-la* - قَالَ).
+2. **Silent Wāw (و)** preceded by a Dammah (e.g., *yā-kū-lu* - يَقُولُ).
+3. **Silent Yā' (ي)** preceded by a Kasrah (e.g., *qī-la* - قِيلَ).
+        
+The default duration for these natural letters when no secondary cause is present is **2 beats** (Madd Tabī'ī).
+        
+#### Secondary Causes of Madd (Hamzah or Sukūn)
+        
+If a Madd letter is followed by a **Hamzah (ء)** or a **Sukūn (ْ)** (silent letter), the duration of the elongation must be extended to **4, 5, or 6 beats**:
+        
+1. **Madd Wājib Muttasil (Obligatory Connected Madd):**
+   Occurs when the Madd letter and the Hamzah are contained within the *same* word.
+   * *Elongation:* Must be stretched for **4 or 5 beats**.
+   * *Example:* *Al-Samā'* (السَّمَاء).
+        
+2. **Madd Jā'iz Munfasil (Permissible Detached Madd):**
+   Occurs when the Madd letter is at the end of one word, and the Hamzah is at the beginning of the *next* word.
+   * *Elongation:* Can be stretched for **4 or 5 beats** (or left at 2 in specific styles).
+   * *Example:* *Innaā A'taynāk* (إِنَّا أَعْطَيْنَاكَ).
+        
+3. **Madd Lāzim (Compulsory Madd):**
+   Occurs when the Madd letter is followed by a permanent, original Sukūn or a doubled letter (Shaddah).
+   * *Elongation:* Must be held for a full **6 beats** without exception.
+   * *Example:* *Al-Dāāāālīn* (الضَّالِّين).`,
+        quiz: [
+          {
+            question: "How many beats must the Madd Lāzim (Compulsory Madd) be stretched?",
+            options: [
+              "2 beats",
+              "4 beats",
+              "5 beats",
+              "6 beats"
+            ],
+            answerIndex: 3,
+            explanation: "Madd Lāzim is compulsory and must always be stretched for a full 6 beats."
+          }
+        ]
+      },
+      {
+        id: "les-qur-comp",
+        title: "The Revelation & History of Mus-haf Compilation",
+        duration: "20 min",
+        summary: "Trace the preservation of the Quran from verbal revelation, to its collation under Abu Bakr, and its authoritative orthographic standard under Uthman.",
+        content: `### The Revelation and Historic Compilation of the Quran
+
+The Quran was revealed orally to Prophet Muhammad (peace be upon him) over a period of approximately 23 years. Upon receiving revelation, the Prophet would immediately recite it to his companions and instruct scribes to record the verses on available materials such as parchment, palm stalks, and flat stones.
+
+### Compilation Epochs
+
+The formal compilation of the Quran passed through three major historical stages:
+
+#### 1. The Era of the Prophet (Peace be Upon Him):
+* Primary preservation relied on **memorization in hearts** by hundreds of companion-reciters (*Huffadh*).
+* Recording was active but scattered across various individual sheets.
+
+#### 2. The Caliphate of Abu Bakr As-Siddiq (RA):
+* Following the Battle of Yamamah, where many huffadh fell, Umar bin Al-Khattab urged Abu Bakr to commit the entire Quran into a single unified written text to prevent loss.
+* Under the supervision of **Zayd bin Thabit**, a chief scribe, every single verse was verified using two witnesses who had both written it and memorized it from the mouth of the Prophet. This consolidated scroll was known as the *Suhuf*.
+
+#### 3. The Caliphate of Uthman bin Affan (RA):
+* As the Islamic territory expanded, differences in dialectal pronunciation arose across different regions.
+* Uthman consolidated a single, authoritative orthographic standard based on the Quraysh dialect.
+* Copyists cloned the master scroll into regional codices (*al-Masahif*) sent to major administrative centers (Makkah, Kufa, Basra, Damascus), and ordered all other divergent personal recordings to be destroyed to retain textual unity.`,
+        quiz: [
+          {
+            question: "Who was the chief scribe appointed by Caliph Abu Bakr to supervise the collation of the first unified Quranic scrolls (Suhuf)?",
+            options: [
+              "Umar bin Al-Khattab",
+              "Zayd bin Thabit",
+              "Uthman bin Affan",
+              "Abu Hurairah"
+            ],
+            answerIndex: 1,
+            explanation: "Zayd bin Thabit was chosen due to his sharp memory, youthful vigor, and role as the primary revelations scribe of the Prophet."
+          }
+        ]
       }
     ]
   },
@@ -197,6 +286,45 @@ Based on the integrity of the Sanad and Matn, Hadiths are categorized into three
             explanation: "The Sanad is the chain of narrators, while the Matn is the actual textual content."
           }
         ]
+      },
+      {
+        id: "les-had-2",
+        title: "The Historical Era of Hadith Compilation",
+        duration: "15 min",
+        summary: "Trace the preservation of Prophetic traditions from the personal scrolls (Sahifahs) of companions to the standard compilations (Kutub al-Sittah).",
+        content: `### Timeline of Hadith Compilation
+
+In the first years of Islam, the primary focus of the community was recording and compiling the Quran. To ensure no confusion with the divine book, the Prophet originally advised companions: "Do not write down anything from me except the Quran." 
+
+However, as the Quranic words became firmly established in the hearts and manuscripts, the Prophet explicitly authorized specific companions to record his traditions as well.
+
+#### 1. The Era of Personal Scrolls (1st Century AH)
+
+Individual companions wrote personal diaries of memories called **Sahifahs**:
+* **Sahifah Sadiqah:** Compiled by Abdullah ibn 'Amr ibn al-'As (RA), containing hundreds of direct statements written in the Prophet's presence.
+* **The Scroll of Ali ibn Abi Talib (RA):** Focused primarily on legal codes, weights/measures, and civic covenants.
+* **Sahifah of Hammam ibn Munabbih:** Written directly under the dictation of Abu Hurairah (RA), which remains fully preserved in manuscript form today.
+
+#### 2. The Official Compilation (Early 2nd Century AH)
+
+Caliph Umar bin Abdul-Aziz (RA) issued a royal decree to the governor and scholars of Medina, particularly **Ibn Shihab al-Zuhri**, commissioning the first official state collation of Hadiths to prevent the loss of authentic traditions as companions passed away. This epoch yielded the famed **Muwatta of Imam Malik**.
+
+#### 3. The Golden Era of Categorization (3rd Century AH)
+
+The golden age saw the rise of the **Kutub al-Sittah** (The Six Books). Scholars like **Imam Muhammad Al-Bukhari** and **Imam Muslim ibn al-Hajjaj** traveled across provinces, verifying travel links, historical dates, and oral qualities, establishing the most rigorous database of verified reports in history.`,
+        quiz: [
+          {
+            question: "Which compendium is credited as compiled by Hammam ibn Munabbih, dictated directly by companion Abu Hurairah?",
+            options: [
+              "Sahifah Hammam ibn Munabbih",
+              "Sahih Al-Bukhari",
+              "Al-Muwatta",
+              "Musnad Ahmad"
+            ],
+            answerIndex: 0,
+            explanation: "The Sahifah of Hammam ibn Munabbih is one of the earliest preserved written transcripts of prophetic Hadiths, dictated directly by Abu Hurairah."
+          }
+        ]
       }
     ]
   },
@@ -240,6 +368,95 @@ The House of Wisdom was remarkable for its cosmopolitan inclusivity. Christian, 
             ],
             answerIndex: 1,
             explanation: "Muhammad ibn Musa al-Khwarizmi's treatises on calculation introduced Algebra (al-jabr) as a systematic mathematical discipline."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sub-jurisprudence",
+    name: "Islamic Jurisprudence & Fiqh",
+    arabicName: "الفقه وأصوله",
+    icon: "BookOpen",
+    gradeRange: "Grade 8 - Graduate",
+    description: "Study how practical rulings are derived from foundational sources, and explore comparative legal consensus models and the objectives of Shariah.",
+    lessons: [
+      {
+        id: "les-fiq-1",
+        title: "The Foundations of Fiqh & Al-Usūl",
+        duration: "18 min",
+        summary: "Understand the four main sources of Islamic law—the Quran, Sunnah, Scholarly Consensus (Ijma), and Analogy (Qiyas).",
+        content: `### Understanding Fiqh and Usūl al-Fiqh
+
+**Fiqh** (فقه) is the understanding and derivation of practical Islamic rulings from their specific textual sources, while **Usūl al-Fiqh** (أصول الفقه) is the methodology or legal theory used to derive those rulings.
+
+### The Four Primary Sources of Law
+
+Muslim jurists rely on four consensus sources to build legal consensus:
+
+1. **The Holy Quran (القرآن الكريم):** The ultimate, absolute divine guidance containing fundamental values, laws, and creeds.
+2. **The Sunnah (السنة النبوية):** The statements, actions, and approvals of the Prophet Muhammad, acting as a detailed explanation of the Quran.
+3. **Ijmā' (إجماع - Scholarly Consensus):** The unanimous agreement of the jurists of the Muslim community in any particular era upon a religious ruling after the death of the Prophet.
+4. **Qiyās (قياس - Analogical Deduction):** Applying a ruling of an existing case from textual evidence to a novel case that shares the exact same underlying cause (*'Illah*).
+
+### The Objectives of Shariah: Maqāsid al-Shari'ah
+
+All rules of Fiqh aim to protect five basic human rights: Lifespan (Nafs), Intellect ('Aql), Progeny/family (Nasl), Wealth (Mal), and Faith (Deen).`,
+        quiz: [
+          {
+            question: "What is the term used to describe the underlying legal reason or cause shared between an established text and a new case in Analogical Deduction (Qiyās)?",
+            options: [
+              "Ijmā'",
+              "Ijtihad",
+              "'Illah",
+              "Fatwa"
+            ],
+            answerIndex: 2,
+            explanation: "The 'Illah is the specific, active cause behind a ruling (e.g., intoxication is the 'Illah behind the prohibition of wine and drugs)."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sub-linguistics",
+    name: "Arabic Linguistics & Grammar",
+    arabicName: "اللغة العربية والنحو",
+    icon: "Compass",
+    gradeRange: "High School & Adult",
+    description: "Unlock the linguistic architecture of the Arabic language: root patterns, parts of speech, and grammar inflection points of Al-Ajurrumiyyah.",
+    lessons: [
+      {
+        id: "les-ara-1",
+        title: "Introduction to Arabic Grammar: Al-Ajurrumiyyah",
+        duration: "15 min",
+        summary: "Introduce word categorization (nouns, verbs, particles) and grammatical case changes based on word endings.",
+        content: `### The Architecture of the Arabic Language
+
+Arabic belongs to the Semitic language family and operates on a highly logical system of **three-letter root words** (three consonant roots) from which hundreds of nouns, verbs, and adjectives are derived.
+
+### Parts of Speech (Aqṣām al-Kalām)
+
+According to the famous classical primer *Al-Ajurrumiyyah* by Ibn Ajurrum, all words in Arabic are divided into exactly three categories:
+
+1. **Ism (إسم - Noun):** A word that has an independent meaning and does not relate to time (e.g., house, book, scholar).
+2. **Fi'l (فعل - Verb):** A word that has an independent meaning and corresponds to a specific timeline (past, present, or future command).
+3. **Ḥarf (حرف - Particle):** A word whose meaning only becomes apparent when paired with an Ism or Fi'l (e.g., to, in, from).
+
+### The Concept of I'rāb (Inflection)
+
+Unlike English, the grammatical function of an Arabic word (whether it is a subject, object, or genitive prepositional) is shown by changing the **vowel on the very last letter** of the word. This science is called **Nahw** (Arabic grammar).`,
+        quiz: [
+          {
+            question: "According to the Ajurrumiyyah grammar primer, what are the three parts of speech in Arabic?",
+            options: [
+              "Subject, Object, Predicate",
+              "Ism (Noun), Fi'l (Verb), and Ḥarf (Particle)",
+              "Active participle, Passive participle, and Root",
+              "Past, Present, and Future"
+            ],
+            answerIndex: 1,
+            explanation: "All spoken and written Arabic is composed exclusively of nouns (Ism), verbs (Fi'l), and particles (Harf)."
           }
         ]
       }

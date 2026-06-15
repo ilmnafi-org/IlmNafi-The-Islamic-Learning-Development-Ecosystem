@@ -20,7 +20,8 @@ import {
   Award,
   BookMarked,
   FileText,
-  Bookmark
+  Bookmark,
+  GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CURRICULUM_DATA } from '../data';
@@ -33,6 +34,15 @@ interface CurriculumViewProps {
 }
 
 export default function CurriculumView({ progress, onCompleteLesson, lang = 'en' }: CurriculumViewProps) {
+  const completedCount = progress.lessonsCompleted.length;
+  let rank = lang === 'en' ? "Novice Scholar" : "طالب علم مبتدئ";
+  if (completedCount >= 4) {
+    rank = lang === 'en' ? "Alim Scholar" : "باحث أكاديمي مساعد";
+  } else if (completedCount >= 2) {
+    rank = lang === 'en' ? "Knowledge Seeker" : "طالب مستنير";
+  }
+  const prestige = 100 + completedCount * 150;
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -353,6 +363,156 @@ export default function CurriculumView({ progress, onCompleteLesson, lang = 'en'
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
+            {/* Elegant Scholar Progress Dashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-slate-50 border border-slate-200/60 p-6 rounded-3xl" id="curriculum-stats-board">
+              <div className="bg-gradient-to-br from-emerald-950 to-slate-950 text-white rounded-2xl p-5 border border-emerald-900 shadow-md flex items-center justify-between">
+                <div className="min-w-0 flex-1 pr-2">
+                  <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">Scholar Level</span>
+                  <p className="text-sm font-black mt-1 leading-snug truncate">{rank}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/15 shrink-0">
+                  <GraduationCap className="w-5 h-5 text-emerald-400" />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Modules Completed</span>
+                  <p className="text-lg font-black text-slate-900 mt-1">{completedCount} passed</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-100 shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Acquired Prestige</span>
+                  <p className="text-lg font-black text-[#A37B12] mt-1">{prestige} PTS</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100 shrink-0">
+                  <Award className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-2xl p-4 border border-slate-800 shadow-sm flex flex-col justify-between">
+                <div className="flex items-start justify-between min-w-0 w-full">
+                  <div className="min-w-0 w-full">
+                    <span className="text-[9px] text-[#D4AF37] font-black uppercase tracking-wider block">Suggestive Study</span>
+                    <p className="text-[11px] font-extrabold text-slate-300 mt-0.5 truncate">
+                      {(() => {
+                        for (const sub of CURRICULUM_DATA) {
+                          for (const les of sub.lessons) {
+                            if (!progress.lessonsCompleted.includes(les.id)) {
+                              return les.title;
+                            }
+                          }
+                        }
+                        return "Syllabus Complete!";
+                      })()}
+                    </p>
+                  </div>
+                </div>
+                {(() => {
+                  let recLesson: any = null;
+                  for (const sub of CURRICULUM_DATA) {
+                    for (const les of sub.lessons) {
+                      if (!progress.lessonsCompleted.includes(les.id)) {
+                        recLesson = les;
+                        break;
+                      }
+                    }
+                    if (recLesson) break;
+                  }
+                  if (recLesson) {
+                    return (
+                      <button
+                        onClick={() => handleStartLesson(recLesson)}
+                        className="mt-3 text-[9px] font-black text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-transparent border-0 cursor-pointer self-start p-0 outline-none uppercase tracking-wider"
+                      >
+                        <span>Start Reading</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    );
+                  }
+                  return (
+                    <span className="mt-3 text-[9px] font-black text-amber-500 uppercase tracking-widest">
+                      Jazakum Allah Khayr!
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* NEW SYLLABUS DISCOVERIES HIGHLIGHTS */}
+            <div className="bg-gradient-to-r from-amber-500/10 via-emerald-500/5 to-transparent border border-amber-500/20 rounded-3xl p-6 md:p-8 relative overflow-hidden" id="curriculum-highlights-banner">
+              <div className="absolute right-0 top-0 -mt-6 -mr-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl" />
+              <div className="absolute left-1/3 bottom-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl" />
+              
+              <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="max-w-xl">
+                  <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 text-[9px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider mb-2">
+                    <Sparkles className="w-3 h-3 text-amber-700 animate-spin" />
+                    {lang === 'en' ? "Syllabus Modernization Complete" : "تحديثات المناهج العلمية المضافة"}
+                  </span>
+                  <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                    {lang === 'en' ? "New Curricula Additions & Direct Practice" : "موضوعات علمية جديدة ومثيرة للتأمل"}
+                  </h2>
+                  <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                    {lang === 'en' 
+                      ? "Two highly demanded scholarly manuscripts have been compiled and peer-reviewed for study. Challenge your understanding with their dynamic examinations."
+                      : "تمت إضافة وتحقيق موضوعين جديدين بالتجويد والحديث الشريف. تفاعل مع المخطوطات والأسئلة لزيادة الرصيد العلمي."}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:w-auto shrink-0 md:min-w-[480px]">
+                  {/* Highlights Card 1 */}
+                  <div 
+                    onClick={() => {
+                      const subjectObj = CURRICULUM_DATA.find(s => s.id === "sub-quran");
+                      const lessonObj = subjectObj?.lessons.find(l => l.id === "les-taj-3");
+                      if (lessonObj) handleStartLesson(lessonObj);
+                    }}
+                    className="bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.02] shadow-sm hover:shadow-md flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[8px] bg-amber-50 text-[#A37B12] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">Tajweed Science</span>
+                        <span className="text-[8px] text-slate-400 whitespace-nowrap">15 min read</span>
+                      </div>
+                      <h4 className="text-xs font-black text-slate-900 mt-2 line-clamp-1">Rules of Madd (Elongation)</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">Learn conditions to stretch vowels from 2 to 6 beats.</p>
+                    </div>
+                    <span className="text-[9px] text-emerald-800 font-extrabold flex items-center gap-1 mt-3">
+                      Start Study <ArrowRight className="w-2.5 h-2.5" />
+                    </span>
+                  </div>
+
+                  {/* Highlights Card 2 */}
+                  <div 
+                    onClick={() => {
+                      const subjectObj = CURRICULUM_DATA.find(s => s.id === "sub-hadith");
+                      const lessonObj = subjectObj?.lessons.find(l => l.id === "les-had-2");
+                      if (lessonObj) handleStartLesson(lessonObj);
+                    }}
+                    className="bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.02] shadow-sm hover:shadow-md flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[8px] bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">Hadith History</span>
+                        <span className="text-[8px] text-slate-400 whitespace-nowrap">15 min read</span>
+                      </div>
+                      <h4 className="text-xs font-black text-slate-900 mt-2 line-clamp-1">Timeline of Hadith Compilation</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">Trace early Sahifahs to standard Golden Era compendiums.</p>
+                    </div>
+                    <span className="text-[9px] text-emerald-800 font-extrabold flex items-center gap-1 mt-3">
+                      Start Study <ArrowRight className="w-2.5 h-2.5" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* SEARCH ROW */}
             <div className="relative max-w-lg shadow-sm rounded-xl">
               <input 
