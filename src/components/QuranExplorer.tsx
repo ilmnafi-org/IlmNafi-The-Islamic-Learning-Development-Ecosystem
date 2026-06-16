@@ -1234,13 +1234,13 @@ export default function QuranExplorer({
       case 'ghamadi':
         return `https://download.quranicaudio.com/quran/sa3d_al_ghaamidi/complete/${paddedSurah}.mp3`;
       case 'shuraim':
-        return `https://download.quranicaudio.com/quran/saud_ash-shuraim/${paddedSurah}.mp3`;
+        return `https://download.quranicaudio.com/quran/saud_ash-shuraym/${paddedSurah}.mp3`;
       case 'sudais':
         return `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${paddedSurah}.mp3`;
       case 'muaiqly':
         return `https://download.quranicaudio.com/quran/maher_al_muaiqly/${paddedSurah}.mp3`;
       case 'matrood':
-        return `https://download.quranicaudio.com/quran/abdullaah_al-matrood/${paddedSurah}.mp3`;
+        return `https://server8.mp3quran.net/mtrod/${paddedSurah}.mp3`;
       case 'tunaiji':
         return `https://download.mp3quran.net/download/qra/${paddedSurah}.mp3`;
       case 'basit':

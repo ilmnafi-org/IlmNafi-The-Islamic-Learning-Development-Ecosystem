@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Resilient helper to fetch external audio assets without SSL/TLS chain rejections (critical for everyayah.com)
-function fetchWithNoTLS(urlStr: string): Promise<{ buffer: Buffer; contentType: string }> {
+function fetchWithNoTLS(urlStr: string, timeoutMs: number = 12000): Promise<{ buffer: Buffer; contentType: string }> {
   return new Promise((resolve, reject) => {
     const handleRequest = (currentUrlStr: string) => {
       const isHttps = currentUrlStr.startsWith("https://");
@@ -85,9 +85,9 @@ function fetchWithNoTLS(urlStr: string): Promise<{ buffer: Buffer; contentType: 
         reject(err);
       });
       
-      req.setTimeout(12000, () => {
+      req.setTimeout(timeoutMs, () => {
         req.destroy();
-        reject(new Error("Request timed out fetching audio"));
+        reject(new Error(`Request timed out fetching audio after ${timeoutMs}ms`));
       });
     };
     
@@ -1220,32 +1220,21 @@ app.get("/api/audio-proxy", async (req, res) => {
   }
 
   try {
-    const { buffer, contentType } = await fetchWithNoTLS(audioUrl);
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cache-Control", "public, max-age=31536000"); // cache audio for up to a year
-    res.status(200).send(buffer);
-  } catch (err: any) {
-    // Only log warning if the entire fallback cascade below fails to produce a viable buffer
-    let fallbackBuffer: Buffer | null = null;
-    let fallbackContentType = "audio/mpeg";
+    const candidates: string[] = [];
 
-    // Detect everyayah.com URLs and translate to high-availability cdn.alquran.cloud securely on server
+    // 1) Translate everyayah.com to high-availability cdn.alquran.cloud proactively
     if (audioUrl.includes("everyayah.com")) {
       try {
         const parts = audioUrl.split("/");
         const fileName = parts[parts.length - 1]; // e.g. "001001.mp3"
         const folderName = parts[parts.length - 2]; // e.g. "Ghamadi_40kbps"
         
-        if (fileName && fileName.endsWith(".mp3")) {
-          // Remove prefix/extension to get numbers
+        if (fileName && fileName.endsWith(".mp3") && folderName) {
           const digitsMatch = fileName.match(/(\d{6})/);
           if (digitsMatch) {
             const rawDigits = digitsMatch[1];
-            const surahStr = rawDigits.substring(0, 3);
-            const ayahStr = rawDigits.substring(3, 6);
-            const surah = parseInt(surahStr, 10);
-            const ayah = parseInt(ayahStr, 10);
+            const surah = parseInt(rawDigits.substring(0, 3), 10);
+            const ayah = parseInt(rawDigits.substring(3, 6), 10);
             
             if (!isNaN(surah) && !isNaN(ayah)) {
               let edition = "ar.husary";
@@ -1253,90 +1242,112 @@ app.get("/api/audio-proxy", async (req, res) => {
               else if (folderName.includes("Sudais") || folderName.includes("sudais")) edition = "ar.abdurrahmaansudais";
               else if (folderName.includes("Shuraym") || folderName.includes("shuraym") || folderName.includes("Saood")) edition = "ar.saoodshuraym";
               else if (folderName.includes("Muaiqly") || folderName.includes("muaiqly")) edition = "ar.mahermuaiqly";
-              else if (folderName.includes("Matroud") || folderName.includes("matroud")) edition = "ar.abdullahmatroud";
+              else if (folderName.includes("Matroud") || folderName.includes("matroud") || folderName.includes("matrood")) edition = "ar.abdullahmatroud";
               else if (folderName.includes("Tonaeijy") || folderName.includes("tunaiji")) edition = "ar.khalifatuntunaiji";
-              else if (folderName.includes("Basit") || folderName.includes("basit")) edition = "ar.abdulbasitmurattal";
-              else if (folderName.includes("Ayyub") || folderName.includes("ayyub")) edition = "ar.muhammadayyoub";
-              else if (folderName.includes("Minshawy") || folderName.includes("minshawi")) edition = "ar.minshawi";
-              else if (folderName.includes("Alafasy") || folderName.includes("afasy")) edition = "ar.alafasy";
-              
-              const cloudUrl = `https://cdn.alquran.cloud/media/audio/ayah/${edition}/${surah}:${ayah}`;
-              console.log(`[AudioProxy] Resilient fallback: Redirecting request to CDN: ${cloudUrl}`);
-              const fbResult = await fetchWithNoTLS(cloudUrl);
-              fallbackBuffer = fbResult.buffer;
-              fallbackContentType = fbResult.contentType;
+              else if (folderName.includes("Basit") || folderName.includes("basit")) {
+                edition = folderName.includes("Mujawwad") || folderName.includes("mujawwad") ? "ar.abdulbasitmujawwad" : "ar.abdulbasitmurattal";
+              } else if (folderName.includes("Ayyub") || folderName.includes("ayyub")) edition = "ar.muhammadayyoub";
+              else if (folderName.includes("Minshawy") || folderName.includes("minshawi") || folderName.includes("Minshawi") || folderName.includes("minshawy")) {
+                edition = folderName.includes("Mujawwad") || folderName.includes("mujawwad") ? "ar.minshawimujawwad" : "ar.minshawi";
+              } else if (folderName.includes("Alafasy") || folderName.includes("afasy")) edition = "ar.alafasy";
+              else if (folderName.includes("Warsh") || folderName.includes("warsh")) edition = "ar.hudhaify.warsh";
+
+              candidates.push(`https://cdn.alquran.cloud/media/audio/ayah/${edition}/${surah}:${ayah}`);
             }
           }
         }
-      } catch (fbErr: any) {
-        console.log(`[AudioProxy] Resilient CDN fallback translation failed:`, fbErr.message);
+      } catch (e: any) {
+        console.warn("[AudioProxy] proactive everyayah translation failed:", e.message);
       }
     }
 
-    // Detect mp3quran.net URLs and translate to high-availability download.quranicaudio.com securely on server
-    if (!fallbackBuffer && audioUrl.includes("mp3quran.net")) {
+    // 2) Translate quranicaudio.com to high-availability mp3quran.net or backup CDNs proactively
+    if (audioUrl.includes("quranicaudio.com")) {
       try {
         const parts = audioUrl.split("/");
         const fileName = parts[parts.length - 1]; // e.g. "001.mp3"
-        const folderName = parts[parts.length - 2]; // e.g. "shrm"
         
-        if (fileName && fileName.endsWith(".mp3") && folderName) {
-          let alternativeUrl = "";
-          if (folderName === "shrm") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/saud_ash-shuraim/${fileName}`;
-          } else if (folderName === "sds") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${fileName}`;
-          } else if (folderName === "husr") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${fileName}`;
-          } else if (folderName === "s_gmd") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/sa3d_al_ghaamidi/complete/${fileName}`;
-          } else if (folderName === "maher") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/maher_al_muaiqly/${fileName}`;
-          } else if (folderName === "mtrod") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/abdullaah_al-matrood/${fileName}`;
-          } else if (folderName === "qra") {
-            alternativeUrl = `https://download.mp3quran.net/download/qra/${fileName}`;
-          } else if (folderName === "basit") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/abdul_basit_mujawwad/${fileName}`;
-          } else if (folderName === "ayoub") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/muhammad_ayyoob/${fileName}`;
-          } else if (folderName === "minsh") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/muhammad_siddeeq_al-minshawee_mujawwad/${fileName}`;
-          } else if (folderName === "afs") {
-            alternativeUrl = `https://download.quranicaudio.com/quran/mishari_rashid_al_afasy/${fileName}`;
-          } else if (folderName === "mansor") {
-            alternativeUrl = `https://server14.mp3quran.net/mansor/${fileName}`;
-          }
-
-          if (alternativeUrl) {
-            console.log(`[AudioProxy] Resilient mp3quran fallback: Fetching from: ${alternativeUrl}`);
-            try {
-              const fbResult = await fetchWithNoTLS(alternativeUrl);
-              fallbackBuffer = fbResult.buffer;
-              fallbackContentType = fbResult.contentType;
-            } catch (innerErr: any) {
-              console.log(`[AudioProxy] Inner fallback failed for ${alternativeUrl}:`, innerErr.message);
-              if (folderName === "maher") {
-                const altMaher = `https://download.quranicaudio.com/quran/maher_al_muaiqly/complete/${fileName}`;
-                console.log(`[AudioProxy] Secondary maher fallback: Fetching from: ${altMaher}`);
-                try {
-                  const fbResult = await fetchWithNoTLS(altMaher);
-                  fallbackBuffer = fbResult.buffer;
-                  fallbackContentType = fbResult.contentType;
-                } catch (e2: any) {
-                  console.log(`[AudioProxy] Secondary maher fallback failed:`, e2.message);
-                }
-              }
-            }
+        if (fileName && fileName.endsWith(".mp3")) {
+          if (audioUrl.includes("mahmood_khaleel_al-husaree")) {
+            candidates.push(`https://server13.mp3quran.net/husr/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/husr/${fileName}`);
+          } else if (audioUrl.includes("sa3d_al_ghaamidi")) {
+            candidates.push(`https://server7.mp3quran.net/s_gmd/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/s_gmd/${fileName}`);
+          } else if (audioUrl.includes("shuraim") || audioUrl.includes("shuraym") || audioUrl.includes("saud_ash-shuraim") || audioUrl.includes("saud_ash-shuraym")) {
+            candidates.push(`https://server7.mp3quran.net/shrm/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/shrm/${fileName}`);
+          } else if (audioUrl.includes("abdurrahmaan_as-sudais")) {
+            candidates.push(`https://server11.mp3quran.net/sds/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/sds/${fileName}`);
+          } else if (audioUrl.includes("maher_al_muaiqly")) {
+            candidates.push(`https://server12.mp3quran.net/maher/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/maher/${fileName}`);
+          } else if (audioUrl.includes("abdullaah_al-matrood")) {
+            candidates.push(`https://server8.mp3quran.net/mtrod/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/mtrod/${fileName}`);
+          } else if (audioUrl.includes("abdul_basit_mujawwad")) {
+            candidates.push(`https://server11.mp3quran.net/basit/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/basit/${fileName}`);
+          } else if (audioUrl.includes("muhammad_ayyoob")) {
+            candidates.push(`https://server8.mp3quran.net/ayoub/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/ayoub/${fileName}`);
+          } else if (audioUrl.includes("muhammad_siddeeq_al-minshawee_mujawwad")) {
+            candidates.push(`https://server11.mp3quran.net/minsh/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/minsh/${fileName}`);
+          } else if (audioUrl.includes("mishari_rashid_al_afasy")) {
+            candidates.push(`https://server8.mp3quran.net/afs/${fileName}`);
+            candidates.push(`https://download.mp3quran.net/download/afs/${fileName}`);
           }
         }
-      } catch (fbErr: any) {
-        console.log(`[AudioProxy] Resilient mp3quran fallback translation failed:`, fbErr.message);
+      } catch (e: any) {
+        console.warn("[AudioProxy] proactive quranicaudio translation failed:", e.message);
       }
     }
 
-    // Detect archive.org URLs and translate to high-availability Al-Husary/Maher secure CDNs on server
-    if (!fallbackBuffer && audioUrl.includes("archive.org")) {
+    // 3) Handle mp3quran.net folder alternates proactively
+    if (audioUrl.includes("mp3quran.net")) {
+      try {
+        const parts = audioUrl.split("/");
+        const fileName = parts[parts.length - 1]; // e.g. "001.mp3"
+        const folderName = parts[parts.length - 2]; // e.g. "mtrod"
+        if (fileName && fileName.endsWith(".mp3") && folderName) {
+          if (folderName === "mtrod") {
+            if (audioUrl.includes("download.mp3quran.net")) {
+              candidates.push(`https://server8.mp3quran.net/mtrod/${fileName}`);
+            } else {
+              candidates.push(`https://download.mp3quran.net/download/mtrod/${fileName}`);
+            }
+          } else if (folderName === "qra") {
+            candidates.push(`https://download.mp3quran.net/download/qra/${fileName}`);
+          } else if (folderName === "shrm") {
+            candidates.push(`https://download.quranicaudio.com/quran/saud_ash-shuraim/${fileName}`);
+          } else if (folderName === "sds") {
+            candidates.push(`https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${fileName}`);
+          } else if (folderName === "husr") {
+            candidates.push(`https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${fileName}`);
+          } else if (folderName === "s_gmd") {
+            candidates.push(`https://download.quranicaudio.com/quran/sa3d_al_ghaamidi/complete/${fileName}`);
+          } else if (folderName === "maher") {
+            candidates.push(`https://download.quranicaudio.com/quran/maher_al_muaiqly/${fileName}`);
+            candidates.push(`https://download.quranicaudio.com/quran/maher_al_muaiqly/complete/${fileName}`);
+          } else if (folderName === "basit") {
+            candidates.push(`https://download.quranicaudio.com/quran/abdul_basit_mujawwad/${fileName}`);
+          } else if (folderName === "ayoub") {
+            candidates.push(`https://download.quranicaudio.com/quran/muhammad_ayyoob/${fileName}`);
+          } else if (folderName === "minsh") {
+            candidates.push(`https://download.quranicaudio.com/quran/muhammad_siddeeq_al-minshawee_mujawwad/${fileName}`);
+          } else if (folderName === "afs") {
+            candidates.push(`https://download.quranicaudio.com/quran/mishari_rashid_al_afasy/${fileName}`);
+          }
+        }
+      } catch (e: any) {
+        console.warn("[AudioProxy] proactive mp3quran translation failed:", e.message);
+      }
+    }
+
+    // 4) Handle archive.org alternates proactively
+    if (audioUrl.includes("archive.org")) {
       try {
         const parts = audioUrl.split("/");
         const fileName = parts[parts.length - 1]; // e.g. "005.mp3"
@@ -1345,71 +1356,56 @@ app.get("/api/audio-proxy", async (req, res) => {
           const surahNum = parseInt(digitsMatch[1], 10);
           if (!isNaN(surahNum) && surahNum >= 1 && surahNum <= 114) {
             const paddedSurah = String(surahNum).padStart(3, "0");
-            
-            // If it is Okasha Kameny, try different direct high-speed archive.org storage nodes first!
             if (audioUrl.includes("Okasha_Kameny_Full_Quran")) {
-              const okashaBackups = [
-                `https://ia800100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`,
-                `https://ia600100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`,
-                `https://archive.org/download/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`
-              ];
-              for (const okUrl of okashaBackups) {
-                try {
-                  console.log(`[AudioProxy] okasha direct-node fallback: Fetching from: ${okUrl}`);
-                  const fbResult = await fetchWithNoTLS(okUrl);
-                  fallbackBuffer = fbResult.buffer;
-                  fallbackContentType = fbResult.contentType;
-                  if (fallbackBuffer) {
-                    console.log(`[AudioProxy] okasha direct-node fallback succeeded for: ${okUrl}`);
-                    break;
-                  }
-                } catch (e: any) {
-                  console.log(`[AudioProxy] okasha direct-node fallback failed for ${okUrl}:`, e.message);
-                }
-              }
+              candidates.push(`https://ia800100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`);
+              candidates.push(`https://ia600100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`);
             }
-
-            if (!fallbackBuffer) {
-              // Define active sequential backups starting with the most robust CDN hosts
-              const backupUrls = [
-                `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`,
-                `https://server13.mp3quran.net/husr/${paddedSurah}.mp3`,
-                `https://server12.mp3quran.net/maher/${paddedSurah}.mp3`
-              ];
-
-              for (const backupUrl of backupUrls) {
-                try {
-                  console.log(`[AudioProxy] Resilient archive.org fallback: Fetching from: ${backupUrl}`);
-                  const fbResult = await fetchWithNoTLS(backupUrl);
-                  fallbackBuffer = fbResult.buffer;
-                  fallbackContentType = fbResult.contentType;
-                  if (fallbackBuffer) {
-                    break; // found working fallback
-                  }
-                } catch (backupErr: any) {
-                  console.log(`[AudioProxy] Resilient backup URL failed: ${backupUrl} - ${backupErr.message}`);
-                }
-              }
-            }
+            candidates.push(`https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`);
+            candidates.push(`https://server13.mp3quran.net/husr/${paddedSurah}.mp3`);
+            candidates.push(`https://server12.mp3quran.net/maher/${paddedSurah}.mp3`);
           }
         }
-      } catch (fbErr: any) {
-        console.log(`[AudioProxy] Resilient archive.org fallback translation failed:`, fbErr.message);
+      } catch (e: any) {
+        console.warn("[AudioProxy] proactive archive.org translation failed:", e.message);
       }
     }
 
-    if (fallbackBuffer) {
-      res.setHeader("Content-Type", fallbackContentType);
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Cache-Control", "public, max-age=31536000"); // cache for up to a year
-      return res.status(200).send(fallbackBuffer);
+    // Add original URL as fallback candidate
+    candidates.push(audioUrl);
+
+    // Deduplicate preserving insertion order
+    const uniqueCandidates = Array.from(new Set(candidates));
+
+    let successBuffer: Buffer | null = null;
+    let successContentType = "audio/mpeg";
+    let lastErrorMsg = "No candidates succeeded";
+
+    for (const candidate of uniqueCandidates) {
+      try {
+        console.log(`[AudioProxy] Cascade fetch trying: ${candidate}`);
+        const { buffer, contentType } = await fetchWithNoTLS(candidate, 3500); // 3.5s timeout fast fallback
+        successBuffer = buffer;
+        successContentType = contentType;
+        console.log(`[AudioProxy] Cascade fetch SUCCEEDED for candidate: ${candidate}`);
+        break;
+      } catch (err: any) {
+        console.warn(`[AudioProxy] Candidate failed: ${candidate}. Error: ${err.message}`);
+        lastErrorMsg = err.message;
+      }
     }
 
-    // Only issues a warning/alarm log if the entire cascade fails
-    console.warn(`[AudioProxy] Primary fetch failed and no fallback succeeded for: ${audioUrl}. Error:`, err.message);
-
-    // Direct redirection fallback as absolute last resort
-    res.redirect(audioUrl);
+    if (successBuffer) {
+      res.setHeader("Content-Type", successContentType);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache for a year
+      return res.status(200).send(successBuffer);
+    } else {
+      console.error(`[AudioProxy] Cascade failure for url: ${audioUrl}. Redirecting. Error: ${lastErrorMsg}`);
+      return res.redirect(audioUrl);
+    }
+  } catch (err: any) {
+    console.error(`[AudioProxy] Fatal error in audio-proxy cascade:`, err.message);
+    return res.redirect(audioUrl);
   }
 });
 
