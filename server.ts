@@ -487,6 +487,63 @@ app.post("/api/auth/update-session", authenticateJWT, (req: AuthenticatedRequest
   res.json({ success: true });
 });
 
+// 6. Cryptographic self-healing session synchronization on container reboot/deploy
+app.post("/api/auth/sync-session", (req, res) => {
+  let token = req.cookies?.ilm_session;
+  if (!token && req.headers.authorization) {
+    const parts = req.headers.authorization.split(" ");
+    if (parts.length === 2 && parts[0] === "Bearer") {
+      token = parts[1];
+    }
+  }
+
+  if (!token) {
+    return res.status(401).json({ error: "Missing session token for sync." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    const { user } = req.body;
+
+    if (!user || user.id !== decoded.id || user.email.toLowerCase() !== decoded.email.toLowerCase()) {
+      return res.status(400).json({ error: "Cryptographic session payload signature mismatch." });
+    }
+
+    const existingUser = dbStore.findUserById(user.id);
+    if (!existingUser) {
+      const newUser: ServerUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email.toLowerCase(),
+        passwordHash: user.passwordHash || hashPassword(crypto.randomBytes(16).toString("hex")),
+        role: user.role || "student",
+        weeklyMinutes: user.weeklyMinutes || 0,
+        lessonsCompleted: user.lessonsCompleted || [],
+        savedScholarships: user.savedScholarships || [],
+        recentRecitations: user.recentRecitations || [],
+        certificates: user.certificates || [],
+        joinedForums: user.joinedForums || [],
+        notifications: user.notifications || []
+      };
+      dbStore.createUser(newUser);
+      console.warn(`[Database] Cryptographically restored user from self-healing token: ${newUser.email}`);
+    } else {
+      dbStore.updateUserProfile(user.id, {
+        weeklyMinutes: Math.max(existingUser.weeklyMinutes, user.weeklyMinutes || 0),
+        lessonsCompleted: Array.from(new Set([...(existingUser.lessonsCompleted || []), ...(user.lessonsCompleted || [])])),
+        savedScholarships: Array.from(new Set([...(existingUser.savedScholarships || []), ...(user.savedScholarships || [])])),
+        recentRecitations: [...(existingUser.recentRecitations || []), ...(user.recentRecitations || [])].slice(-20),
+        certificates: [...(existingUser.certificates || []), ...(user.certificates || [])]
+      });
+    }
+
+    const updatedUser = dbStore.findUserById(user.id);
+    res.json({ success: true, user: updatedUser });
+  } catch (err: any) {
+    res.status(401).json({ error: "Session verification expired or failed: " + err.message });
+  }
+});
+
 
 // --- DISCUSSION FORUM STUDY BOARD API ENDPOINTS ---
 
@@ -1356,7 +1413,8 @@ app.get("/api/audio-proxy", async (req, res) => {
           const surahNum = parseInt(digitsMatch[1], 10);
           if (!isNaN(surahNum) && surahNum >= 1 && surahNum <= 114) {
             const paddedSurah = String(surahNum).padStart(3, "0");
-            if (audioUrl.includes("Okasha_Kameny_Full_Quran")) {
+            if (audioUrl.includes("Okasha_Kameny_Full_Quran") || audioUrl.includes("KamenyOkasha-FullQuran")) {
+              candidates.push(`https://archive.org/download/KamenyOkasha-FullQuran/${paddedSurah}.mp3`);
               candidates.push(`https://ia800100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`);
               candidates.push(`https://ia600100.us.archive.org/13/items/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`);
             }

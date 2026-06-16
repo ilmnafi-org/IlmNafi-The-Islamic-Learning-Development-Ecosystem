@@ -1,0 +1,91 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-validate:
+    name: Lint & Compile Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-level: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Code Linter Verification
+        run: npm run lint
+
+      - name: Compile Application Validation
+        run: npm run build
+
+  build-and-deploy:
+    name: Build & Deploy to Cloud Run
+    needs: lint-and-validate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # Setup Workload Identity Federation or GCP credentials helper
+      - name: Authenticate with Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ secrets.GCP_WID_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authorize Docker Push to Google Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
+
+      - name: Prepare Container Image Metadata
+        id: meta
+        run: |
+          IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REGISTRY_NAME }}/ilm-nafi-app:${{ github.sha }}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_TAG_LATEST=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REGISTRY_NAME }}/ilm-nafi-app:latest" >> $GITHUB_ENV
+
+      - name: Construct & Compile Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_TAG_LATEST }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy Compiled Server to Google Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: 'ilm-nafi-service'
+          region: ${{ secrets.GCP_REGION }}
+          image: ${{ env.IMAGE_TAG }}
+          flags: '--allow-unauthenticated'
+          env_vars: |
+            NODE_ENV=production
+            PORT=3000
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}

@@ -73,6 +73,9 @@ export const dbService = {
     if (data.token) {
       localStorage.setItem('ilm_token', data.token);
     }
+    if (data.user) {
+      localStorage.setItem('ilm_user', JSON.stringify(data.user));
+    }
     clientInMemorySession = data.user;
     return data.user;
   },
@@ -96,6 +99,9 @@ export const dbService = {
     if (data.token) {
       localStorage.setItem('ilm_token', data.token);
     }
+    if (data.user) {
+      localStorage.setItem('ilm_user', JSON.stringify(data.user));
+    }
     clientInMemorySession = data.user;
     return data.user;
   },
@@ -104,6 +110,7 @@ export const dbService = {
     const headers = getAuthHeaders();
     clientInMemorySession = null;
     localStorage.removeItem('ilm_token');
+    localStorage.removeItem('ilm_user');
     await fetch('/api/auth/logout', { 
       method: 'POST',
       headers
@@ -131,6 +138,7 @@ export const dbService = {
         }
         if (data.user) {
           clientInMemorySession = data.user;
+          localStorage.setItem('ilm_user', JSON.stringify(data.user));
           return data.user;
         }
       }
@@ -138,11 +146,39 @@ export const dbService = {
       // Silent pass for silent page load restores
     }
 
+    // Self-healing session restoration if container rebooted or database is reset
+    const savedUserStr = localStorage.getItem('ilm_user');
+    const savedToken = localStorage.getItem('ilm_token');
+    if (savedUserStr && savedToken) {
+      try {
+        const savedUser = JSON.parse(savedUserStr);
+        const response = await fetch('/api/auth/sync-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${savedToken}`
+          },
+          body: JSON.stringify({ user: savedUser })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            clientInMemorySession = data.user;
+            localStorage.setItem('ilm_user', JSON.stringify(data.user));
+            return data.user;
+          }
+        }
+      } catch (err) {
+        console.warn("[SessionRecovery] Self-healing session restoration failed:", err);
+      }
+    }
+
     return null;
   },
 
   async updateSession(updated: UserSession): Promise<void> {
     clientInMemorySession = updated;
+    localStorage.setItem('ilm_user', JSON.stringify(updated));
     await fetch('/api/auth/update-session', {
       method: 'POST',
       headers: getAuthHeaders({ 'Content-Type': 'application/json' }),

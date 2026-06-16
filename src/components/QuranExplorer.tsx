@@ -510,6 +510,35 @@ export default function QuranExplorer({
     }
   }, [playingAyahKey, surahPlayAyahIdx, selectedSurahNum, primaryReciter, playMode, currentSurahMeta]);
 
+  // Restore playing audio states from global window player on component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const win = window as any;
+      if (win.__nafiAudioPlayer && !win.__nafiAudioPlayer.paused && win.__nafiAudioState) {
+        console.log("[AudioSync] Reconnecting to actively playing background Quran audio:", win.__nafiAudioState);
+        audioPlayerRef.current = win.__nafiAudioPlayer;
+        const state = win.__nafiAudioState;
+        
+        setSurahPlayActive(true);
+        surahPlayActiveRef.current = true;
+        
+        if (state.surahNumber) {
+          setSelectedSurahNum(state.surahNumber);
+        }
+        if (state.playMode) {
+          setPlayMode(state.playMode);
+        }
+        if (state.ayahNumber && activeSurahData && activeSurahData.length > 0) {
+          const idx = activeSurahData.findIndex(a => a.numberInSurah === state.ayahNumber);
+          if (idx !== -1) {
+            setSurahPlayAyahIdx(idx);
+            setPlayingAyahKey(`${state.surahNumber}:${state.ayahNumber}`);
+          }
+        }
+      }
+    }
+  }, [activeSurahData]);
+
   // Auto-scroll list view to the currently playing verse
   useEffect(() => {
     if (playingAyahKey) {
@@ -1134,6 +1163,12 @@ export default function QuranExplorer({
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause();
     }
+    if (typeof window !== "undefined") {
+      const win = window as any;
+      if (win.__nafiAudioPlayer && win.__nafiAudioPlayer !== audioPlayerRef.current) {
+        try { win.__nafiAudioPlayer.pause(); } catch (e) {}
+      }
+    }
 
     setPlayingAyahKey(ayahKey);
 
@@ -1242,7 +1277,7 @@ export default function QuranExplorer({
       case 'matrood':
         return `https://server8.mp3quran.net/mtrod/${paddedSurah}.mp3`;
       case 'tunaiji':
-        return `https://download.mp3quran.net/download/qra/${paddedSurah}.mp3`;
+        return `https://server12.mp3quran.net/tona/${paddedSurah}.mp3`;
       case 'basit':
         return `https://download.quranicaudio.com/quran/abdul_basit_mujawwad/${paddedSurah}.mp3`;
       case 'ayyub':
@@ -1254,7 +1289,7 @@ export default function QuranExplorer({
       case 'mansoor':
         return `https://server14.mp3quran.net/mansor/${paddedSurah}.mp3`;
       case 'kameny':
-        return `https://archive.org/download/Okasha_Kameny_Full_Quran/${paddedSurah}.mp3`;
+        return `https://archive.org/download/KamenyOkasha-FullQuran/${paddedSurah}.mp3`;
       default:
         return `https://download.quranicaudio.com/quran/mahmood_khaleel_al-husaree/${paddedSurah}.mp3`;
     }
@@ -1265,6 +1300,12 @@ export default function QuranExplorer({
     
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause();
+    }
+    if (typeof window !== "undefined") {
+      const win = window as any;
+      if (win.__nafiAudioPlayer && win.__nafiAudioPlayer !== audioPlayerRef.current) {
+        try { win.__nafiAudioPlayer.pause(); } catch (e) {}
+      }
     }
 
     setSurahPlayActive(true);

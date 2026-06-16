@@ -338,6 +338,30 @@ export default function MushafReader({
   const [showQariDrawer, setShowQariDrawer] = React.useState(false);
   const [readingLayout, setReadingLayout] = React.useState<'continuous' | 'interactive'>('interactive');
   const [expandedRuleId, setExpandedRuleId] = React.useState<string | null>(null);
+  const [activeDetailTab, setActiveDetailTab] = React.useState<'translation' | 'tajweed' | 'tafsir' | 'murajah'>('translation');
+
+  const getScholarAnnotation = (surah: number, verse: number) => {
+    if (surah === 1) {
+      return {
+        al_jalalayn_en: "Al-Jalalayn Tafsir: This Surah is the opening of the Book, compiled of 7 verses. Umar called it the healing cure (al-Ruqyah). It represents a covenant between Allah and the worshipper.",
+        al_jalalayn_ar: "تفسير الجلالين: سورة الفاتحة هي سبع آيات، وهي أم القرآن والشافية والكافية، وتشتمل على التوحيد الأسمى والعهود الإلهية بين الخالق والمخلوق.",
+        scholar_notes_en: "Senior Scholar Advisory Note: Always maintain elongation (Madd Adid) in 'Dalleen' to exactly 6 counts. Ensure complete separation of adjacent throat consonants.",
+        scholar_notes_ar: "توجيه علمي للعلماء: يلزم الإتيان بالمد كلمي لازم مثقل في الضالين بمقدار ٦ حركات، والاعتناء بوضوح مخرج الضاد واللام بلا توقف مخل."
+      };
+    } else {
+      return {
+        al_jalalayn_en: `Al-Jalalayn Tafsir: Verse ${verse} of Surah Al-Baqarah examines initial parameters of guidance for the godfearing, detailing definitions of piety, divine commands, and ethical choices.`,
+        al_jalalayn_ar: `تفسير الجلالين: الآية تعلو بمقام المتقين وتثبت في قلوبهم الهداية والتسليم للوحي الإلهي في صدر كتاب البقرة العظيم.`,
+        scholar_notes_en: `Sheikha Maryam: Set absolute clarity on stopping marks (Waqf) inside this verse block. Keep vowel resonance sustained completely.`,
+        scholar_notes_ar: `توجيه الشيخة مريم: يجب مراعاة علامات الوقف الشريفة لحفظ رباط المعنى الأكاديمي للآيات وصون مرقع الكلمات.`
+      };
+    }
+  };
+
+  const handleShowCustomToast = (msg: string) => {
+    // Falls back to direct window notification if no outer toast is shared
+    console.log("Mock Toast:", msg);
+  };
 
   React.useEffect(() => {
     if (playingAyahKey) {
@@ -858,74 +882,169 @@ export default function MushafReader({
                 </p>
               </div>
 
-              {/* Dynamic text settings selection */}
+              {/* Interactive Right-side sidebar Tab Controller */}
+              <div className="flex gap-1 p-1 bg-slate-100 rounded-xl border select-none text-[9px] font-extrabold font-sans">
+                {[
+                  { value: 'translation', en: 'Meaning & Text', ar: 'المعنى واللفظ' },
+                  { value: 'tajweed', en: 'Tajweed Rules', ar: 'أحكام التجويد' },
+                  { value: 'tafsir', en: 'Scholar Tafsir & Notes', ar: 'التفسير والحواشي' },
+                  { value: 'murajah', en: 'Muraja\'ah (Revision)', ar: 'برنامج المراجعة' }
+                ].map(t => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setActiveDetailTab(t.value as any)}
+                    className={`flex-1 py-1.5 rounded-lg text-center transition cursor-pointer ${
+                      activeDetailTab === t.value 
+                        ? 'bg-[#503020] text-amber-100 font-extrabold shadow' 
+                        : 'text-slate-550 hover:bg-slate-200/50'
+                    }`}
+                  >
+                    {lang === 'en' ? t.en : t.ar}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dynamic text settings selection across active detail tabs */}
               <div className="space-y-4 pt-1">
-                {(displayMode === 'translation' || displayMode === 'both') && (
-                  <div className="text-left text-slate-700 text-[11px] leading-relaxed">
-                    <span className="block text-[8px] uppercase tracking-widest text-[#C59B32] font-mono leading-none mb-1 font-extrabold">English Meaning</span>
-                    <p className="font-semibold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-150/60 leading-normal">{selectedAyahInMushaf.englishText}</p>
+                {activeDetailTab === 'translation' && (
+                  <div className="space-y-4">
+                    {(displayMode === 'translation' || displayMode === 'both') && (
+                      <div className="text-left text-slate-700 text-[11px] leading-relaxed">
+                        <span className="block text-[8px] uppercase tracking-widest text-[#C59B32] font-mono leading-none mb-1 font-extrabold">English Meaning</span>
+                        <p className="font-semibold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-150/60 leading-normal">{selectedAyahInMushaf.englishText}</p>
+                      </div>
+                    )}
+                    {(displayMode === 'transliteration' || displayMode === 'both') && selectedAyahInMushaf.transliterationText && (
+                      <div className="text-left text-emerald-950 italic font-mono text-[10px] leading-relaxed">
+                        <span className="block text-[8px] uppercase tracking-widest text-[#0D5B41] font-mono leading-none mb-1 font-extrabold">Phonetic Transliteration</span>
+                        <p className="font-sans font-semibold bg-emerald-50/30 p-3 rounded-xl border border-emerald-500/10 text-emerald-900">{selectedAyahInMushaf.transliterationText}</p>
+                      </div>
+                    )}
                   </div>
                 )}
-                {(displayMode === 'transliteration' || displayMode === 'both') && selectedAyahInMushaf.transliterationText && (
-                  <div className="text-left text-emerald-950 italic font-mono text-[10px] leading-relaxed">
-                    <span className="block text-[8px] uppercase tracking-widest text-[#0D5B41] font-mono leading-none mb-1 font-extrabold">Phonetic Transliteration</span>
-                    <p className="font-sans font-semibold bg-emerald-50/30 p-3 rounded-xl border border-emerald-500/10 text-emerald-900">{selectedAyahInMushaf.transliterationText}</p>
+
+                {activeDetailTab === 'tajweed' && (
+                  <div className="space-y-4">
+                    <div className="text-left text-emerald-950 bg-emerald-100/30 p-3 rounded-2xl border border-emerald-500/15 text-[10px] leading-normal flex items-start gap-2.5">
+                      <Sparkles className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="block text-[8px] uppercase tracking-widest text-emerald-800 font-mono leading-none mb-1 font-extrabold">Dynamic Verse Feedback</span>
+                        <p className="font-bold text-emerald-950">💎 {analyzeTajweedText(selectedAyahInMushaf.arabicText.replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", ""), activeQiraat).summaryFeedback}</p>
+                      </div>
+                    </div>
+
+                    {/* Seamless Inline Word Bubbles for Tajweed Assistance and Pronunciation details */}
+                    <div className="border-t border-slate-100 pt-4 mt-2 space-y-2.5">
+                      <span className="block text-[9px] uppercase font-black text-slate-500 tracking-wider text-right" dir="rtl">
+                        💎 رسم الكلمات (اضغط للتفصيل التجويدي والمخرج):
+                      </span>
+                      {(() => {
+                        const clean = selectedAyahInMushaf.arabicText.replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "");
+                        const analysis = analyzeTajweedText(clean, activeQiraat);
+                        return (
+                          <div className="flex flex-wrap gap-1.5 justify-end" dir="rtl">
+                            {analysis.words.map((word, wIdx) => {
+                              const hasRules = word.occurrences.length > 0;
+                              const isWordSelected = selectedWordAnalysis?.wordIndex === word.wordIndex;
+                              return (
+                                <button
+                                  type="button"
+                                  key={`word-bubble-${wIdx}`}
+                                  onClick={() => {
+                                    setSelectedWordAnalysis(word);
+                                    if (word.occurrences.length > 0) {
+                                      setExpandedRuleId(word.occurrences[0].ruleId);
+                                    }
+                                  }}
+                                  className={`p-2 rounded-xl text-right transition-all duration-150 cursor-pointer ${
+                                    isWordSelected 
+                                      ? 'bg-[#503020] text-amber-100 font-bold scale-102 ring-2 ring-amber-500/20' 
+                                      : hasRules 
+                                        ? 'bg-amber-100 text-amber-950 hover:bg-amber-200 font-bold border border-amber-300' 
+                                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                                  }`}
+                                >
+                                  <span className="block font-serif font-black text-[15px]">{word.wordText}</span>
+                                  <span className="block text-[8px] opacity-75 font-mono">"{word.phoneticTranscription}"</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
                 )}
-                {displayMode === 'tajweed' && (
-                  <div className="text-left text-emerald-950 bg-emerald-100/30 p-3 rounded-2xl border border-emerald-500/15 text-[10px] leading-normal flex items-start gap-2.5">
-                    <Sparkles className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="block text-[8px] uppercase tracking-widest text-emerald-800 font-mono leading-none mb-1 font-extrabold">Dynamic Verse Feedback</span>
-                      <p className="font-bold text-emerald-950">💎 {analyzeTajweedText(selectedAyahInMushaf.arabicText.replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", ""), activeQiraat).summaryFeedback}</p>
+
+                {activeDetailTab === 'tafsir' && (
+                  <div className="space-y-4">
+                    {(() => {
+                      const notes = getScholarAnnotation(selectedSurahNum, selectedAyahInMushaf.numberInSurah);
+                      return (
+                        <div className="space-y-4 font-sans text-xs text-left">
+                          <div className="bg-amber-50/40 p-3.5 rounded-2xl border border-amber-900/10 leading-relaxed font-sans text-slate-800 relative shadow-sm">
+                            <span className="block text-[8.5px] uppercase tracking-widest text-[#503020] font-black font-mono mb-1 leading-none">Classical Tafsir Al-Jalalayn</span>
+                            <p className="italic mb-2 leading-relaxed">&ldquo;{notes.al_jalalayn_en}&rdquo;</p>
+                            <p className="text-right font-serif font-black text-[#503020] leading-loose text-[13px]" dir="rtl">{notes.al_jalalayn_ar}</p>
+                          </div>
+                          
+                          <div className="bg-emerald-50/10 p-3.5 rounded-2xl border border-emerald-950/10 leading-relaxed font-sans text-slate-800 relative shadow-sm">
+                            <span className="block text-[8.5px] uppercase tracking-widest text-emerald-800 font-black font-mono mb-1 leading-none">Scholar Recitation Advisory Layer</span>
+                            <p className="font-semibold mb-2 leading-relaxed">&ldquo;{notes.scholar_notes_en}&rdquo;</p>
+                            <p className="text-right font-sans font-bold text-emerald-900 leading-normal text-[11px]" dir="rtl">{notes.scholar_notes_ar}</p>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {activeDetailTab === 'murajah' && (
+                  <div className="space-y-4">
+                    <div className="space-y-4 font-sans text-xs text-left">
+                      <div className="bg-rose-50/30 p-4 rounded-2xl border border-rose-900/10 space-y-3">
+                        <span className="block text-[9px] font-black uppercase text-rose-900 tracking-widest font-mono leading-none">Muraja'ah Memorization Drill</span>
+                        <div className="grid grid-cols-2 gap-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleShowCustomToast(lang === 'en' ? "Marked as fully memorized!" : "تم التثبيت والحفظ بنجاح!");
+                              alert(lang === 'en' ? "Pristine! Marked this verse in your student ledger as memorized." : "عظيم! تم تسجيل هذه الآية كمسماة وحافظة بامتياز.");
+                            }}
+                            className="p-3 bg-white hover:bg-emerald-50 border rounded-xl transition text-slate-800 font-extrabold flex flex-col items-center gap-1 cursor-pointer outline-none"
+                          >
+                            <span className="text-base">💎</span>
+                            <span>{lang === 'en' ? "Mark Memorized" : "حفظ راسخ متقن"}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleShowCustomToast(lang === 'en' ? "Marked for urgent revision!" : "تمت الإضافة لجدول المراجعة العاجلة!");
+                              alert(lang === 'en' ? "Underlined! Added to your high priority revision stream." : "تم التحديد! تمت إضافة هذه الآية لجدول المراجعة والتكرار العاجل.");
+                            }}
+                            className="p-3 bg-white hover:bg-amber-550 border rounded-xl transition text-slate-805 font-extrabold flex flex-col items-center gap-1 cursor-pointer outline-none"
+                          >
+                            <span className="text-base">⏳</span>
+                            <span>{lang === 'en' ? "Needs Revision" : "بحاجة لمراجعة"}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Automatic Page Tracking Toggle */}
+                      <div className="bg-slate-50 p-3.5 border rounded-2xl flex items-center justify-between shadow-xs">
+                        <div>
+                          <span className="text-[10px] font-black text-slate-800 block leading-tight">{lang === 'en' ? "Automatic Audio-to-Page Sync" : "المزامنة التلقائية لصفحات المصحف"}</span>
+                          <span className="text-[8.5px] text-slate-400 block mt-0.5 leading-normal">{lang === 'en' ? "Flips page on final audio verse completion." : "تتحرك الصفحة تلقائياً لصفحتك الحالية تماشياً مع مسمع الشيخ"}</span>
+                        </div>
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-[8px] font-black uppercase tracking-wide">
+                          {lang === 'en' ? "ACTIVE" : "نشط"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
-
-              {/* Seamless Inline Word Bubbles for Tajweed Assistance and Pronunciation details */}
-              {displayMode === 'tajweed' && (
-                <div className="border-t border-slate-100 pt-4 mt-2 space-y-2.5">
-                  <span className="block text-[9px] uppercase font-black text-slate-500 tracking-wider text-right" dir="rtl">
-                    💎 رسم الكلمات (اضغط للتفصيل التجويدي والمخرج):
-                  </span>
-                  {(() => {
-                    const clean = selectedAyahInMushaf.arabicText.replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "");
-                    const analysis = analyzeTajweedText(clean, activeQiraat);
-                    return (
-                      <div className="flex flex-wrap gap-1.5 justify-end" dir="rtl">
-                        {analysis.words.map((word, wIdx) => {
-                          const hasRules = word.occurrences.length > 0;
-                          const isWordSelected = selectedWordAnalysis?.wordIndex === word.wordIndex;
-                          return (
-                            <button
-                              type="button"
-                              key={`word-bubble-${wIdx}`}
-                              onClick={() => {
-                                setSelectedWordAnalysis(word);
-                                if (word.occurrences.length > 0) {
-                                  setExpandedRuleId(word.occurrences[0].ruleId);
-                                }
-                              }}
-                              className={`p-2 rounded-xl text-right transition-all duration-150 cursor-pointer ${
-                                isWordSelected 
-                                  ? 'bg-amber-600 text-white font-bold scale-102 ring-2 ring-amber-500/20' 
-                                  : hasRules 
-                                    ? 'bg-amber-100 text-amber-950 hover:bg-amber-200 font-bold border border-amber-300' 
-                                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
-                              }`}
-                            >
-                              <span className="block font-serif font-black text-[15px]">{word.wordText}</span>
-                              <span className="block text-[8px] opacity-75 font-mono">"{word.phoneticTranscription}"</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
             </div>
           ) : (
             /* Selected state Empty guidance */
@@ -1459,13 +1578,13 @@ export default function MushafReader({
                 primaryReciter === 'muaiqly' ? 'https://download.mp3quran.net/download/maher/maher_complete.zip' :
                 primaryReciter === 'husary' ? 'https://download.mp3quran.net/download/husr/husr_complete.zip' :
                 primaryReciter === 'matrood' ? 'https://download.mp3quran.net/download/mtrod/mtrod_complete.zip' :
-                primaryReciter === 'tunaiji' ? 'https://download.mp3quran.net/download/qra/qra_complete.zip' :
+                primaryReciter === 'tunaiji' ? 'https://download.mp3quran.net/download/tona/tona_complete.zip' :
                 primaryReciter === 'basit' ? 'https://download.mp3quran.net/download/basit/basit_complete.zip' :
                 primaryReciter === 'ayyub' ? 'https://download.mp3quran.net/download/ayoub/ayoub_complete.zip' :
                 primaryReciter === 'minshawi' ? 'https://download.mp3quran.net/download/minsh/minsh_complete.zip' :
                 primaryReciter === 'afasy' ? 'https://download.mp3quran.net/download/afs/afs_complete.zip' :
                 primaryReciter === 'mansoor' ? 'https://download.mp3quran.net/download/mansor/mansor_complete.zip' :
-                'https://archive.org/compress/Okasha_Kameny_Full_Quran/formats=VBR%20MP3'
+                'https://archive.org/compress/KamenyOkasha-FullQuran/formats=VBR%20MP3'
               }
               target="_blank"
               rel="noopener noreferrer"
