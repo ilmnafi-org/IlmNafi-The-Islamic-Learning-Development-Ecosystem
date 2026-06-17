@@ -254,7 +254,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const, // Lax works wonderfully for container nested iframe/browser contexts
-  maxAge: 7 * 24 * 3600 * 1000, // 7 days key validity
+  maxAge: 1 * 24 * 3600 * 1000, // 1 day key validity (24 hours automatic logout requirement)
   path: "/"
 };
 
@@ -395,7 +395,7 @@ app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), (req, res) => {
   dbStore.createUser(newUser);
 
   // Sign credential
-  const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: "1d" });
   res.cookie("ilm_session", token, COOKIE_OPTIONS);
 
   res.json({
@@ -404,6 +404,7 @@ app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), (req, res) => {
       id: newUser.id,
       username: newUser.username,
       email: newUser.email,
+      passwordHash: newUser.passwordHash,
       role: newUser.role,
       weeklyMinutes: newUser.weeklyMinutes,
       lessonsCompleted: newUser.lessonsCompleted,
@@ -437,7 +438,7 @@ app.post("/api/auth/login", rateLimiter(30, 15 * 60 * 1000), (req, res) => {
   }
 
   // Sign credential
-  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1d" });
   res.cookie("ilm_session", token, COOKIE_OPTIONS);
 
   res.json({
@@ -446,6 +447,7 @@ app.post("/api/auth/login", rateLimiter(30, 15 * 60 * 1000), (req, res) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      passwordHash: user.passwordHash,
       role: user.role,
       weeklyMinutes: user.weeklyMinutes,
       lessonsCompleted: user.lessonsCompleted,

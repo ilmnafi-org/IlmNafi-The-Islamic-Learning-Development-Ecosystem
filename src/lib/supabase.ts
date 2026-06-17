@@ -72,6 +72,7 @@ export const dbService = {
     const data = await response.json();
     if (data.token) {
       localStorage.setItem('ilm_token', data.token);
+      localStorage.setItem('ilm_token_time', Date.now().toString());
     }
     if (data.user) {
       localStorage.setItem('ilm_user', JSON.stringify(data.user));
@@ -98,6 +99,7 @@ export const dbService = {
     const data = await response.json();
     if (data.token) {
       localStorage.setItem('ilm_token', data.token);
+      localStorage.setItem('ilm_token_time', Date.now().toString());
     }
     if (data.user) {
       localStorage.setItem('ilm_user', JSON.stringify(data.user));
@@ -110,6 +112,7 @@ export const dbService = {
     const headers = getAuthHeaders();
     clientInMemorySession = null;
     localStorage.removeItem('ilm_token');
+    localStorage.removeItem('ilm_token_time');
     localStorage.removeItem('ilm_user');
     await fetch('/api/auth/logout', { 
       method: 'POST',
@@ -122,6 +125,17 @@ export const dbService = {
   },
 
   async getCurrentSession(): Promise<UserSession | null> {
+    // Check if the user session has been active for more than 24 hours to automatically logout
+    const loginTime = localStorage.getItem('ilm_token_time');
+    if (loginTime) {
+      const elapsed = Date.now() - parseInt(loginTime, 10);
+      if (elapsed > 24 * 3600 * 1000) {
+        console.warn("[Session] Session exceeded 24 hours. Performing automatic logout.");
+        await this.logout();
+        return null;
+      }
+    }
+
     if (clientInMemorySession) {
       return clientInMemorySession;
     }

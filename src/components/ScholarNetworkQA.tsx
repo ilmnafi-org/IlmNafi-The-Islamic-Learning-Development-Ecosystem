@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, ThumbsUp, HelpCircle, ShieldCheck, Award, 
   BookOpen, PlusCircle, Search, ArrowLeft, Send, Sparkles, 
-  ExternalLink, User, Check, Library, Star, Filter
+  ExternalLink, User, Check, Library, Star, Filter, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VERIFIED_SCHOLARS, SEED_SCHOLAR_QUESTIONS, ScholarQuestion, ScholarAnswer } from '../data/scholarData';
@@ -458,7 +458,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
                 <div className="bg-white rounded-3xl border border-slate-250/80 p-6 md:p-8 space-y-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="px-3 py-1 rounded-xl bg-slate-100 border text-[10px] font-black uppercase tracking-wider text-slate-700">
-                      {lang === 'en' ? catObj?.en : catObj?.Ar || catObj?.ar}
+                      {lang === 'en' ? catObj?.en : catObj?.ar}
                     </span>
                     <span className="text-xs text-slate-400 font-bold font-sans">{current.date}</span>
                   </div>

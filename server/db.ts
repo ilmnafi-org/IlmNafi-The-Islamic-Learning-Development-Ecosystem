@@ -182,6 +182,19 @@ class ServerDB {
         fs.mkdirSync(dir, { recursive: true });
       }
       fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+
+      // Also persist to default workspace path if writable to survive container restarts/redeployments in workspace
+      try {
+        if (DB_FILE !== DEFAULT_DB_FILE) {
+          const defaultDir = path.dirname(DEFAULT_DB_FILE);
+          if (!fs.existsSync(defaultDir)) {
+            fs.mkdirSync(defaultDir, { recursive: true });
+          }
+          fs.writeFileSync(DEFAULT_DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+        }
+      } catch (wsErr: any) {
+        // Safely catch read-only filesystem exceptions in true production cloud runs
+      }
     } catch (e: any) {
       console.error(`[Database] Failed to write to primary path ${DB_FILE}:`, e.message);
       // Fallback on-the-fly to temp directory to avoid application crash/unusable state
