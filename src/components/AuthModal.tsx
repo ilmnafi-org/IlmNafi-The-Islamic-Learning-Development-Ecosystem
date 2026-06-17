@@ -256,7 +256,7 @@ export default function AuthModal({ onClose, onSuccess }: AuthModalProps) {
                   Academic Identity Secured
                 </h4>
                 <p className="text-xs text-slate-600">
-                  Welcome to the Al-Hikmah sanctuaries, Scholar {successUsername}!
+                  Welcome to the Ilm Naafi sanctuaries, Scholar {successUsername}!
                 </p>
                 <div className="text-[10px] text-slate-400 font-mono py-1 px-3 bg-slate-50 border border-slate-100 rounded-lg inline-block">
                   {successEmail}

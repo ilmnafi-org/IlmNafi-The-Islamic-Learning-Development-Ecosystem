@@ -90,7 +90,7 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
     },
     {
       id: "curriculums",
-      name: lang === 'en' ? "Al-Hikmah Lessons Registry (hikmah-registry)" : "قاعدة بيانات المنهاج الدراسي (hikmah-registry)",
+      name: lang === 'en' ? "Ilm Naafi Lessons Registry (ilmnaafi-registry)" : "قاعدة بيانات المنهاج الدراسي للهوية الأكاديمية",
       desc: lang === 'en' ? "Verified datasets, granular lesson structures, and interactive quiz models for the 3 main curriculums." : "مصفوفة المناهج والمسارات الأكاديمية والامتحانات الشاملة لعلوم الشرع والقرآن واللغة.",
       progress: 100,
       status: "stable",
@@ -326,8 +326,8 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
 
             <p className="text-slate-500 text-xs leading-relaxed mb-6">
               {lang === 'en' 
-                ? "Below is the real-time compilation status and architecture progress of individual modular repositories powering Al-Hikmah Academy."
-                : "الحالة البرمجية الحية ونسب الإنجاز الفعلي للمكتبات ومستودعات الأكواد المستقلة المغذية لمنصة ومحاكيات أكاديمية الحكمة."}
+                ? "Below is the real-time compilation status and architecture progress of individual modular repositories powering Ilm Naafi Academy."
+                : "الحالة البرمجية الحية ونسب الإنجاز الفعلي للمكتبات ومستودعات الأكواد المستقلة المغذية لمنصة ومحاكيات أكاديمية العلم النافع."}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -675,8 +675,8 @@ export default function CurriculumView({ progress, onCompleteLesson, lang = 'en'
               <form onSubmit={handleSuggestSubmit} className="p-6 space-y-4 font-sans">
                 <p className="text-xs text-slate-500 leading-relaxed">
                   {lang === 'en'
-                    ? "Thank you for contributing to the Al-Hikmah open academy! Your historical or linguistic submission enters a scholarly blind peer review for factual and doctrinal verification."
-                    : "نشكر مساهمتكم في إثراء أكاديمية الحكمة المفتوحة! تدخل المخطوطات والبحوث المقترحة مرحلة التحكيم الثنائي السري للتدقيق العلمي والأكاديمي."}
+                    ? "Thank you for contributing to the Ilm Naafi open academy! Your historical or linguistic submission enters a scholarly blind peer review for factual and doctrinal verification."
+                    : "نشكر مساهمتكم في إثراء أكاديمية العلم النافع المفتوحة! تدخل المخطوطات والبحوث المقترحة مرحلة التحكيم الثنائي السري للتدقيق العلمي والأكاديمي."}
                 </p>
 
                 <div className="relative" id="custom-curriculum-subject-dropdown-wrapper">

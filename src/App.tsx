@@ -407,7 +407,7 @@ export default function App() {
             </h2>
             <p className="text-slate-500 text-xs leading-relaxed font-normal">
               {lang === 'en' 
-                ? "This secure page requires Al-Hikmah scholar authentication credentials to load. Sign in to your verified account to access notifications, study progress, and personalization."
+                ? "This secure page requires Ilm Naafi scholar authentication credentials to load. Sign in to your verified account to access notifications, study progress, and personalization."
                 : "تتطلب مراجعة هذه التفضيلات (الضبط واللقاءات التفاعلية والنبضات التعليمية) مواءمة بطاقة العضوية العلمية الخاصة بكم لتفادي ضياع الإنجاز والمسارات. يرجى تسجيل الدخول مجاناً."}
             </p>
           </div>
@@ -706,7 +706,7 @@ export default function App() {
           socket = new WebSocket(wsUrl);
           
           socket.onopen = () => {
-            console.log("WebSocket connected to Al-Hikmah live-alert router.");
+            console.log("WebSocket connected to Ilm Naafi live-alert router.");
             if (socket) {
               socket.send(JSON.stringify({
                 type: 'register',
@@ -1047,7 +1047,7 @@ export default function App() {
                   />
                 </div>
                 <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest font-mono text-center">
-                  <span>Al-Hikmah / جاري التحضير</span>
+                  <span>ilm Naafi / جاري التحضير</span>
                 </div>
               </div>
 

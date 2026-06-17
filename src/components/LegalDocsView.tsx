@@ -91,7 +91,7 @@ export default function LegalDocsView({ lang, initialDoc = 'privacy', onBackToHo
               <div className="text-xs md:text-sm text-slate-600 space-y-4 leading-relaxed font-sans text-right">
                 <p>
                   {lang === 'en'
-                    ? 'At Al-Hikmah / Ilm Naafi Academy, we treat learning data with structural sacredness and high protection layers. Your progress tracks (including Tajweed audio waveforms, and weekly memorization records) are processed locally where feasible and secured with secure HttpOnly cookies.'
+                    ? 'At Ilm Naafi Academy, we treat learning data with structural sacredness and high protection layers. Your progress tracks (including Tajweed audio waveforms, and weekly memorization records) are processed locally where feasible and secured with secure HttpOnly cookies.'
                     : 'في أكاديمية العلم النافع الرقمية، نعتبر بيانات المتعلم أمانة بالغة السرية. نحن نلتزم بحماية كافة ملفاتكم (سواء تسجيلات التلاوة الصوتية، إحصاءات الحفظ الأسبوعية، أو البريد الإلكتروني) عبر تقنيات تشفير الخادم واستخدام الجلسات المقفلة برمجياً.'}
                 </p>
 
@@ -145,8 +145,8 @@ export default function LegalDocsView({ lang, initialDoc = 'privacy', onBackToHo
               <div className="text-xs md:text-sm text-slate-600 space-y-4 leading-relaxed font-sans text-right">
                 <p>
                   {lang === 'en'
-                    ? 'By entering Al-Hikmah web portal, you pledge to respect the classical methods of Quranic studies and digital educational conduct. Access is granted globally to anyone seeking authentic knowledge (Ilm Naafi).'
-                    : 'بدخولك إلى مجالس منصة أكاديمية الحكمة (العلم النافع)، فإنك تعاهد الله والمنصة على الالتزام بحرمة علوم الوحيين وآداب الطلب وقرارات الهيئة العلمية العامة.'}
+                    ? 'By entering Ilm Naafi web portal, you pledge to respect the classical methods of Quranic studies and digital educational conduct. Access is granted globally to anyone seeking authentic knowledge (Ilm Naafi).'
+                    : 'بدخولك إلى مجالس منصة أكاديمية العلم النافع الرقمية، فإنك تعاهد الله والمنصة على الالتزام بحرمة علوم الوحيين وآداب الطلب وقرارات الهيئة العلمية العامة.'}
                 </p>
 
                 <div className="space-y-2 pt-2">

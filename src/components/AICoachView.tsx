@@ -422,7 +422,7 @@ export default function AICoachView({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response from Al-Hikmah coach server.");
+        throw new Error("Failed to get response from Ilm Naafi coach server.");
       }
 
       const report: TajweedFeedback = await response.json();
@@ -430,7 +430,7 @@ export default function AICoachView({
       onAddRecitation(`${surahToSubmit} (Ayah ${ayahToSubmit})`, report.overallScore);
     } catch (err: any) {
       console.error(err);
-      setErrorMsg("Failed to communicate with Al-Hikmah Gemini Proxy. Ensure your API secrets are loaded correctly.");
+      setErrorMsg("Failed to communicate with Ilm Naafi Gemini Proxy. Ensure your API secrets are loaded correctly.");
     } finally {
       setAnalyzing(false);
     }

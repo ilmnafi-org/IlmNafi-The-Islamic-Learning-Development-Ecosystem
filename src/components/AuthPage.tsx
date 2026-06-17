@@ -540,8 +540,8 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                 </h4>
                 <p className="text-xs text-slate-600">
                   {lang === 'en'
-                    ? `Welcome to the Al-Hikmah sanctuaries, Scholar ${successUsername}!`
-                    : `أهلاً بك مجدداً في أروقة الحكمة، شريف ${successUsername}!`}
+                    ? `Welcome to the Ilm Naafi sanctuaries, Scholar ${successUsername}!`
+                    : `أهلاً بك مجدداً في أروقة منهل العلم النافع، الشيخ/ة ${successUsername}!`}
                 </p>
                 <div className="text-[10px] text-slate-400 font-mono py-1 px-3 bg-slate-50 border border-slate-100 rounded-lg inline-block">
                   {successEmail}

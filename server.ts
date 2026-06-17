@@ -154,7 +154,7 @@ wss.on("connection", (ws: WebSocket) => {
         ws.send(JSON.stringify({
           type: "registered",
           email: userEmail,
-          message: "Real-time sync established with Al-Hikmah Academy server."
+          message: "Real-time sync established with Ilm Naafi Academy server."
         }));
       }
       if (data.type === "ping") {
@@ -832,9 +832,9 @@ app.post("/api/forum/simulate-activity", (req, res) => {
   const displayCategoryName = normalizedCat === 'recitation' ? 'Tajweed' : normalizedCat === 'history' ? 'History' : normalizedCat === 'jurisprudence' ? 'Jurisprudence' : normalizedCat === 'scholarships' ? 'Scholarships' : 'General';
 
   const mockUsers = [
-    { name: "Sheikh Abdulrahman Al-Arifi", email: "abdulrahman@hikmah.edu", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" },
-    { name: "Dr. Maryam Cordobese", email: "maryam@hikmah.edu", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150" },
-    { name: "Brother Zayd Al-Faruqi", email: "zayd@hikmah.edu", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150" }
+    { name: "Sheikh Abdulrahman Al-Arifi", email: "abdulrahman@ilmnaafi.edu", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" },
+    { name: "Dr. Maryam Cordobese", email: "maryam@ilmnaafi.edu", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150" },
+    { name: "Brother Zayd Al-Faruqi", email: "zayd@ilmnaafi.edu", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150" }
   ];
 
   const selectedMock = mockUsers[Math.floor(Math.random() * mockUsers.length)];
@@ -917,7 +917,7 @@ app.post("/api/ai-coach", rateLimiter(50, 15 * 60 * 1000), async (req, res) => {
     let contents: any[] = [];
 
     // Instruction prompt grounded with Phase 1 engine guidelines
-    let basePrompt = `You are Al-Hikmah Academy's elite AI Quran Coach & Tajweed Teacher.
+    let basePrompt = `You are Ilm Naafi Academy's elite AI Quran Coach & Tajweed Teacher.
 Analyze a student reciting:
 Surah: ${surahName}
 Ayah / Verse: ${ayahNumber || 1}
@@ -938,7 +938,7 @@ Provide:
 Provide your response in raw JSON format matching this schema strictly. Don't add backticks or markdown wrapper.`;
 
     if (isMurajah) {
-      basePrompt = `You are Al-Hikmah Academy's elite AI Quran Murajah (Memorization) Auditor.
+      basePrompt = `You are Ilm Naafi Academy's elite AI Quran Murajah (Memorization) Auditor.
 Analyze a student revising/reciting a verse from memory where the Quran text is completely hidden from them:
 Surah: ${surahName}
 Ayah / Verse: ${ayahNumber || 1}
