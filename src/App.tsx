@@ -44,6 +44,7 @@ import {
   GraduationCap,
   Lock,
   Terminal,
+  ShieldAlert,
   Play,
   Pause,
   SkipForward,
@@ -67,6 +68,7 @@ import NotificationsView from './components/NotificationsView';
 import SettingsView from './components/SettingsView';
 import LegalDocsView from './components/LegalDocsView';
 import ApiDocsView from './components/ApiDocsView';
+import IssueTrackerView from './components/IssueTrackerView';
 import { dbService } from './lib/supabase';
 
 import { UserProgress } from './types';
@@ -210,7 +212,7 @@ function formatTo12Hour(timeStr: string): string {
 
 export default function App() {
   // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMoreNav, setShowMoreNav] = useState(false);
@@ -943,6 +945,7 @@ export default function App() {
       apiDocs: "API Docs",
       notifications: "Notifications",
       settings: "Settings",
+      issueTracker: "Issue Tracker",
       footerText: "Ilm Naafi Academy is built as an open consensus academy. Empowering pristine pronunciations and academic equity.",
       copyright: "All Rights Reserved."
     },
@@ -983,6 +986,7 @@ export default function App() {
       apiDocs: "واجهة المطورين API",
       notifications: "الإشعارات المباشرة",
       settings: "الإعدادات العامة",
+      issueTracker: "مركز البلاغات والملاحظات",
       footerText: "تأسست منصة العلم النافع لتمكين المتعلمين من ضبط التلاوة وتسهيل سبل طلب العلم النافع عبر الأقطار والبحار.",
       copyright: "جميع الحقوق محفوظة."
     }
@@ -1286,6 +1290,26 @@ export default function App() {
                       </span>
                       <span className="text-[9.5px] text-slate-400 truncate font-normal">
                         {lang === 'en' ? "System alerts & cues" : "إشعارات المنصة الفورية"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('issue-tracker'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'issue-tracker' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                    id="nav-issue-tracker"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-amber-550/10 flex items-center justify-center text-amber-800 shrink-0">
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[12px]">{labels.issueTracker}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Verify & track issues" : "تقديم ومتابعة بلاغات الأعطال"}
                       </span>
                     </div>
                   </button>
@@ -3233,6 +3257,19 @@ export default function App() {
             transition={{ duration: 0.25 }}
           >
             <ApiDocsView lang={lang} />
+          </motion.div>
+        )}
+
+        {/* INTERACTIVE INTEGRATED ISSUE & FEEDBACK SYSTEM */}
+        {activeTab === 'issue-tracker' && (
+          <motion.div
+            key="issue-tracker"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <IssueTrackerView lang={lang} />
           </motion.div>
         )}
 

@@ -17,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-level: '20'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -42,9 +42,18 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # Setup Workload Identity Federation or GCP credentials helper
-      - name: Authenticate with Google Cloud
-        id: auth
+      # Setup Workload Identity Federation or GCP credentials helper dynamically
+      - name: Authenticate with Google Cloud (Service Account Key)
+        if: ${{ secrets.GCP_SA_KEY != '' }}
+        id: auth-json
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Authenticate with Google Cloud (Workload Identity)
+        if: ${{ secrets.GCP_WID_PROVIDER != '' && secrets.GCP_SA_KEY == '' }}
+        id: auth-wid
         uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'

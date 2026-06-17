@@ -56,9 +56,23 @@ export interface ServerThread {
   replies: ServerReply[];
 }
 
+export interface ServerIssue {
+  id: string;
+  name: string;
+  email: string;
+  issueType: 'Bug' | 'Feature Request' | 'Content Error' | 'Scholar Verification Issue' | 'Quran/Tajweed Error' | 'Other';
+  description: string;
+  screenshot?: string;
+  status: 'Pending' | 'Reviewing' | 'Fixed';
+  adminMemo?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface DBStructure {
   users: ServerUser[];
   threads: ServerThread[];
+  issues?: ServerIssue[];
 }
 
 const DEFAULT_DB_FILE = path.join(process.cwd(), 'server', 'db.json');
@@ -152,7 +166,7 @@ const DEFAULT_THREADS: ServerThread[] = [
 ];
 
 class ServerDB {
-  private data: DBStructure = { users: [], threads: DEFAULT_THREADS };
+  private data: DBStructure = { users: [], threads: DEFAULT_THREADS, issues: [] };
 
   constructor() {
     this.load();
@@ -165,7 +179,8 @@ class ServerDB {
         const parsed = JSON.parse(fileContent);
         this.data = {
           users: parsed.users || [],
-          threads: parsed.threads || DEFAULT_THREADS
+          threads: parsed.threads || DEFAULT_THREADS,
+          issues: parsed.issues || []
         };
       } else {
         this.save();
@@ -276,6 +291,43 @@ class ServerDB {
     if (!thread) return false;
 
     Object.assign(thread, updates);
+    this.save();
+    return true;
+  }
+
+  // --- ISSUE CONTROLLERS ---
+  public getIssues(): ServerIssue[] {
+    return this.data.issues || [];
+  }
+
+  public findIssueById(id: string): ServerIssue | undefined {
+    return (this.data.issues || []).find(i => i.id === id);
+  }
+
+  public addIssue(issue: ServerIssue): void {
+    if (!this.data.issues) {
+      this.data.issues = [];
+    }
+    this.data.issues.push(issue);
+    this.save();
+  }
+
+  public deleteIssue(id: string): boolean {
+    if (!this.data.issues) return false;
+    const lengthBefore = this.data.issues.length;
+    this.data.issues = this.data.issues.filter(i => i.id !== id);
+    if (this.data.issues.length !== lengthBefore) {
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  public updateIssue(id: string, updates: Partial<ServerIssue>): boolean {
+    const issue = this.findIssueById(id);
+    if (!issue) return false;
+
+    Object.assign(issue, updates);
     this.save();
     return true;
   }

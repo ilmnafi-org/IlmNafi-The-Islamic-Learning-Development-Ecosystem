@@ -27,6 +27,8 @@ export default function ApiDocsView({ lang }: ApiDocsViewProps) {
     setTimeout(() => setCopiedEndpoint(null), 2000);
   };
 
+  const [docTab, setDocTab] = useState<'opensource' | 'paid'>('opensource');
+
   const endpoints = [
     {
       id: 'health',
@@ -163,6 +165,77 @@ Cache-Control: public, max-age=31536000`
     }
   ];
 
+  const paidEndpoints = [
+    {
+      id: 'tajweed-voice-heavy',
+      method: 'POST',
+      path: '/api/v1/enterprise/tajweed-heavy',
+      desc: lang === 'en'
+        ? 'Advanced 3D oral acoustic vocal positioning model. Leverages high-fidelity neural network pipelines to analyze voice timber raw recordings for deep articulation deviances.'
+        : 'التحليل الصوتي اللغوي المتكامل والمطابقة العصبية العميقة للترميز المخارج والحوارك الصوتية ثلاثية الأبعاد بدقة استثنائية.',
+      headers: {
+        'Authorization': 'Bearer YOUR_ENTERPRISE_KEY',
+        'Content-Type': 'application/json'
+      },
+      curl: 'curl -X POST https://ilmnaafi.com/api/v1/enterprise/tajweed-heavy \\\n  -H "Authorization: Bearer <token>" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"audioUrl": "https://secure.ilmnaafi.com/recitations/student_08.wav"}\'',
+      response: `{
+  "success": true,
+  "makhrajAccuracy": 98.4,
+  "vocalFormantMatch": 94.1,
+  "articulationIssues": [
+    {
+      "phoneme": "ق",
+      "timestamp": 1.24,
+      "severity": "medium",
+      "issue": "Insufficient Qalqalah resonance",
+      "remedy": "Ensure a robust rebounding vibration on the sound when stopping."
+    }
+  ]
+}`
+    },
+    {
+      id: 'scholar-arbitrage',
+      method: 'POST',
+      path: '/api/v1/enterprise/scholar-arbitrage',
+      desc: lang === 'en'
+        ? 'Query high-concurrency vector databases indexing 44 canonical historic jurisprudence and tafsir works with dynamic multilingual synthesis and auto-generated academic PDF dossiers.'
+        : 'البحث والاستعلام عالي الدقة والتحقق المتفوق في كتب الأحكام والتفاسير المعيارية مع دعم النطق والتوليد التلقائي لملفات PDF الأكاديمية.',
+      headers: {
+        'Authorization': 'Bearer YOUR_ENTERPRISE_KEY',
+        'Content-Type': 'application/json'
+      },
+      curl: 'curl -X POST https://ilmnaafi.com/api/v1/enterprise/scholar-arbitrage \\\n  -H "Authorization: Bearer <token>" \\\n  -d \'{"query": "Islamic jurisprudential analysis of automated smart contracts in transactions", "generateReport": true}\'',
+      response: `{
+  "consensusSummary": "Smart contracts are permissible under covenant integrity principles, provided gharar and riba variables are completely neutralized...",
+  "schoolsAnalysis": {
+    "Hanafi": "Validated if digital transfer equivalent mimics instant physical posession...",
+    "Hanbali": "Fully permitted under general contract liberty clauses except where explicitly forbidden"
+  },
+  "dossierDownloadUrl": "https://secure.ilmnaafi.com/reports/gen_8849.pdf"
+}`
+    },
+    {
+      id: 'high-fi-synthesis',
+      method: 'POST',
+      path: '/api/v1/enterprise/high-fi-synthesis',
+      desc: lang === 'en'
+        ? 'Synthesizes ultra-realistic, emotionally-resonant Arabic voice models mimicking veteran Quran reciters, utilizing advanced speech tags for breath punctuation and tajweed pause markers.'
+        : 'توليد الصوت المنطوق المرتل الفائق محاكي المهارات البشرية للقرّاء المحترفين لأغراض التلقين والمطابقة الموضعية للآيات.',
+      headers: {
+        'Authorization': 'Bearer YOUR_ENTERPRISE_KEY',
+        'Content-Type': 'application/json'
+      },
+      curl: 'curl -X POST https://ilmnaafi.com/api/v1/enterprise/high-fi-synthesis \\\n  -H "Authorization: Bearer <token>" \\\n  -d \'{"text": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", "style": "murattal_husary", "sampleRate": 48000}\'',
+      response: `{
+  "audioUrl": "https://secure.ilmnaafi.com/synthesized/output_7714.mp3",
+  "durationSeconds": 4.52,
+  "breathingMarkers": [2.14]
+}`
+    }
+  ];
+
+  const activeEndpoints = docTab === 'opensource' ? endpoints : paidEndpoints;
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-10" id="api-docs-viewport">
       {/* Editorial Header */}
@@ -202,6 +275,32 @@ Cache-Control: public, max-age=31536000`
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Modern Open Source and Premium Tab Switcher */}
+      <div className="flex bg-slate-100 p-1.5 rounded-2xl max-w-md mx-auto border border-slate-205/80 shadow-xs relative z-20">
+        <button
+          onClick={() => setDocTab('opensource')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs tracking-wide transition-all cursor-pointer ${
+            docTab === 'opensource'
+              ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Code className={`w-3.5 h-3.5 ${docTab === 'opensource' ? 'text-emerald-600' : 'text-slate-400'}`} />
+          <span>{lang === 'en' ? "Open Source API" : "الواجهة المجانية"}</span>
+        </button>
+        <button
+          onClick={() => setDocTab('paid')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs tracking-wide transition-all cursor-pointer ${
+            docTab === 'paid'
+              ? 'bg-gradient-to-r from-emerald-800 to-slate-900 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Sparkles className={`w-3.5 h-3.5 ${docTab === 'paid' ? 'text-amber-400' : 'text-slate-400'}`} />
+          <span>{lang === 'en' ? "Premium / Paid Enterprise" : "المدفوعة للمؤسسات"}</span>
+        </button>
       </div>
 
       {/* Grid: Instructions Side + Interactive Terminal */}
@@ -272,7 +371,7 @@ Cache-Control: public, max-age=31536000`
             </div>
 
             <div className="space-y-8">
-              {endpoints.map((ep) => (
+              {activeEndpoints.map((ep) => (
                 <div key={ep.id} className="border-b border-slate-100 pb-8 last:border-b-0 last:pb-0" id={`endpoint-${ep.id}`}>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className={`text-[10px] font-black font-mono tracking-wider px-2 py-1 rounded ${

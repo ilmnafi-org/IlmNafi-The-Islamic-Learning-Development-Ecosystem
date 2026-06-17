@@ -81,6 +81,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
       completedStatus: "All remembrances completed for this category!",
       completedWellDone: "Superb! You completed {count} items. Take this moment to reflect on their virtues.",
       resetAdhkar: "Reset Progression",
+      bulkCompleteAll: "Bulk Complete All",
       prevItem: "Previous",
       nextItem: "Next",
       sourceLabel: "Hadith Source",
@@ -132,6 +133,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
       completedStatus: "اكتملت جميع أذكار هذا القسم بنجاح!",
       completedWellDone: "تقبل الله طاعتك! أكملت {count} ذكراً منفرداً. تأمل فضلها والسكينة النفسية.",
       resetAdhkar: "إعادة تعيين الأذكار",
+      bulkCompleteAll: "إكمال الكل دفعة واحدة",
       prevItem: "السابق",
       nextItem: "التالي",
       sourceLabel: "تخريج الحديث وإسناده",
@@ -992,20 +994,36 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                   ></div>
                 </div>
 
-                <button
-                  onClick={() => {
-                    const resetObj = { ...adhkarCompletedStates };
-                    filteredAdhkar.forEach(x => {
-                      resetObj[x.id] = 0;
-                    });
-                    setAdhkarCompletedStates(resetObj);
-                    setAdhkarIndex(0);
-                  }}
-                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-slate-200"
-                >
-                  <RefreshCw className="w-3 h-3 text-slate-450" />
-                  <span>{t.resetAdhkar}</span>
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                  <button
+                    onClick={() => {
+                      const resetObj = { ...adhkarCompletedStates };
+                      filteredAdhkar.forEach(x => {
+                        resetObj[x.id] = 0;
+                      });
+                      setAdhkarCompletedStates(resetObj);
+                      setAdhkarIndex(0);
+                    }}
+                    className="flex-1 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-slate-200"
+                  >
+                    <RefreshCw className="w-3 h-3 text-slate-450" />
+                    <span>{lang === 'en' ? t.en.resetAdhkar : t.ar.resetAdhkar}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const doneObj = { ...adhkarCompletedStates };
+                      filteredAdhkar.forEach(x => {
+                        doneObj[x.id] = x.targetCount;
+                      });
+                      setAdhkarCompletedStates(doneObj);
+                    }}
+                    className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-emerald-250/20"
+                  >
+                    <CheckSquare className="w-3 h-3 text-emerald-600" />
+                    <span>{lang === 'en' ? t.en.bulkCompleteAll : t.ar.bulkCompleteAll}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Right Column: LARGE COMPREHENSIVE ACTIVE WORK CARD (order-1 on mobile, order-2 / col-span-8 on desktop) */}

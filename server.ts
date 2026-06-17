@@ -16,7 +16,7 @@ import http from "http";
 import https from "https";
 import { WebSocketServer, WebSocket } from "ws";
 import { analyzeTajweedText } from "./server/tajweedEngine.js";
-import { dbStore, ServerUser, ServerThread, ServerReply } from "./server/db.js";
+import { dbStore, ServerUser, ServerThread, ServerReply, ServerIssue } from "./server/db.js";
 
 dotenv.config();
 
@@ -1255,6 +1255,87 @@ app.get("/api/adhkar", (req, res) => {
 // Serve API check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ status: "healthy", time: new Date() });
+});
+
+// GET: Retrieve all reported issues (latest first)
+app.get("/api/issues", (req, res) => {
+  const issues = dbStore.getIssues();
+  const sorted = [...issues].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+  res.json(sorted);
+});
+
+// POST: Submit a new issue or feedback
+app.post("/api/issues", express.json({ limit: '10mb' }), (req, res) => {
+  const { name, email, issueType, description, screenshot } = req.body;
+
+  if (!name || !email || !issueType || !description) {
+    return res.status(400).json({ error: "Missing required fields (name, email, issueType, description)." });
+  }
+
+  const newIssue: ServerIssue = {
+    id: "issue_" + Math.random().toString(36).substring(2, 9),
+    name,
+    email,
+    issueType,
+    description,
+    screenshot,
+    status: 'Pending',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  dbStore.addIssue(newIssue);
+
+  // Trigger simulated e-mail logs
+  console.info(`\n📧 [EMAIL DISPATCHER] -> Sent to: devspak-s8@ilmnaafi.org\nSubject: New [${issueType}] reported by ${name}\nIssue ID: ${newIssue.id}\nDetail: ${description}\n`);
+
+  res.status(201).json({ 
+    success: true, 
+    message: "Alhamdulillah! Your issue has been stored and escalated.",
+    issue: newIssue
+  });
+});
+
+// POST: Resolve / Update an existing issue
+app.post("/api/issues/:id/resolve", express.json(), (req, res) => {
+  const { id } = req.params;
+  const { adminMemo, status } = req.body;
+
+  const issue = dbStore.findIssueById(id);
+  if (!issue) {
+    return res.status(404).json({ error: "Issue not found." });
+  }
+
+  const targetStatus = status || 'Fixed';
+  const updates: Partial<ServerIssue> = {
+    status: targetStatus,
+    adminMemo: adminMemo || "Marked as fixed by review board.",
+    updated_at: new Date().toISOString()
+  };
+
+  dbStore.updateIssue(id, updates);
+
+  // Trigger automatic email to reporter
+  console.info(`\n📧 [EMAIL DISPATCHER] -> Sent to reporter: ${issue.email}\nSubject: [RESOLVED] Issue #${issue.id} status updated to ${targetStatus}\nMemo: ${updates.adminMemo}\n`);
+
+  res.json({
+    success: true,
+    message: `Issue status updated to ${targetStatus}.`,
+    issue: { ...issue, ...updates }
+  });
+});
+
+// DELETE: Deletes an issue
+app.delete("/api/issues/:id", (req, res) => {
+  const { id } = req.params;
+  const success = dbStore.deleteIssue(id);
+  if (success) {
+    res.json({ success: true, message: "Issue deleted successfully." });
+  } else {
+    res.status(404).json({ error: "Issue not found." });
+  }
 });
 
 // Secure, CORS-enabled Audio Streaming Proxy to resolve browser Mixed Content (HTTP/HTTPS) and CORS blocks
