@@ -1418,7 +1418,7 @@ export default function App() {
                   {/* Progress details */}
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-550 text-slate-500 font-medium flex items-center gap-1.5">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
                         <BarChart className="w-3.5 h-3.5 text-amber-700" /> {labels.weeklyMinutes}
                       </span>
                       <span className="font-bold text-slate-950">{progress.weeklyMinutes} min</span>
@@ -1441,7 +1441,7 @@ export default function App() {
                   <div className="pt-2 border-t border-slate-100">
                     <button
                       onClick={() => { setActiveTab('dashboard'); setShowProfileDropdown(false); }}
-                      className="w-full h-10 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-205/30 rounded-xl transition-colors font-extrabold text-[11px] text-amber-950 flex items-center justify-between cursor-pointer"
+                      className="w-full h-10 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-205/30 rounded-xl transition-colors font-extrabold text-[11px] text-amber-955 flex items-center justify-between cursor-pointer"
                       style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
                       id="dropdown-btn-to-dashboard"
                     >
@@ -1537,10 +1537,11 @@ export default function App() {
                   { id: 'scholarly', label: labels.scholarly, icon: Compass, color: 'text-purple-800 bg-purple-500/10' },
                   { id: 'forum', label: labels.forum, icon: MessageSquare, color: 'text-sky-800 bg-sky-500/10' },
                   { id: 'scholarships', label: labels.scholarships, icon: Award, color: 'text-rose-800 bg-rose-500/10' },
-                  { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, color: 'text-yellow-800 bg-yellow-500/10' },
+                  { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, color: 'text-yellow-850 bg-yellow-500/10' },
                   { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'api-docs', label: labels.apiDocs, icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-amber-700 bg-amber-500/10' },
+                  { id: 'issue-tracker', label: labels.issueTracker, icon: ShieldAlert, color: 'text-red-700 bg-red-500/10' },
                   { id: 'settings', label: labels.settings, icon: Settings, color: 'text-emerald-700 bg-emerald-500/10' },
                   ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Workspace Dashboard" : "لوحة المتعلم الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
                 ].map(item => {
@@ -1552,12 +1553,12 @@ export default function App() {
                       onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }}
                       className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all w-full cursor-pointer gap-2 ${
                         isActive 
-                          ? 'border-amber-600 bg-amber-50/80 text-amber-950 font-black shadow-inner' 
+                          ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner animate-pulse' 
                           : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:border-slate-200'
                       }`}
                     >
                       <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
-                        <IconComponent className="w-5 h-5" />
+                        <IconComponent className="w-5 h-5 animate-none" />
                       </span>
                       <span className="text-xs font-bold leading-tight block truncate max-w-full">{item.label}</span>
                     </button>
@@ -1571,6 +1572,69 @@ export default function App() {
 
       {/* SPACE FILLER FOR NAV BAR */}
       <div className="h-20 sm:h-24"></div>
+
+      {/* DYNAMIC RESPONSIVE PLATFORMS HUB MOBILE SUB-NAVIGATION BAR (Small / Mobile screens only) */}
+      {['forum', 'scholarships', 'saved-scholarships', 'community', 'api-docs', 'notifications', 'issue-tracker', 'settings'].includes(activeTab) && (
+        <div 
+          className="block lg:hidden w-[94%] max-w-7xl mx-auto mb-6 bg-white border border-slate-200 shadow-md rounded-2xl p-2 sticky top-[4.5rem] z-40 transition-all duration-300"
+          id="platform-hub-mobile-subnav"
+        >
+          <div className="flex items-center justify-between px-3 pb-1 border-b border-slate-100 mb-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {lang === 'en' ? "⚡ Platforms Hub Navigation" : "⚡ بوابات المنصة ومكتباتها"}
+            </span>
+            <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/50">
+              {lang === 'en' ? "8 Channels" : "٨ قنوات"}
+            </span>
+          </div>
+          
+          <div className="max-w-[100vw] overflow-x-auto scrollbar-none scroll-smooth">
+            <div className="flex items-center gap-2 whitespace-nowrap min-w-max pb-1 px-1">
+              {[
+                { id: 'forum', label: labels.forum, icon: MessageSquare, badgeColor: 'bg-sky-500/10 text-sky-850 border-sky-500/20' },
+                { id: 'scholarships', label: labels.scholarships, icon: Award, badgeColor: 'bg-rose-500/10 text-rose-850 border-rose-500/20' },
+                { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, badgeColor: 'bg-yellow-500/10 text-yellow-850 border-yellow-550/20' },
+                { id: 'community', label: labels.openSource, icon: Sparkles, badgeColor: 'bg-purple-500/10 text-purple-800 border-purple-500/20' },
+                { id: 'api-docs', label: labels.apiDocs, icon: Terminal, badgeColor: 'bg-emerald-500/10 text-emerald-850 border-emerald-500/20' },
+                { id: 'notifications', label: labels.notifications, icon: Bell, badgeColor: 'bg-red-500/10 text-red-850 border-red-500/20' },
+                { id: 'issue-tracker', label: labels.issueTracker, icon: ShieldAlert, badgeColor: 'bg-amber-500/10 text-amber-900 border-amber-550/20' },
+                { id: 'settings', label: labels.settings, icon: Settings, badgeColor: 'bg-slate-500/10 text-slate-800 border-slate-500/20' }
+              ].map(item => {
+                const IconComponent = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as any)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 font-sans text-xs border ${
+                      isActive 
+                        ? `${item.badgeColor} font-black border shadow-inner scale-[1.02]` 
+                        : 'text-slate-500 bg-slate-50 hover:bg-slate-100 hover:text-slate-800 border-slate-200/50'
+                    }`}
+                    style={{
+                      transitionProperty: "all",
+                      transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+                      transitionDuration: "250ms"
+                    }}
+                    id={`mobile-subnav-${item.id}`}
+                  >
+                    <IconComponent className="w-4 h-4 shrink-0" />
+                    
+                    {/* Active tab expands to display the full label name */}
+                    {isActive && (
+                      <span className="font-extrabold tracking-tight block truncate pr-0.5 animate-in fade-in slide-in-from-left-2 duration-200">
+                        {item.label}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+
 
       {/* RENDER ACTIVE TAB CANVASES */}
       <main className="flex-grow">
