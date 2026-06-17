@@ -37,6 +37,9 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+    env:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_WID_PROVIDER: ${{ secrets.GCP_WID_PROVIDER }}
 
     steps:
       - name: Checkout Source Code
@@ -44,7 +47,7 @@ jobs:
 
       # Setup Workload Identity Federation or GCP credentials helper dynamically
       - name: Authenticate with Google Cloud (Service Account Key)
-        if: ${{ secrets.GCP_SA_KEY != '' }}
+        if: ${{ env.GCP_SA_KEY != '' }}
         id: auth-json
         uses: google-github-actions/auth@v2
         with:
@@ -52,7 +55,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Authenticate with Google Cloud (Workload Identity)
-        if: ${{ secrets.GCP_WID_PROVIDER != '' && secrets.GCP_SA_KEY == '' }}
+        if: ${{ env.GCP_WID_PROVIDER != '' && env.GCP_SA_KEY == '' }}
         id: auth-wid
         uses: google-github-actions/auth@v2
         with:
