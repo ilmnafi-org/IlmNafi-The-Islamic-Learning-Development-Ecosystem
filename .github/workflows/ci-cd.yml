@@ -40,6 +40,9 @@ jobs:
     env:
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       GCP_WID_PROVIDER: ${{ secrets.GCP_WID_PROVIDER }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_REGISTRY_NAME: ${{ secrets.GCP_REGISTRY_NAME }}
 
     steps:
       - name: Checkout Source Code
@@ -67,17 +70,20 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Authorize Docker Push to Google Artifact Registry
+        if: ${{ env.GCP_REGION != '' }}
         run: |
-          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
 
       - name: Prepare Container Image Metadata
+        if: ${{ env.GCP_REGION != '' && env.GCP_PROJECT_ID != '' && env.GCP_REGISTRY_NAME != '' }}
         id: meta
         run: |
-          IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REGISTRY_NAME }}/ilm-nafi-app:${{ github.sha }}"
+          IMAGE_TAG="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_REGISTRY_NAME }}/ilm-nafi-app:${{ github.sha }}"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "IMAGE_TAG_LATEST=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REGISTRY_NAME }}/ilm-nafi-app:latest" >> $GITHUB_ENV
+          echo "IMAGE_TAG_LATEST=${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_REGISTRY_NAME }}/ilm-nafi-app:latest" >> $GITHUB_ENV
 
       - name: Construct & Compile Image
+        if: ${{ env.GCP_REGION != '' && env.GCP_PROJECT_ID != '' && env.GCP_REGISTRY_NAME != '' }}
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -89,11 +95,12 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy Compiled Server to Google Cloud Run
+        if: ${{ env.GCP_REGION != '' && env.GCP_PROJECT_ID != '' && env.GCP_REGISTRY_NAME != '' }}
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: 'ilm-nafi-service'
-          region: ${{ secrets.GCP_REGION }}
+          region: ${{ env.GCP_REGION }}
           image: ${{ env.IMAGE_TAG }}
           flags: '--allow-unauthenticated'
           env_vars: |
