@@ -1077,6 +1077,36 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
     virtueEn: "Sunnah of declaring ultimate monotheism and complete detachment from worldly powers, recited at the end of every obligatory prayer.",
     virtueAr: "سنة عظيمة لتثبيت أصول عقيدة التوحيد ونفي الشريك عن رب العالمين دبر الصلوات.",
     grade: "Sahih"
+  },
+  {
+    id: "ax_03_rahmataka_arju",
+    category: "anxiety",
+    arabic: "اللَّهُمَّ رَحْمَتَكَ أَرْجُو فَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ، وَأَصْلِحْ لِي شَأْنِي كُلَّهُ لَا إِلَهَ إِلَّا أَنْتَ",
+    transliteration: "Allahumma rahmataka arju fala takilni ila nafsi tarfata 'aynin, wa aslih li sha'ni kullahu la ilaha illa Ant.",
+    translationEn: "O Allah, I hope for Your mercy. Do not leave me to myself even for the blinking of an eye, and correct for me all of my affairs. There is no deity except You.",
+    translationAr: "اللهم رحمتك أرجو فلا تكلني إلى نفسي طرفة عين، وأصلح لي شأني كله لا إله إلا أنت.",
+    translationUr: "اے اللہ! میں تیری رحمت کا امیدوار ہوں، مجھے پلک جھپکنے کے برابر بھی میرے نفس کے حوالے نہ کرنا، اور میرے تمام احوال کو درست فرما دے۔",
+    translationHa: "Ya Allah, rahamar Ka nake fata, kada Ka bar ni da kaina koda na gwalmar ido daya, Ka gyara mini al'amarine duka babu abin bautawa sai Kai.",
+    targetCount: 3,
+    source: "Abu Dawud 5090 / Ahmad 5/42",
+    virtueEn: "Invoking Allah's immediate relief and guidance to soothe anxious thoughts and achieve absolute clarity.",
+    virtueAr: "سؤال الاستقامة التامة والابتهال لعدم الوقوع في العجب والضلال والهلاك في دنياك وآخرتك.",
+    grade: "Hasan"
+  },
+  {
+    id: "tr_03_bismillahi_tawakkaltu",
+    category: "travel",
+    arabic: "بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ",
+    transliteration: "Bismillahi, tawakkaltu 'alallahi, wa la hawla wa la quwwata illa billah.",
+    translationEn: "In the name of Allah, I place my trust in Allah, and there is no strength nor power except with Allah.",
+    translationAr: "بسم الله، توكلت على الله، ولا حول ولا قوة إلا بالله.",
+    translationUr: "اللہ کے نام سے، میں نے اللہ پر بھروسہ کیا، اور اللہ کی مدد کے بغیر نہ گناہوں سے بچنے کی طاقت ہے نہ نیکی کرنے کی قوت۔",
+    translationHa: "Da sunan Allah, na dogara ga Allah, babu dabarar kaucewa sabo kuma babu karfin yin biyayya sai da taimakon Allah.",
+    targetCount: 1,
+    source: "Abu Dawud 5095 / At-Tirmidhi 3426",
+    virtueEn: "Angels declare 'You are guided, defended, and protected' upon leaving home.",
+    virtueAr: "فلاح وضمانة إلهية بالحفظ والكفاية والهدى وتنحي الشيطان عن منيع حصنك الصادق.",
+    grade: "Sahih"
   }
 ];
 

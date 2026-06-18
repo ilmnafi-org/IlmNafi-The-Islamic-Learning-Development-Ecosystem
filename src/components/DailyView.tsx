@@ -761,7 +761,13 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
 
   // Filter Adhkar DB by selected category
   const filteredAdhkar = AUTHENTIC_ADHKAR_DB.filter(x => x.category === adhkarCategory);
-  const activeStep = filteredAdhkar[adhkarIndex] || filteredAdhkar[0];
+  
+  // Guard indices dynamically at render time to prevent state-flicker bounds crashes
+  const safeAdhkarIndex = adhkarIndex < filteredAdhkar.length ? adhkarIndex : 0;
+  const activeStep = filteredAdhkar[safeAdhkarIndex] || filteredAdhkar[0];
+
+  const maxPage = Math.max(0, Math.ceil(filteredAdhkar.length / 5) - 1);
+  const safeProgressionPage = Math.min(progressionPage, maxPage);
 
   // Progression scores
   const categoryClicksSummary = filteredAdhkar.map(x => adhkarCompletedStates[x.id] || 0);
@@ -909,7 +915,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
               {/* Left Column: STEPPING FRAMEWORK AND DETAILS info (order-2 on mobile, order-1 / col-span-4 on desktop) */}
-              <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4 order-2 lg:order-1">
+              <div className="lg:col-span-4 bg-white/95 border border-slate-150/40 rounded-3xl p-5 shadow-xl space-y-4 order-2 lg:order-1">
                 <div>
                   <h3 className="text-xs font-black text-slate-900 uppercase tracking-wide mb-1">
                     {lang === 'en' ? "Remembrance Progression List" : "سجل الأذكار والتقدم اليومي"}
@@ -921,7 +927,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
 
                 {/* Paginated list of 5 items */}
                 <div className="space-y-2">
-                  {filteredAdhkar.slice(progressionPage * 5, (progressionPage + 1) * 5).map((item) => {
+                  {filteredAdhkar.slice(safeProgressionPage * 5, (safeProgressionPage + 1) * 5).map((item) => {
                     const globalIdx = filteredAdhkar.findIndex(x => x.id === item.id);
                     const currentCount = adhkarCompletedStates[item.id] || 0;
                     const isDone = currentCount >= item.targetCount;
@@ -961,17 +967,17 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                   <div className="flex items-center justify-between bg-slate-50/60 px-3 py-1.5 rounded-xl border border-slate-150 text-[10px] select-none">
                     <button
                       onClick={() => setProgressionPage(prev => Math.max(0, prev - 1))}
-                      disabled={progressionPage === 0}
+                      disabled={safeProgressionPage === 0}
                       className="px-2 py-1 bg-white border border-slate-250 rounded-lg text-slate-600 hover:text-slate-900 disabled:opacity-45 cursor-pointer font-extrabold"
                     >
                       {lang === 'en' ? 'Prev' : 'السابق'}
                     </button>
                     <span className="font-mono font-bold text-slate-500">
-                      {lang === 'en' ? `Page ${progressionPage + 1} of ${Math.ceil(filteredAdhkar.length / 5)}` : `صفحة ${progressionPage + 1} من ${Math.ceil(filteredAdhkar.length / 5)}`}
+                      {lang === 'en' ? `Page ${safeProgressionPage + 1} of ${Math.ceil(filteredAdhkar.length / 5)}` : `صفحة ${safeProgressionPage + 1} من ${Math.ceil(filteredAdhkar.length / 5)}`}
                     </span>
                     <button
                       onClick={() => setProgressionPage(prev => Math.min(Math.ceil(filteredAdhkar.length / 5) - 1, prev + 1))}
-                      disabled={progressionPage === Math.ceil(filteredAdhkar.length / 5) - 1}
+                      disabled={safeProgressionPage === Math.ceil(filteredAdhkar.length / 5) - 1}
                       className="px-2 py-1 bg-white border border-slate-250 rounded-lg text-slate-600 hover:text-slate-900 disabled:opacity-45 cursor-pointer font-extrabold"
                     >
                       {lang === 'en' ? 'Next' : 'التالي'}
@@ -1057,7 +1063,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="bg-white border border-slate-200 rounded-3xl shadow-md p-6 md:p-8 space-y-6 relative overflow-hidden">
+                  <div className="bg-white border border-slate-150/40 rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 relative overflow-hidden">
                     {/* Badge details */}
                     <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                       <span className="text-[10px] font-mono text-emerald-803 uppercase tracking-wider font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-250/20">
@@ -1245,7 +1251,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                 )}
 
                 {/* VISUAL 14-DAY HEATMAP CONTROLLER */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                <div className="bg-white border border-slate-150/40 rounded-3xl p-6 shadow-xl space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-1">
                       <Calendar className="w-4 h-4 text-emerald-600" />
@@ -1343,7 +1349,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Left Column: Tally selection and presets (order-2 on mobile, order-1 / col-span-4 on desktop) */}
-              <div className="lg:col-span-4 bg-white border border-slate-205 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm order-2 lg:order-1">
+              <div className="lg:col-span-4 bg-white border border-slate-150/40 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl order-2 lg:order-1">
                 
                 <div>
                   <h3 className="text-sm font-black text-slate-900 mb-1.5">{t.wirdSelectFocus}</h3>
@@ -1647,7 +1653,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
               
               {/* Left Column: Coordinates search */}
-              <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col justify-between">
+              <div className="lg:col-span-5 bg-white border border-slate-150/40 rounded-3xl p-6 md:p-8 shadow-xl flex flex-col justify-between">
                 
                 <div className="space-y-4">
                   <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-amber-900 bg-amber-55 bg-amber-50 px-2.5 py-1 rounded-lg font-black">
@@ -1708,7 +1714,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
               </div>
 
               {/* Right Column: Calculations times cards ledger */}
-              <div className="lg:col-span-7 bg-white border border-slate-205 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col justify-between">
+              <div className="lg:col-span-7 bg-white border border-slate-150/40 rounded-3xl p-6 md:p-8 shadow-xl flex flex-col justify-between">
                 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1766,7 +1772,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
             </div>
 
             {/* Notification Reminders Panel */}
-            <div className="bg-white border border-slate-200 shadow-sm rounded-3xl p-6 md:p-8 space-y-6">
+            <div className="bg-white border border-slate-150/40 shadow-xl rounded-3xl p-6 md:p-8 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
                 <div className="space-y-1">
                   <span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-[#d97706] bg-[#fef3c7] px-3 py-1 rounded-full border border-[#f59e0b]/20 font-extrabold">
@@ -1996,7 +2002,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                   </button>
                 </div>
             {/* Planner Header */}
-            <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6 md:p-8 space-y-6">
+            <div className="bg-white border border-slate-150/40 shadow-xl rounded-3xl p-6 md:p-8 space-y-6">
               
               <div className="space-y-2">
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-905 bg-amber-50 rounded-full border border-amber-250/20 py-0.5 px-3 uppercase tracking-wider">

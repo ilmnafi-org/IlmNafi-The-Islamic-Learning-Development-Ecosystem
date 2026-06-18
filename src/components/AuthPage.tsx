@@ -379,58 +379,6 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                 </div>
               </div>
 
-              <AnimatePresence initial={false} mode="popLayout">
-                {!isLogin && (
-                  <motion.div
-                    key="role-field"
-                    initial={{ opacity: 0, height: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0.96 }}
-                    transition={{ duration: 0.22, ease: "easeInOut" }}
-                    className="overflow-hidden space-y-1.5"
-                  >
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      {labels.academicRole}
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setRole('student')}
-                        className={`p-2.5 rounded-xl border text-[11px] font-bold text-center transition-all cursor-pointer ${
-                          role === 'student' 
-                            ? 'border-amber-500 bg-amber-505 bg-amber-500/5 text-amber-900 font-extrabold' 
-                            : 'border-slate-200 bg-white text-slate-650 hover:bg-slate-50'
-                        }`}
-                      >
-                        {labels.roleStudent}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRole('researcher')}
-                        className={`p-2.5 rounded-xl border text-[11px] font-bold text-center transition-all cursor-pointer ${
-                          role === 'researcher' 
-                            ? 'border-amber-500 bg-amber-505 bg-amber-500/5 text-amber-900 font-extrabold' 
-                            : 'border-slate-200 bg-white text-slate-650 hover:bg-slate-50'
-                        }`}
-                      >
-                        {labels.roleResearcher}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRole('teacher')}
-                        className={`p-2.5 rounded-xl border text-[11px] font-bold text-center transition-all cursor-pointer ${
-                          role === 'teacher' 
-                            ? 'border-amber-500 bg-amber-505 bg-amber-500/5 text-amber-900 font-extrabold' 
-                            : 'border-slate-200 bg-white text-slate-650 hover:bg-slate-50'
-                        }`}
-                      >
-                        {labels.roleTeacher}
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {labels.passLabel}

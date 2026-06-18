@@ -221,11 +221,60 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         </p>
       </div>
 
+      {/* Sub-tab selection bar (Tabularized navigation) */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2.5 bg-slate-100/80 p-1.5 rounded-2xl max-w-4xl mx-auto mb-10 border border-slate-200 shadow-sm" id="forum-subtabs-nav">
+        <button
+          onClick={() => setActiveSubTab('qa')}
+          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+            activeSubTab === 'qa'
+              ? 'bg-amber-800 text-white shadow-sm font-black'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+          }`}
+        >
+          <BookOpen className="w-4 h-4 shrink-0 text-amber-700" />
+          <span>{lang === 'en' ? "Scholar Q&A" : "فتاوى وأسئلة"}</span>
+        </button>
+        <button
+          onClick={() => setActiveSubTab('webinars')}
+          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+            activeSubTab === 'webinars'
+              ? 'bg-amber-805 bg-amber-800 text-white shadow-sm font-black'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+          }`}
+        >
+          <Calendar className="w-4 h-4 shrink-0 text-emerald-700" />
+          <span>{lang === 'en' ? "Webinars & Classes" : "الحلقات والندوات"}</span>
+        </button>
+        <button
+          onClick={() => setActiveSubTab('communities')}
+          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+            activeSubTab === 'communities'
+              ? 'bg-amber-805 bg-amber-800 text-white shadow-sm font-black'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+          }`}
+        >
+          <Users className="w-4 h-4 shrink-0 text-indigo-700" />
+          <span>{lang === 'en' ? "Scholar Directory" : "أعضاء وعمادات"}</span>
+        </button>
+        <button
+          onClick={() => setActiveSubTab('discuss')}
+          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+            activeSubTab === 'discuss'
+              ? 'bg-amber-805 bg-amber-800 text-white shadow-sm font-black'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4 shrink-0 text-amber-800" />
+          <span>{lang === 'en' ? "Student Circle Lounge" : "منتدى الطلاب"}</span>
+        </button>
+      </div>
+
       {/* Sub-tab viewports sequentially stacked */}
-      <div className="space-y-16">
+      <div className="space-y-6">
         
         {/* SECTION 1: Scholar Q&A Network */}
-        <section className="bg-white/90 p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm" id="section-scholar-qa">
+        {activeSubTab === 'qa' && (
+          <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-scholar-qa">
           <div className="mb-6 pb-4 border-b border-slate-100">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
               <BookOpen className="w-5 h-5 text-amber-800" />
@@ -239,9 +288,11 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
           </div>
           <ScholarNetworkQA lang={lang} currentUser={currentUser} onShowToast={showToastMsg} ensureAuth={ensureAuth} />
         </section>
+        )}
 
         {/* SECTION 2: Sessions & Webinars */}
-        <section className="bg-white/90 p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm" id="section-sessions-webinars">
+        {activeSubTab === 'webinars' && (
+          <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-sessions-webinars">
           <div className="mb-6 pb-4 border-b border-slate-100">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
               <Calendar className="w-5 h-5 text-emerald-800" />
@@ -255,9 +306,11 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
           </div>
           <ScholarWebinars lang={lang} currentUser={currentUser} onShowToast={showToastMsg} ensureAuth={ensureAuth} />
         </section>
+        )}
 
         {/* SECTION 3: Scholar Communities */}
-        <section className="bg-white/90 p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm" id="section-scholar-communities">
+        {activeSubTab === 'communities' && (
+          <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-scholar-communities">
           <div className="mb-6 pb-4 border-b border-slate-100">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
               <Users className="w-5 h-5 text-indigo-805" />
@@ -271,9 +324,11 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
           </div>
           <ScholarCommunities lang={lang} currentUser={currentUser} onShowToast={showToastMsg} ensureAuth={ensureAuth} />
         </section>
+        )}
 
         {/* SECTION 4: Student Circle Lounge */}
-        <section className="bg-white/90 p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm" id="section-student-lounge">
+        {activeSubTab === 'discuss' && (
+          <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-student-lounge">
           <div className="mb-6 pb-4 border-b border-slate-100">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
               <MessageSquare className="w-5 h-5 text-amber-850" />
@@ -567,6 +622,7 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
             </div>
           )}
         </section>
+        )}
       </div>
 
       {/* Auth modal overlay support */}

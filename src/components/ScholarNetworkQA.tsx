@@ -247,61 +247,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
   return (
     <div className="space-y-6">
       
-      {/* Simulation Banner */}
-      <div className="bg-gradient-to-r from-amber-900/10 to-amber-700/5 border border-amber-900/10 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-amber-700 shrink-0 mt-0.5 animate-pulse" />
-          <div>
-            <span className="text-xs font-bold text-amber-900 uppercase tracking-widest block">
-              {lang === 'en' ? "Ilm Nafi Scholar Sandbox" : "بيئة محاكاة العلماء الاستكشافية"}
-            </span>
-            <p className="text-xs text-slate-600 mt-1 font-sans">
-              {lang === 'en' 
-                ? "Experience the network from both sides! Toggle simulation mode to act and write authenticated answers as a Verified Al-Azhar / Madinah Scholar with citations blocks."
-                : "جرب المنصة بصفتين! قم بتفعيل خيار المحاكاة لتتقمص دور عالم معتمد ومحقق فتوى من الأزهر أو المدينة لإصدار الشروحات وتوثيق المراجع."}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={isScholarSimMode} 
-              onChange={(e) => setIsScholarSimMode(e.target.checked)}
-              className="sr-only peer" 
-            />
-            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-800"></div>
-          </label>
-          <span className="text-xs font-extrabold text-[#503020]">
-            {isScholarSimMode 
-              ? (lang === 'en' ? "SIMULATING SCHOLAR" : "نمط المحاكاة نشط") 
-              : (lang === 'en' ? "Simulate Scholar" : "تفعيل محاكاة عالم")}
-          </span>
-        </div>
-      </div>
-
-      {isScholarSimMode && (
-        <div className="bg-amber-50 border-2 border-dashed border-amber-800/20 rounded-2xl p-4 space-y-3 font-sans">
-          <span className="text-xs font-bold text-amber-900 uppercase tracking-widest flex items-center gap-1">
-            <Award className="w-3.5 h-3.5" /> {lang === 'en' ? "SELECT YOUR SCHOLAR IDENTITY" : "اختر هوية العالم الحالية للمحاكاة:"}
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {VERIFIED_SCHOLARS.map(s => (
-              <button
-                key={s.id}
-                onClick={() => setSimulatedScholarId(s.id)}
-                className={`p-3 rounded-xl border-2 text-left flex items-center gap-3 transition cursor-pointer ${simulatedScholarId === s.id ? 'bg-white border-amber-800 shadow-md' : 'bg-amber-50/50 border-transparent hover:border-slate-200'}`}
-              >
-                <img src={s.avatar} alt="avatar" className="w-8 h-8 rounded-full object-cover shrink-0 border" />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-900 truncate">{lang === 'en' ? s.nameEn : s.nameAr}</p>
-                  <p className="text-[10px] text-amber-700 truncate">{lang === 'en' ? s.badgeEn : s.badgeAr}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Simulation Banner Removed as requested to restrict sandbox simulation and keep purely genuine student operations */}
 
       {activeQuestionId === null ? (
         <div className="space-y-6">
