@@ -368,7 +368,7 @@ export const ScholarWebinars: React.FC<ScholarWebinarsProps> = ({
                   </div>
 
                   {/* PDF Slide Presentation deck controls (High premium interactivity) */}
-                  <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 font-sans">
+                  <div className="bg-white rounded-3xl border border-slate-150/40 p-6 shadow-[0_12px_45px_rgba(0,0,0,0.04)] space-y-4 font-sans">
                     <div className="border-b pb-3.5 flex items-center justify-between">
                       <span className="text-xs font-black text-[#503020] uppercase tracking-widest flex items-center gap-1.5">
                         <FileText className="w-5 h-5 text-amber-800 shrink-0" />
@@ -441,7 +441,7 @@ export const ScholarWebinars: React.FC<ScholarWebinarsProps> = ({
                 <div className="space-y-6">
                   
                   {/* Notes & Reading materials Shelf */}
-                  <div className="bg-white rounded-3xl border border-slate-205 p-6 shadow-sm space-y-4">
+                  <div className="bg-white rounded-3xl border border-slate-150/40 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] space-y-4">
                     <span className="text-xs font-black text-[#503020] uppercase tracking-widest block font-sans">
                       {lang === 'en' ? "Lecture Handbook Shelf" : "حقيبة المذكرات العلمية والمصادر"}
                     </span>
@@ -450,7 +450,7 @@ export const ScholarWebinars: React.FC<ScholarWebinarsProps> = ({
                         <div key={idx} className="bg-slate-50 hover:bg-amber-50/20 border border-slate-150 p-3 rounded-2xl flex items-center justify-between gap-3 transition">
                           <div className="min-w-0 flex items-center gap-2.5">
                             <span className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-805 text-xs font-black shrink-0">
-                              {h.type.toUpperCase()}
+                               {h.type.toUpperCase()}
                             </span>
                             <div className="min-w-0 leading-tight">
                               <p className="text-xs font-bold text-slate-800 truncate">{lang === 'en' ? h.nameEn : h.nameAr}</p>
@@ -470,7 +470,7 @@ export const ScholarWebinars: React.FC<ScholarWebinarsProps> = ({
                   </div>
 
                   {/* Live moderated Q&A streams (Heart of collaborative student webinars) */}
-                  <div className="bg-white rounded-3xl border border-slate-205 p-6 shadow-sm space-y-4 flex flex-col justify-between min-h-[420px]">
+                  <div className="bg-white rounded-3xl border border-slate-150/40 p-6 shadow-[0_12px_45px_rgba(0,0,0,0.04)] space-y-4 flex flex-col justify-between min-h-[420px]">
                     <div className="space-y-4">
                       <div className="border-b pb-2 flex items-center justify-between">
                         <span className="text-xs font-black text-[#503020] uppercase tracking-widest block font-sans">

@@ -1107,6 +1107,21 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
     virtueEn: "Angels declare 'You are guided, defended, and protected' upon leaving home.",
     virtueAr: "فلاح وضمانة إلهية بالحفظ والكفاية والهدى وتنحي الشيطان عن منيع حصنك الصادق.",
     grade: "Sahih"
+  },
+  {
+    id: "mr_sayyid_istighfar",
+    category: "morning",
+    arabic: "اللَّهُمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لا يَغْفِرُ الذُّنُوبَ إِلا أَنْتَ",
+    transliteration: "Allahumma Anta Rabbi la ilaha illa Anta, khalaqtani wa ana 'abduka, wa ana 'ala 'ahdika wa wa'dika ma-stata'tu, a'udhu bika min sharri ma sana'tu, abu'u laka bini'matika 'alayya, wa abu'u bidhanbi faghfir li fa'innahu la yaghfiru-dhunuba illa Ant.",
+    translationEn: "O Allah! You are my Lord. There is no god except You. You created me, and I am Your slave, and I remain faithful to Your covenant and Your promise as much as I am able. I seek refuge in You from the evil of what I have done. I acknowledge before You Your blessings upon me, and I acknowledge my sin. So forgive me, for none can forgive sins except You.",
+    translationAr: "اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت، أعوذ بك من شر ما صنعت، أبوء لك بنعمتك علي، وأبوء بذنبي فاغفر لي فإنه لا يغفر الذنوب إلا أنت.",
+    translationUr: "اے اللہ! تو ہی میرا رب ہے، تیرے سوا کوئی معبود نہیں، تو نے ہی مجھے پیدا کیا اور میں تیرا ہی بندہ ہوں، اور میں اپنی استطاعت کے مطابق تیرے عہد اور وعدے پر قائم ہوں۔ میں اپنے اعمال کے شر سے تیری پناہ مانگتا ہوں، میں تیرے سامنے اپنے اوپر تیری دی گئی نعمتوں کا اعتراف کرتا ہوں اور اپنے گناہوں کا اقرار کرتا ہوں، پس مجھے معاف فرما دے کیونکہ تیرے سوا کوئی گناہوں کو معاف نہیں کر سکتا۔",
+    translationHa: "Ya Allah, Kai ne Ubangijina, babu abin bautawa da gaskiya sai Kai, Ka halicce ni kuma ni bawan Ka ne, kuma ina kan alkawarin Ka da mika wuya gare Ka gwargwadon ikona. Ina neman tsari gare Ka daga tsananin cutar da na aikata. Ina amsa miki da ni'imar Ka a kaina, kuma ina amsa zunubi na, don haka Ka gafarta mini domin babu mai gafarta zunubai sai Kai.",
+    targetCount: 1,
+    source: "Sahih Al-Bukhari 6306",
+    virtueEn: "The supreme master of seeking forgiveness (Sayyid al-Istighfar). Recited with firm belief ensures entry to Paradise.",
+    virtueAr: "سيد الاستغفار؛ من قالها موقنا بها حين يصبح فمات من يومه قبل أن يمسي دخل الجنة ومن قالها موقنا بها حين يمسي دخل الجنة.",
+    grade: "Sahih"
   }
 ];
 

@@ -222,13 +222,13 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
       </div>
 
       {/* Sub-tab selection bar (Tabularized navigation) */}
-      <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2.5 bg-slate-100/80 p-1.5 rounded-2xl max-w-4xl mx-auto mb-10 border border-slate-200 shadow-sm" id="forum-subtabs-nav">
+      <div className="grid grid-cols-2 lg:flex lg:flex-row items-center justify-center gap-2 md:gap-2.5 bg-slate-100/80 p-2 md:p-1.5 rounded-3xl max-w-4xl mx-auto mb-10 border border-slate-150/50 shadow-[0_8px_30px_rgba(0,0,0,0.03)]" id="forum-subtabs-nav">
         <button
           onClick={() => setActiveSubTab('qa')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
             activeSubTab === 'qa'
-              ? 'bg-amber-800 text-white shadow-sm font-black'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
           }`}
         >
           <BookOpen className="w-4 h-4 shrink-0 text-amber-700" />
@@ -236,10 +236,10 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         </button>
         <button
           onClick={() => setActiveSubTab('webinars')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
             activeSubTab === 'webinars'
-              ? 'bg-amber-805 bg-amber-800 text-white shadow-sm font-black'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
           }`}
         >
           <Calendar className="w-4 h-4 shrink-0 text-emerald-700" />
@@ -247,10 +247,10 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         </button>
         <button
           onClick={() => setActiveSubTab('communities')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
             activeSubTab === 'communities'
-              ? 'bg-amber-805 bg-amber-800 text-white shadow-sm font-black'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
           }`}
         >
           <Users className="w-4 h-4 shrink-0 text-indigo-700" />
@@ -258,13 +258,13 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         </button>
         <button
           onClick={() => setActiveSubTab('discuss')}
-          className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer ${
+          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
             activeSubTab === 'discuss'
-              ? 'bg-amber-805 bg-amber-800 text-white shadow-sm font-black'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-150'
+              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
+              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
           }`}
         >
-          <MessageSquare className="w-4 h-4 shrink-0 text-amber-800" />
+          <MessageSquare className="w-4 h-4 shrink-0 text-amber-700" />
           <span>{lang === 'en' ? "Student Circle Lounge" : "منتدى الطلاب"}</span>
         </button>
       </div>

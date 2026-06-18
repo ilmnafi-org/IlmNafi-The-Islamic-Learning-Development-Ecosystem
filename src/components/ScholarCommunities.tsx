@@ -110,7 +110,7 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
                     setActiveScholarId(s.id);
                     setNestedTab('announcements');
                   }}
-                  className="bg-white rounded-3xl border-2 border-slate-150 hover:border-amber-700/60 p-5 md:p-6 transition-all duration-300 hover:shadow-lg cursor-pointer flex flex-col justify-between gap-5 relative overflow-hidden"
+                  className="bg-white rounded-3xl border border-slate-100 hover:border-amber-700/40 p-5 md:p-6 transition-all duration-300 hover:shadow-2xl shadow-[0_10px_35px_rgba(0,0,0,0.04)] cursor-pointer flex flex-col justify-between gap-5 relative overflow-hidden"
                 >
                   <div className="space-y-4">
                     {/* Header credentials */}
@@ -203,7 +203,7 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
                 <div className="lg:col-span-1 space-y-6">
                   
                   {/* Scholar Premium Credentials display Card */}
-                  <div className="bg-gradient-to-br from-white to-amber-50/15 border-2 border-amber-950/15 rounded-3xl p-6 space-y-5 shadow-sm">
+                  <div className="bg-gradient-to-br from-white to-amber-50/15 border border-slate-100 rounded-3xl p-6 space-y-5 shadow-[0_12px_45px_rgba(0,0,0,0.04)]">
                     <div className="text-center space-y-3 pb-4 border-b">
                       <img src={current.avatar} alt="avatar" className="w-20 h-20 rounded-full border-2 border-amber-800 shadow mx-auto object-cover" />
                       <div>

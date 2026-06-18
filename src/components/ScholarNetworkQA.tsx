@@ -307,7 +307,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
           {/* Questions Grid */}
           <div className="space-y-4">
             {filtered.length === 0 ? (
-              <div className="p-12 text-center text-slate-400 bg-white border border-slate-200 rounded-2xl text-xs font-sans">
+              <div className="p-12 text-center text-slate-400 bg-white border border-slate-100 rounded-2xl text-xs font-sans shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
                 {lang === 'en' ? "No verified results found for this category query." : "لا توجد أسئلة أو تساؤلات تخصصية مطابقة للبحث حالياً."}
               </div>
             ) : (
@@ -318,7 +318,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
                   <div
                     key={q.id}
                     onClick={() => setActiveQuestionId(q.id)}
-                    className="p-5 md:p-6 bg-white border border-slate-200 rounded-2xl hover:border-amber-700 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between gap-5"
+                    className="p-5 md:p-6 bg-white border border-slate-150/40 rounded-2xl hover:border-amber-700 hover:shadow-2xl shadow-[0_10px_35px_rgba(0,0,0,0.04)] transition-all cursor-pointer flex flex-col justify-between gap-5"
                   >
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -387,7 +387,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
         <div className="space-y-6">
           <button
             onClick={() => setActiveQuestionId(null)}
-            className="flex items-center gap-2 text-xs text-slate-550 hover:text-amber-805 transition bg-white font-black py-2 px-4 border border-slate-200 shadow-sm rounded-xl cursor-pointer"
+            className="flex items-center gap-2 text-xs text-slate-550 hover:text-amber-805 transition bg-white font-black py-2 px-4 border border-slate-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] rounded-xl cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
             <span>{lang === 'en' ? "Back to Q&A List" : "العودة لقائمة المسائل"}</span>
@@ -401,7 +401,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
               <div className="space-y-8">
                 
                 {/* Master Student Query Card */}
-                <div className="bg-white rounded-3xl border border-slate-250/80 p-6 md:p-8 space-y-4 shadow-sm">
+                <div className="bg-white rounded-3xl border border-slate-150/30 p-6 md:p-8 space-y-4 shadow-[0_12px_45px_rgba(0,0,0,0.04)]">
                   <div className="flex items-center justify-between">
                     <span className="px-3 py-1 rounded-xl bg-slate-100 border text-[10px] font-black uppercase tracking-wider text-slate-700">
                       {lang === 'en' ? catObj?.en : catObj?.ar}
@@ -443,7 +443,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
                       {current.scholarAnswers.map((ans) => {
                         const scholar = VERIFIED_SCHOLARS.find(s => s.id === ans.scholarId);
                         return (
-                          <div key={ans.id} className="bg-gradient-to-br from-white to-amber-50/10 border-2 border-amber-950/10 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm relative overflow-hidden">
+                          <div key={ans.id} className="bg-gradient-to-br from-white to-amber-50/10 border border-slate-100 rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_12px_45px_rgba(0,0,0,0.04)] relative overflow-hidden">
                             {/* Accent badge watermark */}
                             <div className="absolute top-0 right-0 p-4 shrink-0">
                               <div className="bg-amber-100 border border-amber-300 text-amber-950 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm text-[10px]">
