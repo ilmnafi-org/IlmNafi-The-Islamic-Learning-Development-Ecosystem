@@ -1007,7 +1007,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                     className="flex-1 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-slate-200"
                   >
                     <RefreshCw className="w-3 h-3 text-slate-450" />
-                    <span>{lang === 'en' ? t.en.resetAdhkar : t.ar.resetAdhkar}</span>
+                    <span>{t.resetAdhkar}</span>
                   </button>
 
                   <button
@@ -1021,7 +1021,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                     className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-emerald-250/20"
                   >
                     <CheckSquare className="w-3 h-3 text-emerald-600" />
-                    <span>{lang === 'en' ? t.en.bulkCompleteAll : t.ar.bulkCompleteAll}</span>
+                    <span>{t.bulkCompleteAll}</span>
                   </button>
                 </div>
               </div>
