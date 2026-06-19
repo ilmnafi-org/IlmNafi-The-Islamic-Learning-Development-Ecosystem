@@ -97,6 +97,50 @@ const WISDOM_QUOTES = [
   }
 ];
 
+// Dynamic landing page Hero content variations that cycle on interaction/timer
+const HERO_TEMPLATES = [
+  {
+    titleEn: "Beneficial Knowledge.",
+    titleAr: "طلبُ العِلْمِ فَرِيضَةٌ",
+    subtitleEn: "Discover a unified scholarly platform combining K-12 open-source Islamic curriculum, advanced AI recitation guidance, and a global scholarships database.",
+    subtitleAr: "اكتشف منصة علمية موحدة تجمع بين المناهج الإسلامية مفتوحة المصدر، وتصحيح التلاوة بالذكاء الاصطناعي، وقاعدة بيانات المنح العالمية.",
+    ctaStartEn: "AI Reciter Coach",
+    ctaStartAr: "مصحح التلاوة الذكي",
+    ctaCurriculumEn: "Explore Curriculum",
+    ctaCurriculumAr: "تصفح المناهج"
+  },
+  {
+    titleEn: "Read in the Name of your Lord.",
+    titleAr: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",
+    subtitleEn: "Refine your Tajweed and memorize classical texts with real-time audio alignment designed by traditional scholars and expert educators.",
+    subtitleAr: "صقّل تجويدك واحفظ المتون التفصيلية مع تقييم صوتي فوري مصمم لتيسير طلب العلم وحفظ كتاب الله العزيز.",
+    ctaStartEn: "Check Tajweed Now",
+    ctaStartAr: "افحص تجويدك الآن",
+    ctaCurriculumEn: "Study Classical Texts",
+    ctaCurriculumAr: "دراسة المتون الأصيلة"
+  },
+  {
+    titleEn: "An Inheritance of Prophets.",
+    titleAr: "العُلَمَاءُ وَرَثَةُ الأَنْبِيَاءِ",
+    subtitleEn: "Engage with live webinars, class forums, and a dedicated academic community keeping the pristine chains of classical Islamic traditions alive.",
+    subtitleAr: "شارك في الحلقات المباشرة، والمنتديات الدراسية، والندوات العلمية لحفظ وبث التراث الشرعي الأصيل والتواصل السليم.",
+    ctaStartEn: "Join Live Seminars",
+    ctaStartAr: "حضور الحلقات الحية",
+    ctaCurriculumEn: "Meet Our Faculty",
+    ctaCurriculumAr: "أعضاء المجمع العلمي"
+  },
+  {
+    titleEn: "And say: My Lord, increase me in knowledge.",
+    titleAr: "وَقُل رَّبِّ زِدْنِي عِلْمًا",
+    subtitleEn: "Access curated scholarship tracks, academic directories, and authentic open education resources completely free from barriers.",
+    subtitleAr: "احصل على بوابات المنح الدراسية المنسقة، والمصادر الأكاديمية الأصيلة، ومسارات السلوك المعرفي بيسر وسهولة للجميع بالهوية الإسلامية.",
+    ctaStartEn: "Discover Grants",
+    ctaStartAr: "اكتشف المنح الدراسية",
+    ctaCurriculumEn: "Browse Materials",
+    ctaCurriculumAr: "تصفح الكتب والمذكرات"
+  }
+];
+
 // Scientific Golden Age Timeline Database
 const TIMELINE_DATA = [
   {
@@ -220,6 +264,18 @@ export default function App() {
   const [adhkarDrawerActive, setAdhkarDrawerActive] = useState<'tasbih' | 'prayers' | 'dua' | null>(null);
   const [appLoading, setAppLoading] = useState(true);
   const [loadingQuoteIdx] = useState(() => Math.floor(Math.random() * WISDOM_QUOTES.length));
+  
+  // Hero Index for dynamic rotating headlines and CTA buttons
+  const [heroIndex, setHeroIndex] = useState(() => Math.floor(Math.random() * HERO_TEMPLATES.length));
+
+  // Auto-cycle the hero templates every 9 seconds when user is on home screen
+  useEffect(() => {
+    if (activeTab !== 'home') return;
+    const interval = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % HERO_TEMPLATES.length);
+    }, 9000);
+    return () => clearInterval(interval);
+  }, [activeTab]);
 
   const [globalAudio, setGlobalAudio] = useState<{
     isPlaying: boolean;
@@ -1405,7 +1461,7 @@ export default function App() {
               
               {showProfileDropdown && (
                 <div 
-                  className={`absolute mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 space-y-4 z-50 text-xs animate-fadeIn ${
+                  className={`absolute mt-2 w-64 premium-dropdown p-4 space-y-4 z-50 text-xs animate-fadeIn ${
                     lang === 'ar' ? 'left-0' : 'right-0'
                   }`} 
                   id="profile-dropdown-card"
@@ -1592,46 +1648,75 @@ export default function App() {
             
             {/* PRESTIGE DESIGN HERO HERO SECTION WITH PICTURE OVERLAY LAYER */}
             <section 
-              className="relative overflow-hidden py-24 md:py-36 text-center px-4 rounded-[2rem] w-[94%] max-w-7xl mx-auto bg-cover bg-center text-white"
+              className="relative overflow-hidden py-24 md:py-36 text-center px-4 rounded-[2.5rem] w-[94%] max-w-7xl mx-auto bg-cover bg-center text-white shadow-[0_25px_60px_rgba(7,28,23,0.12)] border border-emerald-950/20"
               style={{
-                backgroundImage: "linear-gradient(to bottom, rgba(7, 28, 23, 0.94), rgba(12, 20, 18, 0.88)), url('https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=1600')"
+                backgroundImage: "linear-gradient(to bottom, rgba(5, 23, 19, 0.95), rgba(9, 15, 14, 0.9)), url('https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=1600')"
               }}
               id="hero-majestic-block"
             >
               <div className="max-w-4xl mx-auto relative z-10 flex flex-col items-center">
                 
-                {/* Globe sticker container with gold badges */}
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 mb-6 backdrop-blur">
+                {/* Globe sticker container with gold badges and dynamic change trigger */}
+                <div className="flex flex-wrap items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 mb-6 backdrop-blur">
                   <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                   <span className="font-bold text-[10px] text-amber-200 uppercase tracking-widest font-sans">
-                    {labels.tagline}
+                    {lang === 'en' ? "Inspired Quranic Verses & Wisdoms" : "من وحي آيات الذكر الحكيم والحكم الشرعية"} • {heroIndex + 1}/{HERO_TEMPLATES.length}
                   </span>
+                  <button 
+                    onClick={() => setHeroIndex(prev => (prev + 1) % HERO_TEMPLATES.length)}
+                    className="ml-2 pl-2 border-l border-amber-500/30 text-amber-350 hover:text-white cursor-pointer transition text-[10px] font-black flex items-center gap-1.5 focus:outline-none"
+                    title="Cycle Wisdom"
+                  >
+                    <RefreshCw className="w-3 h-3 animate-spin-slow inline text-amber-400" />
+                    <span>{lang === 'en' ? "Inspire Me" : "آية وحكمة أخرى"}</span>
+                  </button>
                 </div>
 
-                <h1 className="font-extrabold text-4xl md:text-6xl text-white tracking-tight leading-none font-sans drop-shadow-sm max-w-3xl">
-                  {lang === 'en' ? "Beneficial Knowledge." : "طلبُ العِلْمِ فَرِيضَة"}
-                </h1>
+                {/* Animated Heading - key forces exit/entry on index change */}
+                <motion.h1 
+                  key={`title-${heroIndex}`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="font-extrabold text-4xl md:text-6xl text-white tracking-tight leading-none font-sans drop-shadow-sm max-w-3xl"
+                >
+                  {lang === 'en' ? HERO_TEMPLATES[heroIndex].titleEn : HERO_TEMPLATES[heroIndex].titleAr}
+                </motion.h1>
                 
-                <p className="text-emerald-100/80 font-medium text-sm md:text-base max-w-2xl mt-5 leading-relaxed font-sans">
-                  {labels.subtitle}
-                </p>
+                <motion.p 
+                  key={`subtitle-${heroIndex}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-emerald-100/80 font-medium text-sm md:text-base max-w-2xl mt-5 leading-relaxed font-sans"
+                >
+                  {lang === 'en' ? HERO_TEMPLATES[heroIndex].subtitleEn : HERO_TEMPLATES[heroIndex].subtitleAr}
+                </motion.p>
 
                 {/* Sub-banner layout action triggers */}
                 <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto">
-                  <button 
+                  <motion.button 
+                    key={`cta1-${heroIndex}`}
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.15 }}
                     onClick={() => { setActiveTab('coach'); }}
-                    className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3.5 rounded-xl font-bold text-xs tracking-wide transition shadow-sm cursor-pointer border border-amber-600"
+                    className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3.5 rounded-2xl font-bold text-xs tracking-wide transition shadow-lg shadow-amber-950/20 cursor-pointer border border-amber-600 scale-[1.02] hover:scale-[1.05]"
                     id="hero-btn-learning"
                   >
-                    {labels.ctaStart}
-                  </button>
-                  <button 
+                    {lang === 'en' ? HERO_TEMPLATES[heroIndex].ctaStartEn : HERO_TEMPLATES[heroIndex].ctaStartAr}
+                  </motion.button>
+                  <motion.button 
+                    key={`cta2-${heroIndex}`}
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
                     onClick={() => { setActiveTab('curriculum'); }}
-                    className="border border-white/20 bg-white/5 hover:bg-white/10 text-white px-8 py-3.5 rounded-xl font-bold text-xs tracking-wide transition backdrop-blur cursor-pointer"
+                    className="border border-white/20 bg-white/5 hover:bg-white/10 text-white px-8 py-3.5 rounded-2xl font-bold text-xs tracking-wide transition backdrop-blur cursor-pointer scale-[1.02] hover:scale-[1.05]"
                     id="hero-btn-curriculum"
                   >
-                    {labels.ctaCurriculum}
-                  </button>
+                    {lang === 'en' ? HERO_TEMPLATES[heroIndex].ctaCurriculumEn : HERO_TEMPLATES[heroIndex].ctaCurriculumAr}
+                  </motion.button>
                 </div>
 
               </div>
@@ -1762,7 +1847,7 @@ export default function App() {
                   {/* PORTAL 1: HOLY QURAN */}
                   <div 
                     onClick={() => setActiveTab('quran')}
-                    className="bg-white border border-slate-250/75 hover:border-amber-600 hover:shadow-md rounded-[1.75rem] p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    className="premium-card hover:border-amber-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-quran"
                   >
                     <div className="absolute top-1.5 right-1.5 bg-amber-150 text-[#C59B32] font-black text-[7px] tracking-widest px-1.5 py-0.5 rounded-full uppercase scale-90">NEW</div>
@@ -1782,7 +1867,7 @@ export default function App() {
                   {/* PORTAL 2: EDUCATION CURRICULUMS */}
                   <div 
                     onClick={() => setActiveTab('curriculum')}
-                    className="bg-white border border-slate-250/75 hover:border-emerald-600 hover:shadow-md rounded-[1.75rem] p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    className="premium-card hover:border-emerald-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-curriculum"
                   >
                     <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
@@ -1801,7 +1886,7 @@ export default function App() {
                   {/* PORTAL 3: AI RECITATION COACH */}
                   <div 
                     onClick={() => setActiveTab('coach')}
-                    className="bg-white border border-slate-250/75 hover:border-emerald-750 hover:shadow-md rounded-[1.75rem] p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    className="premium-card hover:border-emerald-700 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-coach"
                   >
                     <div className="w-12 h-12 rounded-full bg-emerald-500/5 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
@@ -1820,7 +1905,7 @@ export default function App() {
                   {/* PORTAL 4: IKHLAS DAILY TOOLS */}
                   <div 
                     onClick={() => setActiveTab('daily')}
-                    className="bg-white border border-slate-250/75 hover:border-blue-600 hover:shadow-md rounded-[1.75rem] p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    className="premium-card hover:border-blue-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-daily"
                   >
                     <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center border border-blue-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
@@ -1839,7 +1924,7 @@ export default function App() {
                   {/* PORTAL 5: ASK THE MUFTI */}
                   <div 
                     onClick={() => setActiveTab('scholarly')}
-                    className="bg-white border border-slate-250/75 hover:border-purple-600 hover:shadow-md rounded-[1.75rem] p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    className="premium-card hover:border-purple-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-scholarly"
                   >
                     <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center border border-purple-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
@@ -1858,7 +1943,7 @@ export default function App() {
                   {/* PORTAL 6: IVY SCHOLARSHIPS REGISTRY */}
                   <div 
                     onClick={() => setActiveTab('scholarships')}
-                    className="bg-white border border-slate-250/75 hover:border-amber-600 hover:shadow-md rounded-[1.75rem] p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    className="premium-card hover:border-amber-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-scholarships"
                   >
                     <div className="w-12 h-12 rounded-full bg-amber-500/5 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform duration-300 shadow-2xs">

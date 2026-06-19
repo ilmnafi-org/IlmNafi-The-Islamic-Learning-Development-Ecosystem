@@ -413,7 +413,7 @@ export default function IssueTrackerView({ lang }: IssueTrackerViewProps) {
                       <select
                         value={issueType}
                         onChange={(e) => setIssueType(e.target.value as any)}
-                        className="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500 outline-none text-slate-800 font-bold cursor-pointer pr-10"
+                        className="w-full appearance-none px-4 py-2.5 bg-white border border-slate-200 premium-dropdown text-xs focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500 outline-none text-slate-850 font-bold cursor-pointer pr-10 shadow-md"
                       >
                         <option value="Bug">{lang === 'en' ? "🐞 Software Bug / Interface Crash" : "🐞 خلل برمجي في الواجهات"}</option>
                         <option value="Feature Request">{lang === 'en' ? "💡 Feature / Optimization Suggestion" : "💡 اقتراح تزويد ميزة جديدة"}</option>

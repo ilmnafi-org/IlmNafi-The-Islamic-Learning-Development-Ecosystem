@@ -747,7 +747,7 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-slate-500 block">{lang === 'en' ? "Islamic Category Group" : "التصنيف والباب الفقهي"}</label>
                 <select
-                  className="w-full text-xs p-3 border rounded-xl font-bold bg-slate-50 outline-none focus:ring-1 focus:ring-amber-800"
+                  className="w-full text-xs p-3.5 border border-slate-200 premium-dropdown font-bold bg-white focus:ring-1 focus:ring-amber-800 outline-none cursor-pointer shadow-md"
                   value={askCategory}
                   onChange={(e) => setAskCategory(e.target.value as any)}
                 >

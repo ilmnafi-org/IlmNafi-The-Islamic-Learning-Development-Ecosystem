@@ -1262,7 +1262,7 @@ export const ScholarlyView: React.FC<ScholarlyViewProps> = ({ lang }) => {
                     <select
                       value={newThreadCategory}
                       onChange={(e) => setNewThreadCategory(e.target.value)}
-                      className="w-full bg-slate-50 border rounded-xl px-3 py-2 text-xs"
+                      className="w-full px-3 py-2.5 text-xs bg-white border border-slate-200 rounded-xl premium-dropdown shadow-md cursor-pointer outline-none focus:border-amber-600"
                     >
                       <option value="fiqh">Jurisprudence</option>
                       <option value="hadith">Hadith criticism</option>

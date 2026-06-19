@@ -422,7 +422,7 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
                     <div className="flex items-center gap-3 relative font-sans">
                       <label className="text-xs font-bold text-slate-600 block shrink-0">{lang === 'en' ? "Select Channel Topic:" : "حقل القناة:"}</label>
                       <select
-                        className="text-xs p-2 bg-white border rounded-lg focus:border-amber-600 outline-none"
+                        className="text-xs p-2.5 bg-white border border-slate-200 rounded-xl shadow-md premium-dropdown focus:border-amber-600 outline-none cursor-pointer"
                         value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value as any)}
                       >
