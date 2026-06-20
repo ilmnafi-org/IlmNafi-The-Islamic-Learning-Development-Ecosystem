@@ -197,7 +197,7 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
               <div className="flex justify-between items-start gap-4">
                 <div className="space-y-1">
                   <span className="text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full inline-block">
-                    ★ {labels.activeVerified}
+                    {labels.activeVerified}
                   </span>
                   <div className="text-xs font-mono text-slate-400 mt-1">{labels.registeredIn}</div>
                 </div>

@@ -45,8 +45,8 @@ interface ForumThread {
 }
 
 export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthSuccess }) => {
-  // Navigation active scholarly sub-tab: 'qa' | 'webinars' | 'communities' | 'discuss'
-  const [activeSubTab, setActiveSubTab] = useState<'qa' | 'webinars' | 'communities' | 'discuss'>('qa');
+  // Navigation active sub-tab (defaulting to discuss lounge)
+  const [activeSubTab, setActiveSubTab] = useState<'qa' | 'webinars' | 'communities' | 'discuss'>('discuss');
 
   // Open Circles Student Discussion Forum States
   const [threads, setThreads] = useState<ForumThread[]>([]);
@@ -209,64 +209,16 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
       {/* Premium Hub Header */}
       <div className="text-center max-w-3xl mx-auto mb-10 space-y-3 font-sans">
         <span className="bg-amber-100 text-amber-950 font-black text-[10px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm border border-amber-300/30">
-          {lang === 'en' ? "Verified Scholar Circle" : "المجلس العلمي والتعليمي للعلماء"}
+          {lang === 'en' ? "Student Forums" : "منتدى مجالس المذاكرة"}
         </span>
-        <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
-          {lang === 'en' ? "Ilm Nafi Scholar Network" : "مجمع علم نافع للعلماء والبحوث"}
+        <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-none animate-fadeIn">
+          {lang === 'en' ? "Class Forums" : "منتدى ومجالس المذاكرة"}
         </h1>
         <p className="text-xs md:text-sm text-slate-500 max-w-2xl mx-auto">
           {lang === 'en' 
-            ? "A global digital sanctuary preserving authentic Islamic sciences. Direct scholar inquiries, supervised interactions, live masterclass webinars, and certified faculties spaces."
-            : "صرح تفاعلي علمي متكامل لحفظ الشريعة واللغة. أسئلة تخصصية يجيب عليها العلماء، دورات لايف تفاعلية، ومساحات ومجالس للعلماء المعتمدين."}
+            ? "A digital lounge where students discuss pronunciation rhythms, share curriculum notes, and collaborate on assignments in a supervised, respectful space."
+            : "ردهة حرة للمذاكرة لتبادل الآراء، شروح المتون، المناهج التجويدية والفقهية مع زملاء الغرس التخصصي."}
         </p>
-      </div>
-
-      {/* Sub-tab selection bar (Tabularized navigation) */}
-      <div className="grid grid-cols-2 lg:flex lg:flex-row items-center justify-center gap-2 md:gap-2.5 bg-slate-100/80 p-2 md:p-1.5 rounded-3xl max-w-4xl mx-auto mb-10 border border-slate-150/50 shadow-[0_8px_30px_rgba(0,0,0,0.03)]" id="forum-subtabs-nav">
-        <button
-          onClick={() => setActiveSubTab('qa')}
-          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
-            activeSubTab === 'qa'
-              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
-          }`}
-        >
-          <BookOpen className="w-4 h-4 shrink-0 text-amber-700" />
-          <span>{lang === 'en' ? "Scholar Q&A" : "فتاوى وأسئلة"}</span>
-        </button>
-        <button
-          onClick={() => setActiveSubTab('webinars')}
-          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
-            activeSubTab === 'webinars'
-              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
-          }`}
-        >
-          <Calendar className="w-4 h-4 shrink-0 text-emerald-700" />
-          <span>{lang === 'en' ? "Webinars & Classes" : "الحلقات والندوات"}</span>
-        </button>
-        <button
-          onClick={() => setActiveSubTab('communities')}
-          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
-            activeSubTab === 'communities'
-              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
-          }`}
-        >
-          <Users className="w-4 h-4 shrink-0 text-indigo-700" />
-          <span>{lang === 'en' ? "Scholar Directory" : "أعضاء وعمادات"}</span>
-        </button>
-        <button
-          onClick={() => setActiveSubTab('discuss')}
-          className={`px-4 py-3 md:py-2.5 rounded-xl transition text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer w-full ${
-            activeSubTab === 'discuss'
-              ? 'bg-amber-800 text-white shadow-md font-black scale-[1.02]'
-              : 'text-slate-600 bg-white/50 hover:bg-white hover:text-slate-900 shadow-sm border border-slate-100/50'
-          }`}
-        >
-          <MessageSquare className="w-4 h-4 shrink-0 text-amber-700" />
-          <span>{lang === 'en' ? "Student Circle Lounge" : "منتدى الطلاب"}</span>
-        </button>
       </div>
 
       {/* Sub-tab viewports sequentially stacked */}

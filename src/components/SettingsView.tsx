@@ -261,7 +261,7 @@ export default function SettingsView({ progress, setProgress, onUpdateUsername, 
             </div>
           </div>
 
-          {/* 2. TAJWEED AUTOMATED ANALYZER ENGNE CONFIG */}
+          {/* 2. TAJWEED AUTOMATED ENGINE CONFIG */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
@@ -270,7 +270,7 @@ export default function SettingsView({ progress, setProgress, onUpdateUsername, 
                 </div>
                 <div>
                   <h2 className="text-sm font-extrabold text-slate-900">
-                    {lang === 'en' ? "Active Tajweed Analysis on Highlights" : "مساعد التدقيق وترتيل المتون"}
+                    {lang === 'en' ? "Active Tajweed Engine on Highlights" : "مساعد التدقيق وترتيل المتون"}
                   </h2>
                   <p className="text-[10px] text-slate-500">
                     {lang === 'en' ? "Instantly analyzes phonology and vowel rules when clicking verses" : "يقوم بفحص وتبيان الساكن والمدود والترقيق لفظياً فور الضغط على الكلمة المقروءة"}

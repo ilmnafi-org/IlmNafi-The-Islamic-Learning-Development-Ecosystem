@@ -955,7 +955,7 @@ export default function MakhrajVisualizer({
                     key={index} 
                     className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-100 text-[10px] font-sans font-bold uppercase tracking-wider"
                   >
-                    ✦ {sf}
+                    {sf}
                   </span>
                 ))}
               </div>

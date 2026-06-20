@@ -1067,7 +1067,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                     {/* Badge details */}
                     <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                       <span className="text-[10px] font-mono text-emerald-803 uppercase tracking-wider font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-250/20">
-                        {activeStep.grade === 'Sahih' ? "★ Sahih Grade (Bukhari/Muslim)" : "★ Hasan (Sound Chain)"}
+                        {activeStep.grade === 'Sahih' ? "Sahih Grade (Bukhari/Muslim)" : "Hasan (Sound Chain)"}
                       </span>
                       <span className="text-[10px] font-mono text-slate-400">
                         {adhkarIndex + 1} / {filteredAdhkar.length}

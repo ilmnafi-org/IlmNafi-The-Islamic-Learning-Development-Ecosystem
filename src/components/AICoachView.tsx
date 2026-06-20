@@ -91,9 +91,9 @@ export default function AICoachView({
   onClearPracticeVerse
 }: AICoachViewProps) {
   const [selectedVerse, setSelectedVerse] = useState<QuranVerse>(RECITATION_PRESETS[0]);
-  const [customArabicMode, setCustomArabicMode] = useState(false);
-  const [customText, setCustomText] = useState('');
-  const [customSurah, setCustomSurah] = useState('');
+  const [customArabicMode, setCustomArabicMode] = useState(true);
+  const [customText, setCustomText] = useState('أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ');
+  const [customSurah, setCustomSurah] = useState('Surah Al-Fatihah 1');
   const selectedQiraat = 'hafs';
   const [activeReciterRef, setActiveReciterRef] = useState<'ghamadi' | 'husary'>(() => {
     return (localStorage.getItem('ilm_naafi_primary_reciter') as 'ghamadi' | 'husary') || 'husary';
@@ -103,7 +103,9 @@ export default function AICoachView({
   useEffect(() => {
     if (practiceVerse) {
       setSelectedVerse(practiceVerse);
-      setCustomArabicMode(false);
+      setCustomSurah(`${practiceVerse.surah} ${practiceVerse.ayah}`);
+      setCustomText(practiceVerse.textArabic);
+      setCustomArabicMode(true);
     }
   }, [practiceVerse]);
 
@@ -570,160 +572,46 @@ export default function AICoachView({
           id="workspace-container"
         >
           <div className="space-y-6">
-            {/* Header controls for Preset/Custom select */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => { setCustomArabicMode(false); resetRecording(); }}
-                  className={`pb-2.5 text-xs font-black tracking-wide border-b-2 cursor-pointer transition ${
-                    !customArabicMode ? 'border-emerald-850 text-emerald-950 text-sm' : 'border-transparent text-slate-400 hover:text-slate-800'
-                  }`}
-                >
-                  Classic Presets
-                </button>
-                <button 
-                  onClick={() => { setCustomArabicMode(true); resetRecording(); }}
-                  className={`pb-2.5 text-xs font-black tracking-wide border-b-2 cursor-pointer transition ${
-                    customArabicMode ? 'border-emerald-850 text-emerald-950 text-sm' : 'border-transparent text-slate-400 hover:text-slate-800'
-                  }`}
-                >
-                  Custom Arabic
-                </button>
-              </div>
-
-              {/* Dynamic Qari Selector inside AICoachView */}
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl self-start sm:self-auto shrink-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Reciter:</span>
-                <button
-                  onClick={() => {
-                    setActiveReciterRef('husary');
-                    localStorage.setItem('ilm_naafi_primary_reciter', 'husary');
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition cursor-pointer ${
-                    activeReciterRef === 'husary' 
-                      ? 'bg-emerald-900 text-white shadow-xs' 
-                      : 'text-slate-500 hover:text-slate-800 bg-white'
-                  }`}
-                >
-                  Sheikh Al-Husary
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveReciterRef('ghamadi');
-                    localStorage.setItem('ilm_naafi_primary_reciter', 'ghamadi');
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition cursor-pointer ${
-                    activeReciterRef === 'ghamadi' 
-                      ? 'bg-emerald-900 text-white shadow-xs' 
-                      : 'text-slate-500 hover:text-slate-800 bg-white'
-                  }`}
-                >
-                  Saad Al-Ghamidi
-                </button>
-              </div>
+            <div className="border-b border-slate-100 pb-5">
+              <h2 className="text-sm font-black text-slate-905 uppercase tracking-wider">Quran Learning Entry Engine (Tajweed Coach)</h2>
+              <p className="text-slate-550 text-xs mt-1">Enter any verse with Harakat vocal markings below to practice, or click any Ayah directly from our Quran Browser to sync it here automatically.</p>
             </div>
 
-            {/* PRESET VERSES CONTAINER */}
-            {!customArabicMode ? (
-              <div className="space-y-5">
-                <div className="flex flex-wrap gap-2">
-                  {RECITATION_PRESETS.map((v) => (
-                    <button
-                      key={`${v.surah}-${v.ayah}`}
-                      onClick={() => { setSelectedVerse(v); resetRecording(); }}
-                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition border cursor-pointer ${
-                        selectedVerse.surah === v.surah 
-                          ? 'bg-emerald-50 border-emerald-600 text-emerald-900 shadow-sm' 
-                          : 'bg-white border-slate-205 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {v.surah} • {v.ayah}
-                    </button>
-                  ))}
-                </div>
-
-                {/* ARABIC VISUAL WRAPPER WITH GHOST RECITATION & TEXT */}
-                <div className="bg-emerald-50/15 border border-emerald-900/5 rounded-2xl p-6 md:p-8 flex flex-col justify-between items-center text-center space-y-4">
-                  {/* EveryAyah Ghost Reference Stream Player */}
-                  {refUrl && (
-                    <div className="flex justify-between items-center w-full pb-3 border-b border-emerald-900/5">
-                      <span className="text-[10px] font-bold text-amber-850 uppercase tracking-widest flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-900/10">
-                        <Volume2 className="w-3.5 h-3.5 text-[#503020]" />
-                        Ghost Recitation Guide
-                      </span>
-                      <button
-                        onClick={toggleRefPlayback}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm border cursor-pointer ${
-                          isPlayingRef 
-                            ? 'bg-rose-50 border-rose-200 text-rose-700 animate-pulse font-black' 
-                            : 'bg-white border-[#2a1b14]/15 text-[#2a1b14] hover:bg-amber-50/20'
-                        }`}
-                      >
-                        {isPlayingRef ? (
-                          <>
-                            <VolumeX className="w-3.5 h-3.5" /> Stop Guide
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-3.5 h-3.5 fill-[#2a1b14] line-none" /> Play Saad Al-Ghamadi
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Standard Display Text */}
-                  <span className="text-3xl font-black text-emerald-950 font-serif leading-loose" dir="rtl">
-                    {selectedVerse.textArabic}
-                  </span>
-                  
-                  <div className="w-full pt-4 border-t border-emerald-905/5 space-y-1.5">
-                    <p className="text-emerald-805 text-xs font-mono font-medium tracking-wide">
-                      {selectedVerse.transliteration}
-                    </p>
-                    <p className="text-slate-500 text-xs italic">
-                      "{selectedVerse.translation}"
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* CUSTOM TEXT ENTRY CONTAINER */
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Surah / Section Mark</label>
-                    <input 
-                      type="text"
-                      placeholder="e.g. Al-Ikhlas"
-                      value={customSurah}
-                      onChange={(e) => setCustomSurah(e.target.value)}
-                      className="w-full p-3.5 text-xs bg-slate-50 border border-slate-205 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 rounded-xl outline-none text-slate-900 font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-505 uppercase tracking-wider mb-1">Ayah Verse</label>
-                    <input 
-                      type="text"
-                      className="w-full p-3.5 text-xs bg-slate-105 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed"
-                      value="1 (Static demo)"
-                      disabled
-                    />
-                  </div>
+            {/* CUSTOM TEXT ENTRY WORKSPACE */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Surah / Section Mark</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Al-Ikhlas"
+                    value={customSurah}
+                    onChange={(e) => setCustomSurah(e.target.value)}
+                    className="w-full p-3.5 text-xs bg-slate-50 border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 rounded-xl outline-none text-slate-900 font-bold"
+                  />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-505 uppercase tracking-wider mb-1">Arabic Text with Vowels (Harakaat)</label>
-                  <textarea 
-                    rows={2}
-                    placeholder="أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ..."
-                    value={customText}
-                    onChange={(e) => setCustomText(e.target.value)}
-                    className="w-full p-4 border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none text-xl font-black text-slate-950 rounded-2xl font-serif text-center"
-                    dir="rtl"
+                  <label className="block text-[10px] font-black text-slate-505 uppercase tracking-wider mb-1">Ayah Verse</label>
+                  <input 
+                    type="text"
+                    className="w-full p-3.5 text-xs bg-slate-105 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed"
+                    value="Calibrated Selection"
+                    disabled
                   />
                 </div>
               </div>
-            )}
+              <div>
+                <label className="block text-[10px] font-black text-slate-505 uppercase tracking-wider mb-1">Arabic Text with Vowels (Harakaat)</label>
+                <textarea 
+                  rows={3}
+                  placeholder="أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ..."
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  className="w-full p-4 border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none text-xl font-black text-slate-950 rounded-2xl font-serif text-center"
+                  dir="rtl"
+                />
+              </div>
+            </div>
           </div>
 
           {/* DUAL ACTION CONTROLLERS */}
@@ -823,7 +711,7 @@ export default function AICoachView({
           <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-6">
             <span className="w-2.5 h-2.5 bg-emerald-600 rounded-full animate-ping"></span>
             <div className="flex flex-col">
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Hafs Tajweed Word Analyzer</h2>
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Tajweed Engine</h2>
               <span className="text-[10px] text-slate-400 font-bold">Interactive word-by-word Tajweed verification. Click any word to visualize its anatomical articulation point (Makhraj).</span>
             </div>
           </div>
@@ -1070,85 +958,8 @@ export default function AICoachView({
         )}
       </AnimatePresence>
 
-      {/* METRONOME BEAT COUNTER FOR MADD ELONGATION */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-            <Sliders className="w-4 h-4 text-amber-805" />
-            <h2 className="text-sm font-black text-slate-905 uppercase tracking-wider">Madd (Elongation) Duration metronome</h2>
-          </div>
-
-          <p className="text-slate-655 text-xs font-sans leading-relaxed">
-            Classic Tajweed counts the duration of Madd in **beats** (represented mechanically by a single, steady count of a metronome). Select your target beat and hold the tactile pad down. Run the vocal pitch cleanly.
-          </p>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Select Target:</span>
-            {([2, 4, 6] as const).map(b => (
-              <button
-                key={b}
-                onClick={() => { setTargetMaddBeats(b); setMaddScoreMessage(null); }}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition border cursor-pointer ${
-                  targetMaddBeats === b 
-                    ? 'bg-amber-805 border-amber-850 text-white shadow' 
-                    : 'bg-white border-slate-200 text-slate-650 hover:bg-slate-50'
-                }`}
-              >
-                {b} Beats ({b === 2 ? 'Normal' : b === 4 ? 'Heavy' : 'Super-Heavy'})
-              </button>
-            ))}
-          </div>
-
-          {/* Practice pad active */}
-          <div className="flex flex-col md:flex-row items-center gap-6 pt-2">
-            <button
-              onMouseDown={startMaddSynthesis}
-              onMouseUp={stopMaddSynthesis}
-              onTouchStart={startMaddSynthesis}
-              onTouchEnd={stopMaddSynthesis}
-              className={`w-40 h-40 rounded-full border-4 flex flex-col justify-center items-center select-none active:scale-95 transition-all outline-none duration-150 ${
-                maddPracticeActive 
-                  ? 'bg-amber-600 border-amber-500 scale-105 shadow-2xl animate-pulse text-white' 
-                  : 'bg-amber-50/50 border-amber-205 text-amber-900 hover:bg-amber-50 shadow-md cursor-pointer'
-              }`}
-            >
-              {maddPracticeActive ? (
-                <>
-                  <Volume2 className="w-8 h-8 animate-bounce" />
-                  <span className="text-xs font-black uppercase tracking-widest mt-2">Relasing drone...</span>
-                  <span className="text-xl font-mono mt-1 font-bold">{(actualHoldDurationMs / 1000).toFixed(1)}s</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="w-8 h-8" />
-                  <span className="text-xs font-black uppercase text-center max-w-[100px] tracking-wider mt-2">Hold Here & Recite</span>
-                </>
-              )}
-            </button>
-
-            {/* Score or instructions message panel */}
-            <div className="flex-grow space-y-2">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Metronome analysis result</span>
-              {maddScoreMessage ? (
-                <div className={`p-4 rounded-2xl border text-xs leading-relaxed ${
-                  maddScoreResultType === 'perfect' 
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-950 font-sans' 
-                    : 'bg-rose-50 border-rose-100 text-rose-950 font-sans'
-                }`}>
-                  <p className="font-extrabold mb-1">{maddScoreResultType === 'perfect' ? 'Success Match' : 'Calibration Error'}</p>
-                  <p className="font-medium">{maddScoreMessage}</p>
-                </div>
-              ) : (
-                <p className="text-slate-405 text-xs italic leading-normal">
-                  "Sustain your vocal sound together with the metronome count. Release the pad exactly when the expected duration ends."
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* WEAKNESS HEATMAP & MASTERY VISUALIZATIONS */}
-        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
+      {/* WEAKNESS HEATMAP & MASTERY VISUALIZATIONS */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xl space-y-6 max-w-4xl mx-auto mb-12">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
             <BarChart2 className="w-4 h-4 text-emerald-700" />
             <h2 className="text-sm font-black text-slate-905 uppercase tracking-wider">Weakness & Mastery heatmap</h2>
@@ -1229,12 +1040,11 @@ export default function AICoachView({
             </div>
           ) : (
             <div className="py-12 text-center text-slate-400 text-xs italic font-sans space-y-2">
-              <Flame className="w-8 h-8 mx-auto text-slate-300 animate-pulse" />
+              <Flame className="w-8 h-8 mx-auto text-slate-305 animate-pulse" />
               <p>No past recitation logs present.</p>
               <p className="text-[10px] leading-relaxed max-w-[200px] mx-auto text-slate-400/80">Launch your first voice evaluation above to seed your visual mastery matrix progress!</p>
             </div>
           )}
-        </div>
       </div>
     </div>
   );

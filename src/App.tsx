@@ -55,15 +55,14 @@ import {
 import CurriculumView from './components/CurriculumView';
 import AICoachView from './components/AICoachView';
 import QuranExplorer from './components/QuranExplorer';
-import ScholarshipsView from './components/ScholarshipsView';
-import SavedScholarshipsView from './components/SavedScholarshipsView';
 import CommunityHubView from './components/CommunityHubView';
-import { ScholarlyView } from './components/ScholarlyView';
 import { DailyView } from './components/DailyView';
 import { ForumView } from './components/ForumView';
 import AuthPage from './components/AuthPage';
 import { DeenSuite } from './components/DeenSuite';
 import StudentDashboard from './components/StudentDashboard';
+import ScholarshipsView from './components/ScholarshipsView';
+import SavedScholarshipsView from './components/SavedScholarshipsView';
 import NotificationsView from './components/NotificationsView';
 import SettingsView from './components/SettingsView';
 import LegalDocsView from './components/LegalDocsView';
@@ -255,8 +254,8 @@ function formatTo12Hour(timeStr: string): string {
 }
 
 export default function App() {
-  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'scholarly' | 'forum' | 'scholarships' | 'auth' | 'saved-scholarships' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
+  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'forum' | 'auth' | 'community' | 'dashboard'
+  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'forum' | 'auth' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMoreNav, setShowMoreNav] = useState(false);
@@ -493,38 +492,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeTab]);
 
-  // New interactive states for newly added rich landing page sections
-  const [activeTimelineEpoch, setActiveTimelineEpoch] = useState<number>(0);
-  const [dailyCommitMinutes, setDailyCommitMinutes] = useState<number>(30);
-  const [planFocus, setPlanFocus] = useState<'tajweed' | 'jurisprudence' | 'history' | 'scholarships'>('tajweed');
-
-  // Dynamic Planner Computation helper
-  const getPlannerResults = (minutes: number, focus: 'tajweed' | 'jurisprudence' | 'history' | 'scholarships') => {
-    const weeklyLessons = Math.floor((minutes * 7) / 25) || 1;
-    const audioMinutes = Math.floor((minutes * 7) * 0.4) || 2;
-    const completionWeeks = focus === 'tajweed' ? 6 : focus === 'jurisprudence' ? 8 : focus === 'history' ? 4 : 5;
-    
-    // Syllabus points for planner card
-    const syllabusPoints = {
-      ar: focus === 'tajweed' 
-        ? ["مخارج الحروف الأساسية (الحلق والشفة)", "أحكام التنوين والإدغام البغني", "قواعد طلاقة القراءة ومداواة اللحن"]
-        : focus === 'jurisprudence'
-        ? ["مقدمات في أصول الفقه المنهجي", "دراسة المذاهب الأربعة وأحكام الطهارة", "الإجماع السنوي وفقه النوازل المعاصر"]
-        : focus === 'history'
-        ? ["نشأة بيت الحكمة في بغداد", "علماء الفيزياء في الأندلس والشام", "التراجم الرياضية من الخوارزمي لابن الهيثم"]
-        : ["شروط المنح الدراسية بالبنك الإسلامي وتجهيز السيرة", "البحث والتصفية بالمنطقة الجغرافية", "كتابة خطاب الغرض المالي المعتمد"],
-      en: focus === 'tajweed'
-        ? ["Accoustic Makhārij of guttural vowels", "Rules of Nun Sakinah & Tanween blending", "Fluency strategies to eliminate oral mistakes"]
-        : focus === 'jurisprudence'
-        ? ["Foundations of comparative law schools", "Study of classical rulings of rituals", "Consensus rulings in contemporary situations"]
-        : focus === 'history'
-        ? ["The translation epoch in Baghdad", "Physics research in Levant & Andalusia", "Mathematical texts from Arab scientists"]
-        : ["Requirements of IsDB research grants", "Filtering grants based on global scopes", "Writing development statements for universities"]
-    }[lang];
-
-    return { weeklyLessons, audioMinutes, completionWeeks, syllabusPoints };
-  };
-
   // Initialize progress state
   const [progress, setProgress] = useState<UserProgress>({
     weeklyMinutes: 0,
@@ -540,6 +507,75 @@ export default function App() {
   const [liveToast, setLiveToast] = useState<any>(null);
   const [practiceVerse, setPracticeVerse] = useState<any>(null);
   const [showDeenSuiteModal, setShowDeenSuiteModal] = useState(false);
+
+  // Home Interactive Study Planner States & Helper
+  const [activeTimelineEpoch, setActiveTimelineEpoch] = useState<number>(0);
+  const [dailyCommitMinutes, setDailyCommitMinutes] = useState<number>(30);
+  const [planFocus, setPlanFocus] = useState<'tajweed' | 'jurisprudence' | 'history' | 'scholarships'>('tajweed');
+
+  const getPlannerResults = (minutes: number, focus: string) => {
+    const weeklyLessons = Math.max(1, Math.round((minutes * 7) / 45));
+    const audioMinutes = Math.round(minutes * 0.4 * 7);
+    const completionWeeks = Math.max(4, Math.round(180 / minutes));
+    
+    let syllabusPoints: string[] = [];
+    if (focus === 'tajweed') {
+      syllabusPoints = lang === 'en' ? [
+        "Makharij al-Huruf (Vocal Articulation Atlas)",
+        "Sifat al-Huruf (Acoustic Attributes & Echo)",
+        "Rules of Nun Sakinah & Tanween",
+        "Interactive AI Waveform Feedback"
+      ] : [
+        "مخارج الحروف (أطلس التصحيح الصوتي)",
+        "صفات الحروف (الهمس والجهر وقوة الحرف)",
+        "أحكام النون الساكنة والتنوين والمدود",
+        "التقييم اللحظي لمخارج اللسان"
+      ];
+    } else if (focus === 'jurisprudence') {
+      syllabusPoints = lang === 'en' ? [
+        "The Nine Conditions of Sacred Worship",
+        "Essential Pillars (Arkan) vs. Obligations",
+        "Prosternation of Forgetfulness (Sujud as-Sahw)",
+        "Classical Comparative Texts Exploration"
+      ] : [
+        "شروط الصلاة التسعة المفروضة للقبول",
+        "أركان الصلاة الـ 14 والواجبات المترتبة",
+        "أحكام سجود السهو والأعذار المبيحة",
+        "دراسة مقارنة للمتون الفقهية المعتمدة"
+      ];
+    } else if (focus === 'history') {
+      syllabusPoints = lang === 'en' ? [
+        "The House of Wisdom (Bayt al-Hikmah)",
+        "Islamic Optics & Camera Obscura Milestones",
+        "The Translation Movement (Arabic & Greek)",
+        "Scholarly Preservation Epics"
+      ] : [
+        "بيت الحكمة في العصر العباسي ونشأة التدوين",
+        "إنجازات البصريات والكاميرا المظلمة لابن الهيثم",
+        "حركة الترجمة من اللغات القديمة إلى العربية",
+        "إسهامات علماء الجبر والهندسة في التنمية"
+      ];
+    } else {
+      syllabusPoints = lang === 'en' ? [
+        "Postgraduate Grant Criteria Identification",
+        "IsDB Scholarship Application Blueprint",
+        "Undergraduate and K-12 Literacy Maps",
+        "Scholarly Network Integration Guides"
+      ] : [
+        "تحديد معايير المنح الأكاديمية للدراسات العليا",
+        "دليل التقديم لبرنامج منح البنك الإسلامي",
+        "تحليل شروط القبول بمؤسسات التعليم المعتمدة",
+        "قنوات تواصل الباحثين وتوثيق الأعمال العلمية"
+      ];
+    }
+
+    return {
+      weeklyLessons,
+      audioMinutes,
+      completionWeeks,
+      syllabusPoints
+    };
+  };
 
   // ADHAN & PRAYER NOTIFICATION ENGINE STATES
   const [showAdhanModal, setShowAdhanModal] = useState(false);
@@ -1184,17 +1220,6 @@ export default function App() {
           >
             {labels.daily}
           </button>
-          <button 
-            onClick={() => { setActiveTab('scholarly'); setShowMoreNav(false); }}
-            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
-              activeTab === 'scholarly' 
-                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-            }`}
-            id="nav-scholarly"
-          >
-            {labels.scholarly}
-          </button>
 
           {/* More Academy Platforms Popover Dropdown */}
           <div 
@@ -1241,46 +1266,6 @@ export default function App() {
                       <span className="text-[12px]">{labels.forum}</span>
                       <span className="text-[9.5px] text-slate-400 truncate font-normal">
                         {lang === 'en' ? "Discuss academic topics" : "نقاشات ومجالس علمية"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('scholarships'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'scholarships' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-scholarships"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-800 shrink-0">
-                      <Award className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px]">{labels.scholarships}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Explore academic grants" : "قاعدة بيانات المنح الموثقة"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('saved-scholarships'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'saved-scholarships' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-saved-scholarships"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-800 shrink-0">
-                      <Bookmark className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px]">{labels.savedHub}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Your bookmarked grants" : "فرص المنح المحفوظة"}
                       </span>
                     </div>
                   </button>
@@ -1590,10 +1575,7 @@ export default function App() {
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
-                  { id: 'scholarly', label: labels.scholarly, icon: Compass, color: 'text-purple-800 bg-purple-500/10' },
                   { id: 'forum', label: labels.forum, icon: MessageSquare, color: 'text-sky-800 bg-sky-500/10' },
-                  { id: 'scholarships', label: labels.scholarships, icon: Award, color: 'text-rose-800 bg-rose-500/10' },
-                  { id: 'saved-scholarships', label: labels.savedHub, icon: Bookmark, color: 'text-yellow-850 bg-yellow-500/10' },
                   { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'api-docs', label: labels.apiDocs, icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-amber-700 bg-amber-500/10' },
@@ -1723,126 +1705,19 @@ export default function App() {
             </section>
 
             {/* PLATFORM VALUE PILLARS & FEATURES MATRIX */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12" id="platform-value-pillars">
-              <div className="text-center space-y-2 mb-8">
-                <span className="text-[10px] font-black text-[#C59B32] uppercase tracking-widest bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20 font-sans">
-                  {lang === 'en' ? "✨ Authentic Core Pillars" : "✨ ركائز التعليم الصحيح"}
-                </span>
-                <p className="text-xs text-slate-500 max-w-xl mx-auto leading-relaxed font-sans">
-                  {lang === 'en' 
-                    ? "Interactive departments crafted with precision to cultivate authentic education of classical Islamic traditions." 
-                    : "منصات ومصادر تخصصية تهدف إلى تمكين المعرفة وبناء الفهم الشرعي واللفظي القويم."}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                
-                {/* PILLAR 1: SPEECH RECITATION COACH */}
-                <div className="bg-white border border-slate-200/80 hover:border-amber-500/30 hover:shadow-xs p-5 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition group">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-800 border border-amber-500/25 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <Mic className="w-5 h-5 text-amber-800" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-extrabold text-xs text-slate-800 group-hover:text-amber-950 font-sans">
-                      {lang === 'en' ? "AI Speech Coach" : "مصحح التلاوة الذكي"}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 leading-relaxed font-sans max-w-[170px] mx-auto">
-                      {lang === 'en'
-                        ? "Real-time voice alignment and Tajweed feedback."
-                        : "تتبع مخارج الحروف غيباً وتصحيح الترتيل فورياً."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* PILLAR 2: SHARIAH CURRICULUMS */}
-                <div className="bg-white border border-slate-200/80 hover:border-emerald-500/30 hover:shadow-xs p-5 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition group">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-800 border border-emerald-500/25 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <GraduationCap className="w-5 h-5 text-emerald-800" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-extrabold text-xs text-slate-800 group-hover:text-emerald-950 font-sans">
-                      {lang === 'en' ? "Classic Curriculums" : "المناهج التأصيلية"}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 leading-relaxed font-sans max-w-[170px] mx-auto">
-                      {lang === 'en'
-                        ? "Vetted Islamic history, jurisprudence, and Tajweed lessons."
-                        : "دروس العقيدة والفقه وتراجم الأئمة لمختلف المستويات."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* PILLAR 3: DAILY SUPPLICATIONS */}
-                <div className="bg-white border border-slate-200/80 hover:border-blue-500/30 hover:shadow-xs p-5 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition group">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-800 border border-blue-500/25 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <Clock className="w-5 h-5 text-blue-800" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-extrabold text-xs text-slate-800 group-hover:text-blue-950 font-sans">
-                      {lang === 'en' ? "Dhikr & Supplications" : "أوراد اليوم والليلة"}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 leading-relaxed font-sans max-w-[170px] mx-auto">
-                      {lang === 'en'
-                        ? "Digital Tasbih counter with live Qiblah compass check."
-                        : "مسبحة إلكترونية ونظام تتبع النوافل والقبلة."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* PILLAR 4: SCHOLARLY INQUIRIES */}
-                <div className="bg-white border border-slate-200/80 hover:border-purple-500/30 hover:shadow-xs p-5 rounded-2xl text-center flex flex-col items-center justify-center space-y-3 transition group">
-                  <div className="w-12 h-12 rounded-full bg-purple-500/10 text-purple-800 border border-purple-500/25 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <Compass className="w-5 h-5 text-purple-800" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-extrabold text-xs text-slate-800 group-hover:text-purple-950 font-sans">
-                      {lang === 'en' ? "Ask the Mufti Center" : "الإرشاد والفتوى الشرعية"}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 leading-relaxed font-sans max-w-[170px] mx-auto">
-                      {lang === 'en'
-                        ? "Submit complex juristic inquiries matching canonical consensus."
-                        : "إرسال المسائل الفقهية وتلقي توجيه الأئمة الفقهاء."}
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-
-            {/* INTERACTIVE NAVIGATION TERMINAL (UX DIRECTION BLOCK) */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12" id="platform-navigation-terminal">
-              <div className="bg-[#FAF8F5] border-2 border-[#073327]/10 rounded-[2rem] p-6 md:p-10 shadow-xs space-y-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#C59B32]/5 rounded-full blur-2xl pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-800/5 rounded-full blur-3xl pointer-events-none" />
-
-                {/* Section Header */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#073327]/5 pb-6">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-amber-800 uppercase tracking-widest bg-amber-100 px-3 py-1 rounded-md border border-amber-200" style={{ letterSpacing: '0.15em' }}>
-                      {lang === 'en' ? "🎓 DIRECT PORTAL SYSTEM" : "الأروقة التعليمية والربط السريع"}
-                    </span>
-                    <h2 className="text-xl md:text-2xl font-black text-slate-900 font-sans tracking-tight">
-                      {lang === 'en' ? "Where would you like to build your knowledge today?" : "ماذا تود أن تتعلم وتستكشف اليوم؟"}
-                    </h2>
-                    <p className="text-slate-500 text-xs">
-                      {lang === 'en' 
-                        ? "Select any department below to open its dedicated interactive workspace." 
-                        : "اضغط على أي منبر أدناه للانتقال الفوري إلى بيئة العمل والتحقق الفقهية والصوتية الخاصة به."}
-                    </p>
-                  </div>
-
-                  {/* Student ID badge indicator status sync */}
-                  <div className="flex items-center gap-2 bg-white px-4 py-2 border border-slate-200 rounded-xl shadow-2xs shrink-0 select-none">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase text-slate-800">
-                      {progress.username 
-                        ? (lang === 'en' ? `Connected: ${progress.username}` : `مرحباً بك: ${progress.username}`) 
-                        : (lang === 'en' ? "Accessing as Guest Student" : "ولوج بصفة زائر")}
-                    </span>
-                  </div>
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12-custom" id="platform-value-pillars">
+              <div className="mt-12 space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-extrabold text-slate-900 font-sans tracking-tight">
+                    {lang === 'en' ? "Platform Core Portals" : "بوابات العلم والهدى"}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+                    {lang === 'en' ? "Choose a specialized academic segment to begin learning classical traditions with no friction." : "اختر المحضن المعرفي المناسب للبدء برحلة العلم النافع والترتيل القويم."}
+                  </p>
                 </div>
 
                 {/* Redesigned Clean Icon-Based Portals Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
                   
                   {/* PORTAL 1: HOLY QURAN */}
                   <div 
@@ -1921,109 +1796,19 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* PORTAL 5: ASK THE MUFTI */}
-                  <div 
-                    onClick={() => setActiveTab('scholarly')}
-                    className="premium-card hover:border-purple-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
-                    id="terminal-portal-scholarly"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center border border-purple-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
-                      <Compass className="w-5 h-5 text-purple-700" />
-                    </div>
-                    <div className="mt-3 space-y-1">
-                      <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-purple-800 leading-tight font-sans">
-                        {lang === 'en' ? "Ask the Mufti" : "إرشاد الفتوى"}
-                      </h3>
-                      <p className="text-[10px] text-slate-400 font-semibold leading-none">
-                        {lang === 'en' ? "Scholarly Advice" : "مسائل الفقه المقارن"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* PORTAL 6: IVY SCHOLARSHIPS REGISTRY */}
-                  <div 
-                    onClick={() => setActiveTab('scholarships')}
-                    className="premium-card hover:border-amber-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
-                    id="terminal-portal-scholarships"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-amber-500/5 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
-                      <Award className="w-5 h-5 text-amber-700" />
-                    </div>
-                    <div className="mt-3 space-y-1">
-                      <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-amber-850 leading-tight font-sans">
-                        {lang === 'en' ? "Scholarships" : "بوابة المنح"}
-                      </h3>
-                      <p className="text-[10px] text-slate-400 font-semibold leading-none">
-                        {lang === 'en' ? "Global Registry" : "فرص التمويل والدراسة"}
-                      </p>
-                    </div>
-                  </div>
-
                 </div>
               </div>
             </section>
 
-            {/* SECTION 1: DAILY WISDOM REMINDER (NEW ADDED SECTION) */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12">
-              <div 
-                className="bg-gradient-to-tr from-[#FAF8F5] to-[#FCFAF6] border-2 border-amber-800/10 rounded-2rem p-8 md:p-12 relative overflow-hidden"
-                id="interactive-daily-wisdom-sec"
-              >
-                <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 opacity-5 pointer-events-none scale-150">
-                  <Sparkles className="w-96 h-96 text-amber-800" />
-                </div>
-
-                <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6">
-                  <span className="text-xs font-bold text-amber-850 uppercase tracking-widest bg-amber-100/60 px-3.5 py-1.5 rounded-full border border-amber-200/50 inline-block mb-2">
-                    ✦ {labels.wisdomHeading} ✦
-                  </span>
-
-                  <p className="text-2xl md:text-4xl text-slate-900 leading-tight font-serif font-bold italic" dir="rtl">
-                    {WISDOM_QUOTES[wisdomIdx].ar}
-                  </p>
-
-                  <p className="text-xs md:text-sm text-slate-600 font-sans italic max-w-xl mx-auto">
-                    "{WISDOM_QUOTES[wisdomIdx].en}"
-                  </p>
-
-                  <p className="text-[10px] font-bold text-amber-800 font-mono tracking-widest uppercase">
-                    — {WISDOM_QUOTES[wisdomIdx].source}
-                  </p>
-
-                  <div className="pt-4">
-                    <button
-                      onClick={() => setWisdomIdx((wisdomIdx + 1) % WISDOM_QUOTES.length)}
-                      className="px-5 py-2.5 rounded-xl border border-amber-200 bg-white hover:bg-amber-50 text-amber-900 font-bold text-xs transition-colors shadow-sm flex items-center gap-2 mx-auto"
-                      id="btn-refresh-wisdom"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-amber-700" />
-                      <span>{labels.refreshWisdom}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* PILLARS PORTFOLIO TILES */}
-            <section className="bg-slate-50/50 py-16 border-y border-slate-200/60">
-              <div className="max-w-[1280px] mx-auto px-4 md:px-12">
-                
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight font-sans">
-                    {lang === 'en' ? "Modular Academic Foundations" : "الأروقة الأكاديمية والخدمات التعليمية المتاحة"}
-                  </h2>
-                  <p className="text-slate-500 text-xs max-w-md mx-auto mt-2">
-                    {lang === 'en' ? "Six dynamic support departments designed entirely to facilitate learning and development with zero cost barriers." : "ستة منابر متكاملة مخصصة لتمكين المتعلمين والباحثين من شتى أقطار العالم العربي والدولي."}
-                  </p>
-                </div>
-
-                {/* Bento Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* IN-DEPTH BENTO GRID */}
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12-custom mt-16" id="bento-grid-section">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
                   {/* TILE 1: CURRICULUM */}
                   <div 
                     onClick={() => { setActiveTab('curriculum'); }}
-                    className="md:col-span-8 bg-white rounded-3xl border border-slate-200/80 p-8 md:p-10 hover:border-amber-600 hover:shadow-lg transition relative overflow-hidden group cursor-pointer shadow-sm flex flex-col justify-between"
+                    className="bg-white rounded-3xl border border-slate-200/80 p-8 hover:border-amber-600 hover:shadow-lg transition relative overflow-hidden group cursor-pointer shadow-sm flex flex-col justify-between"
                   >
                     <div className="absolute right-0 bottom-0 opacity-5 group-hover:opacity-10 transition translate-x-1/4 translate-y-1/4">
                       <BookOpen className="w-64 h-64 text-amber-800" />
@@ -2035,7 +1820,7 @@ export default function App() {
                       <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-3 font-sans">
                         {lang === 'en' ? "Wikipedia of Sacred Sciences" : "موسوعة مفتوحة للعلوم الإسلامية الشريفة"}
                       </h3>
-                      <p className="text-slate-605 text-slate-600 text-xs leading-relaxed max-w-md mb-8">
+                      <p className="text-slate-600 text-xs leading-relaxed max-w-md mb-8">
                         {lang === 'en' 
                           ? "K-12 structured segments across Quran, verified traditions, and Islamic history verified back to pristine primary sources."
                           : "نهج دراسي ميسر ومنهجي يغطي التجويد، وعلوم الرواية والحديث النبوي، وحقائق من العصر الذهبي."}
@@ -2049,13 +1834,13 @@ export default function App() {
                   {/* TILE 2: AI RECITATION COACH */}
                   <div 
                     onClick={() => { setActiveTab('coach'); }}
-                    className="md:col-span-4 bg-[#073327] text-white rounded-3xl border border-[#0d4538] p-8 hover:shadow-lg transition relative overflow-hidden group cursor-pointer flex flex-col justify-between"
+                    className="bg-[#073327] text-white rounded-3xl border border-[#0d4538] p-8 hover:shadow-lg transition relative overflow-hidden group cursor-pointer flex flex-col justify-between"
                   >
                     <div className="relative z-10">
                       <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mb-6 border border-white/10">
                         <Mic className="w-4 h-4 text-amber-400" />
                       </div>
-                      <h3 className="text-lg font-bold mb-3 font-sans">
+                      <h3 className="text-lg font-bold mb-3 font-sans text-white">
                         {lang === 'en' ? "AI Recitation Coach" : "مصحح ومحقق تلاوة الذكر الحكيم"}
                       </h3>
                       <p className="text-emerald-100/80 text-xs leading-relaxed mb-6">
@@ -2072,7 +1857,7 @@ export default function App() {
                   {/* TILE 3: DAILY SPRIITUAL BOARD */}
                   <div 
                     onClick={() => { setActiveTab('daily'); }}
-                    className="md:col-span-4 bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col justify-between"
+                    className="bg-white rounded-3xl border border-slate-200/80 p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col justify-between"
                   >
                     <div>
                       <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-800 mb-4 border border-amber-100">
@@ -2088,29 +1873,10 @@ export default function App() {
                     <span className="text-amber-800 text-[11px] font-bold uppercase mt-4 block">{lang === 'en' ? "Plan Daily Board" : "صمم وردك اليومي"} →</span>
                   </div>
 
-                  {/* TILE 4: ASK THE MUFTI */}
-                  <div 
-                    onClick={() => { setActiveTab('scholarly'); }}
-                    className="md:col-span-4 bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-800 mb-4 border border-amber-100">
-                        <Compass className="w-4 h-4 text-amber-700" />
-                      </div>
-                      <h4 className="text-base font-bold text-slate-900 mb-2 font-sans">
-                        {lang === 'en' ? "Scholarly Q&A Hub" : "منبر المذاهب والمسائل العلمية"}
-                      </h4>
-                      <p className="text-slate-500 text-xs leading-relaxed">
-                        {lang === 'en' ? "Sift theological answers from classical Islamic authorities. Get academic feedback pointing to canonical consensus." : "ناقش المسائل الفلسفية والتفاسير المعقدة عبر المذاهب الأربعة بإشراف معايير دقيقة."}
-                      </p>
-                    </div>
-                    <span className="text-amber-800 text-[11px] font-bold uppercase mt-4 block">{lang === 'en' ? "Submit Inquiry" : "استشارة العلماء"} →</span>
-                  </div>
-
-                  {/* TILE 5: DISCUSSION SPACE */}
+                  {/* TILE 4: DISCUSSION SPACE */}
                   <div 
                     onClick={() => { setActiveTab('forum'); }}
-                    className="md:col-span-4 bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col justify-between"
+                    className="bg-white rounded-3xl border border-slate-200/80 p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col justify-between"
                   >
                     <div>
                       <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-800 mb-4 border border-amber-100">
@@ -2126,102 +1892,10 @@ export default function App() {
                     <span className="text-amber-800 text-[11px] font-bold uppercase mt-4 block">{lang === 'en' ? "Converse Forums" : "ادخل غرف النقاش"} →</span>
                   </div>
 
-                  {/* TILE 6: SCHOLARSHIPS HUB */}
-                  <div 
-                    onClick={() => { setActiveTab('scholarships'); }}
-                    className="md:col-span-12 bg-gradient-to-r from-amber-900/10 via-emerald-900/15 to-[#faf8f5] rounded-3xl border border-amber-900/15 p-6 md:p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-850 border border-amber-200/60 shadow-xs">
-                          <Award className="w-4 h-4 text-amber-700" />
-                        </div>
-                        <span className="text-[10px] font-bold text-amber-900 uppercase font-mono tracking-wider">
-                          {lang === 'en' ? "Global Ivy Seminary Registry" : "بوابة المنح والبعثات الدراسية العالمية"}
-                        </span>
-                      </div>
-                      <h4 className="text-base font-extrabold text-slate-900 font-sans leading-none">
-                        {lang === 'en' ? "Academics & Financial Aid Center" : "منبر التمويل وصندوق رعاية المتفوقين"}
-                      </h4>
-                      <p className="text-slate-600 text-xs leading-relaxed max-w-xl">
-                        {lang === 'en' 
-                          ? "Apply to fully funded undergraduate, graduate, and research grants worldwide. Filter live opportunities and curate your personal academic record history in-memory." 
-                          : "استعرض وحلّل منحة دراسية وبحثية ممولة بالكامل لدى الجامعات الشريكة. احفظ المباحث العلمية المفضلة لديك لفرزها لاحقاً وتوثيق التقديم الفقهي الميسر."}
-                      </p>
-                    </div>
-                    <div className="shrink-0 flex flex-wrap items-center gap-3">
-                      <div className="bg-white/75 border border-amber-200 py-2.5 px-4 rounded-xl text-center text-slate-800 font-bold text-xs shadow-inner">
-                        <span className="text-amber-850 font-black">{progress.savedScholarships.length}</span> {lang === 'en' ? " Saved Opportunities" : " أبحاث ومنح محفوظة"}
-                      </div>
-                      <span className="bg-emerald-850 hover:bg-emerald-950 text-white font-bold tracking-wider text-[11px] uppercase px-5 py-3 rounded-xl transition shadow-md whitespace-nowrap cursor-pointer">
-                        {lang === 'en' ? "Registry Portal" : "دخول ديوان المنح"} →
-                      </span>
-                    </div>
-                  </div>
-
                 </div>
               </div>
             </section>
 
-            {/* REDUCED CLEAN REAL-TIME REMINDER CARD */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-4" id="salah-reminders-panel">
-              <div className="bg-gradient-to-br from-[#041d18] to-[#020b08] text-white rounded-2xl p-4 md:p-6 border border-emerald-950/60 shadow-md relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
-                
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[8px] uppercase tracking-widest text-[#d97706] font-mono font-bold block">
-                      ✦ {lang === 'en' ? "Astronomy & Liturgical Alignment" : "اتجاه القبلة ومواقيت الفريضة"} ✦
-                    </span>
-                    <h4 className="text-sm font-extrabold text-white font-sans">
-                      {lang === 'en' ? "Salah Times & Qiblah Features" : "رصد أوقات الصلوات والقبلة الرقمية"}
-                    </h4>
-                    <p className="text-zinc-400 text-[10px] max-w-md font-sans">
-                      {lang === 'en' 
-                        ? "Real-time calculation based on global astronomical coordinate equations."
-                        : "حساب فلكي دقيق لدوائر العرض مبني على المعادلات المعيارية للرابطة الإسلامية."}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-4 w-full md:w-auto">
-                    {/* Qiblah Feature Item */}
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 flex items-center gap-2.5 shrink-0">
-                      <span className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs font-mono font-black animate-pulse">
-                        🧭
-                      </span>
-                      <div>
-                        <span className="text-[8px] text-zinc-400 uppercase tracking-widest block font-mono">Qiblah</span>
-                        <span className="text-[10px] font-bold text-white font-sans">
-                          {landingQiblah !== null 
-                            ? `${landingQiblah.toFixed(1)}° (${lang === 'en' ? 'Calculated' : 'رصد فلكي'})` 
-                            : `57.3° NE (${lang === 'en' ? 'Makkah' : 'مكة المكرمة'})`
-                          }
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Prayer Time Feature Item */}
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 flex items-center gap-2.5 shrink-0">
-                      <span className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs font-mono font-black">
-                        🕌
-                      </span>
-                      <div>
-                        <span className="text-[8px] text-zinc-400 uppercase tracking-widest block font-mono">
-                          {lang === 'en' ? "Next Prayer" : "الصلاة القادمة"}
-                        </span>
-                        <span className="text-[10px] font-bold text-white font-sans">
-                          {landingNextPrayer 
-                            ? `${lang === 'en' ? landingNextPrayer.name : (landingNextPrayer.name === 'Fajr' ? 'الفجر' : landingNextPrayer.name === 'Sunrise' ? 'الشروق' : landingNextPrayer.name === 'Dhuhr' ? 'الظهر' : landingNextPrayer.name === 'Asr' ? 'العصر' : landingNextPrayer.name === 'Maghrib' ? 'المغرب' : 'العشاء')} ${landingNextPrayer.time}` 
-                            : `Dhuhr 12:24 PM`
-                          }
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </section>            {/* NEW SECTION 2B: THE ESSENTIAL LESSONS OF SALAH - Compact Responsive Columns */}
             <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-6" id="salah-lessons-suite">
               <div className="bg-[#FAF9F5] border border-amber-900/10 rounded-3xl p-5 md:p-6 shadow-xs">
                 
@@ -2319,201 +1993,6 @@ export default function App() {
                     </div>
                   </div>
 
-                </div>
-
-              </div>
-            </section>
-
-            {/* NEW SECTION 2C: THE OPEN SOURCE CONTRIBUTORS HUB */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-6" id="open-source-contributors-hub">
-              <div className="bg-gradient-to-tr from-[#faf8f5] to-[#f5effa]/10 border-2 border-slate-200 rounded-3rem p-8 md:p-10 relative overflow-hidden shadow-sm">
-                <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 opacity-5 pointer-events-none scale-150">
-                  <Globe className="w-64 h-64 text-slate-900" />
-                </div>
-
-                <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
-                  <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest bg-slate-105 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200 inline-block mb-1 font-sans">
-                    ✦ {lang === 'en' ? "Democratic Open Source Path (nafi-org)" : "المبادرة الجماعية المفتوحة - مؤسسة نافع"} ✦
-                  </span>
-
-                  <h3 className="text-2xl md:text-3xl font-extrabold text-slate-950 font-serif tracking-tight">
-                    {lang === 'en' ? "Help Shape the Future of Quranic Sciences" : "شارك في تطوير منهاج التجويد وفقه العبادات"}
-                  </h3>
-
-                  <p className="text-xs text-slate-600 max-w-2xl mx-auto leading-relaxed font-sans">
-                    {lang === 'en'
-                      ? "Nafi is a community-owned academy. Developers, Arabic linguists, Quran teachers, and researchers collaborate on GitHub to power makhraj audio analyses, compile authentic Adhkar, and review Tajweed code rules."
-                      : "نحن نؤمن بأن العلم الشريف يجب أن يتاح للجميع بلا حواجز مادية. يشارك المبرمجون ولغويو العربية في كتابة كود مفسر التجويد ومعالجة الصوتيات وتوثيق التراجم المعرفية لتسهيل العلم المستدام."}
-                  </p>
-
-                  {/* Code repositories mock grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left pt-2 font-sans" dir="ltr">
-                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1 hover:border-amber-500 hover:shadow-sm transition">
-                      <span className="text-[9px] font-extrabold text-amber-800 uppercase font-mono tracking-wider">GitHub Org Core</span>
-                      <h5 className="font-extrabold text-xs text-slate-900">nafi-org/nafi-platform</h5>
-                      <p className="text-[10px] text-slate-500 leading-relaxed font-normal">Next.js/React layout interactive portals and scholar dashboards.</p>
-                    </div>
-
-                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1 hover:border-amber-500 hover:shadow-sm transition">
-                      <span className="text-[9px] font-extrabold text-emerald-805 text-emerald-805 text-emerald-800 uppercase font-mono tracking-wider font-bold">Tajweed Parser</span>
-                      <h5 className="font-extrabold text-xs text-slate-900">nafi-org/tajweed-engine</h5>
-                      <p className="text-[10px] text-slate-500 leading-relaxed font-normal">Linguistic parsing scripts, sound wave math, and JSON schema rules validation.</p>
-                    </div>
-
-                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1 hover:border-amber-500 hover:shadow-sm transition">
-                      <span className="text-[9px] font-extrabold text-indigo-800 uppercase font-mono tracking-wider">Daily Microservice</span>
-                      <h5 className="font-extrabold text-xs text-slate-900">nafi-org/adhkar-service</h5>
-                      <p className="text-[10px] text-slate-500 leading-relaxed font-normal">Authentic step remembrance storage, audio recitation hosting & global translations CDN.</p>
-                    </div>
-                  </div>
-
-                  {/* Call to action buttons */}
-                  <div className="pt-4 flex flex-wrap justify-center gap-3">
-                    <a
-                      href="https://github.com/nafi-org"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-950 text-white font-extrabold text-xs transition-colors shadow-md flex items-center gap-2 font-sans"
-                    >
-                      <span className="font-mono">github.com/nafi-org</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* SECTION 3: UPCOMING WEBINARS AND STUDY SEATS TIMER (NEW ADDED SECTION) */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-4">
-              <div className="bg-slate-900 text-white rounded-3xl p-8 md:p-12 border border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-                <div className="space-y-4">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-400/10 py-1 px-3 rounded-full border border-amber-400/20">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {labels.webinarHeading}
-                  </span>
-                  
-                  <div className="space-y-4 max-w-2xl">
-                    <div className="flex gap-4 items-start border-b border-white/5 pb-4">
-                      <span className="text-amber-400 font-mono text-sm shrink-0 font-bold mt-1">1</span>
-                      <div>
-                        <h4 className="font-bold text-sm text-white">
-                          {lang === 'en' ? "Advanced Tajweed Rule Compilations (tanwin blending)" : "أحكام النون والحديث: قواعد التبسيط الصوتي"}
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-1 font-sans">
-                          {lang === 'en' ? "Speaker: Dr. Salim Al-Azhari | Date: June 15, 2026, 1 PM UTC" : "الشيخ المدرس: أ. د. سالم الأزهري | التاريخ: الجمعة المقبلة الساعة ٤ مساءً"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 items-start">
-                      <span className="text-amber-400 font-mono text-sm shrink-0 font-bold mt-1">2</span>
-                      <div>
-                        <h4 className="font-bold text-sm text-white">
-                          {lang === 'en' ? "Ibn Al-Haytham and the foundation of visual optics research" : "مخطوطات بيت الحكمة ببغداد وكيف أسست العلوم الرياضية"}
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-1 font-sans">
-                          {lang === 'en' ? "Speaker: Dr. Fatima Al-Qurashi | Date: June 22, 2026, 3 PM UTC" : "المحاضرة: أ. د. فاطمة القرشي | التاريخ: الثلاثاء القادم الساعة ٧ مساءً"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 shrink-0 w-full lg:w-72 space-y-4 text-center">
-                  <h4 className="font-bold text-xs text-amber-300 uppercase tracking-wider">{lang === 'en' ? "Seminary Reservation Seat" : "حجز المقعد الدراسي"}</h4>
-                  <p className="text-lg font-bold text-white font-sans">{rsvps[1]} {lang === 'en' ? "Students RSVP'd" : "طالب حجزوا حالياً"}</p>
-                  
-                  <button
-                    onClick={() => triggerRsvp(1)}
-                    className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 ${
-                      userRsvped[1]
-                        ? 'bg-emerald-700 text-white hover:bg-emerald-800'
-                        : 'bg-amber-600 text-white hover:bg-amber-700'
-                    }`}
-                  >
-                    <BookmarkCheck className="w-4 h-4" />
-                    <span>{userRsvped[1] ? labels.registeredDone : labels.registeredLabel}</span>
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            {/* NEW SECTION A: SCIENTIFIC GOLDEN AGE INTERACTIVE TIMELINE */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-10" id="golden-age-timeline">
-              <div className="text-center mb-10">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 bg-amber-55/10 rounded-full border border-amber-200 py-1 px-3 mb-2" style={{ direction: 'ltr' }}>
-                  <History className="w-3.5 h-3.5" />
-                  {lang === 'en' ? "Preserving Scholarly History" : "العصر الذهبي للعلوم النافعة"}
-                </span>
-                <h3 className="text-2xl font-bold text-slate-850 font-sans">
-                  {lang === 'en' ? "Islamic Intellectual Heritage & Science" : "منارة بيت الحكمة والعلوم التجريبية"}
-                </h3>
-                <p className="text-slate-500 text-xs mt-1 font-sans">
-                  {lang === 'en' ? "Explore interactive milestones mapping sacred scholarship to physical sciences & mathematics" : "تتبع قنوات الترجمة والأطروحات التاريخية من الجبر المبتكر إلى نظريات الإبصار والآلات المبرمجة"}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-                {/* Epoch Selection Tabs */}
-                <div className="lg:col-span-4 bg-slate-50/70 border-r border-slate-200 p-6 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible shrink-0 min-h-[60px]" style={{ scrollbarWidth: 'none' }}>
-                  {TIMELINE_DATA.map((item, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveTimelineEpoch(idx)}
-                      className={`w-full p-4 rounded-xl transition-all font-sans text-xs font-bold flex flex-col md:flex-row justify-between items-center lg:items-start gap-1 shrink-0 ${
-                        activeTimelineEpoch === idx
-                          ? 'bg-amber-600 text-white shadow-sm'
-                          : 'bg-white hover:bg-slate-100/80 text-amber-900 border border-slate-200'
-                      }`}
-                      style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-                    >
-                      <div className="flex flex-col w-full">
-                        <span className="opacity-90 font-mono text-[10px] text-right">
-                          {lang === 'en' ? item.century : item.arEpoch.split(' - ')[0]}
-                        </span>
-                        <span className="mt-0.5 text-xs text-right whitespace-nowrap">
-                          {lang === 'en' ? item.figure : item.arFigure}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Micro Content Panel */}
-                <div className="lg:col-span-8 p-8 md:p-10 flex flex-col justify-between">
-                  <div className="space-y-4">
-                    <span className="text-[11px] font-mono text-amber-700 font-semibold bg-amber-50 rounded px-2.5 py-1">
-                      {lang === 'en' ? TIMELINE_DATA[activeTimelineEpoch].century : TIMELINE_DATA[activeTimelineEpoch].arEpoch}
-                    </span>
-                    <h4 className="text-xl font-extrabold text-slate-900 font-sans mt-3">
-                      {lang === 'en' ? TIMELINE_DATA[activeTimelineEpoch].title : TIMELINE_DATA[activeTimelineEpoch].arTitle}
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed font-sans" style={{ textAlign: 'justify' }}>
-                      {lang === 'en' ? TIMELINE_DATA[activeTimelineEpoch].milestone : TIMELINE_DATA[activeTimelineEpoch].arMilestone}
-                    </p>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-6 mt-6 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
-                        <Award className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">{lang === 'en' ? "Steward Authority" : "ركن الإسناد"}</p>
-                        <p className="text-xs font-bold text-slate-750 font-sans">
-                          {lang === 'en' ? TIMELINE_DATA[activeTimelineEpoch].figure : TIMELINE_DATA[activeTimelineEpoch].arFigure}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button 
-                      onClick={() => { setActiveTab('curriculum'); }}
-                      className="text-xs font-bold text-amber-700 hover:text-amber-900 flex items-center gap-1 transition-all cursor-pointer"
-                    >
-                      <span>{lang === 'en' ? "Study This Unit" : "ادرس هذا المقرر"}</span>
-                      <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1" />
-                    </button>
-                  </div>
                 </div>
               </div>
             </section>
@@ -2638,70 +2117,13 @@ export default function App() {
               </div>
             </section>
 
-            {/* NEW SECTION D: SCIENTIFIC ACOUSTIC METHODOLOGY - Reduced Contents */}
-            <section className="bg-[#FAF8F5] border-y border-slate-200 py-10 relative overflow-hidden" id="academic-framework">
-              <div className="max-w-[1280px] mx-auto px-4 md:px-12">
-                <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8 pb-4 border-b border-slate-200">
-                  <div className="space-y-1">
-                    <span className="text-[8px] uppercase tracking-wider font-extrabold text-amber-900 bg-amber-100 py-0.5 px-2.5 rounded-full border border-amber-200 inline-block font-sans">
-                      ✦ {lang === 'en' ? "Computational Phonology Core" : "منهجية الفونولوجيا وحفظ النطق"} ✦
-                    </span>
-                    <h3 className="text-base font-extrabold text-[#2a1b14] leading-tight font-sans">
-                      {lang === 'en' ? "Where Auditory Physics Meets Classical Transmission Chains" : "فيزياء الصوت تلتقي بأسانيد التلقي والرواية"}
-                    </h3>
-                  </div>
-                  <p className="text-slate-500 text-[10px] leading-normal font-sans max-w-xl self-end md:text-right">
-                    {lang === 'en'
-                      ? "Classical Tajweed is a systemic acoustic ruleset. Nafi utilizes physical articulation maps to verify letter traits, eliminating guesswork with traditional rigor."
-                      : "علم التجويد التطبيقي هو نسق فيزيائي لضبط المخارج والمدود. ندمج بين التقييم الهندسي للصوتيات ومعايير الإتقان المرتكزة تاريخياً."}
-                  </p>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Pathway Hafs */}
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                    <h4 className="text-xs font-black text-slate-900 font-sans">
-                      {lang === 'en' ? "Hafs 'an 'Asim" : "حفص عن عاصم"}
-                    </h4>
-                    <p className="text-slate-500 text-[10px] leading-relaxed font-sans">
-                      {lang === 'en' 
-                        ? "Undisputed predominant classic global narration. Emphasizes clean vocalic transitions and standard rules."
-                        : "الرواية الأكثر شيوعاً في العالم الإسلامي، تمتاز بالقواعد المتسقة والأداء المتزن السلس."}
-                    </p>
-                  </div>
-
-                  {/* Pathway Warsh */}
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                    <h4 className="text-xs font-black text-slate-900 font-sans">
-                      {lang === 'en' ? "Warsh 'an Nafi'" : "ورش عن نافع"}
-                    </h4>
-                    <p className="text-slate-500 text-[10px] leading-relaxed font-sans">
-                      {lang === 'en' 
-                        ? "Predominant narration in North and West Africa, unique for vocal inclinings, heavy 'Ra's, and soft vocal glides."
-                        : "الرواية المشتهرة بالمغرب العربي وغرب إفريقيا، منفردة بنقل الهمز وتقليل ذوات الياء وتغليظ اللامات."}
-                    </p>
-                  </div>
-
-                  {/* Pathway Qaloon */}
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                    <h4 className="text-xs font-black text-slate-900 font-sans">
-                      {lang === 'en' ? "Qaloon 'an Nafi'" : "قالون عن نافع"}
-                    </h4>
-                    <p className="text-slate-500 text-[10px] leading-relaxed font-sans">
-                      {lang === 'en' 
-                        ? "Preserved classic transmission recognized for plural meem extension modes and vocal ease."
-                        : "رواية ناصعة تمتاز بصِلة ميم الجمع وسهولة ضبط الأداء والمد المنفصل التام."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
 
             {/* NEW SECTION E: ACCREDIATED FELLOWSHIP STORIES & SPOTLIGHT */}
             <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-20" id="fellowship-spotlight">
               <div className="text-center mb-16 max-w-2xl mx-auto space-y-3">
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-905 bg-amber-50 rounded-full border border-amber-250/20 py-1 px-3">
-                  ✦ {lang === 'en' ? "Academy Alumni Showcase" : "منصّة الانتفاع وقصص نجاح الزملاء"} ✦
+                  {lang === 'en' ? "Academy Alumni Showcase" : "منصّة الانتفاع وقصص نجاح الزملاء"}
                 </span>
                 <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight font-sans">
                   {lang === 'en' ? "Fellowships Mapped to Academic Realities" : "رحلات علمية واقعية للطلاب عبر الأقطار"}
@@ -2991,98 +2413,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* DAILY SCHOLARLY GOALS & SPIRITUAL PLANNER SECTION */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-8" id="daily-planner-section">
-              <div className="bg-white border border-slate-200/90 rounded-[2rem] p-6 md:p-10 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative overflow-hidden">
-                <div className="lg:col-span-12 xl:col-span-5 space-y-4">
-                  <span className="inline-block text-[10px] font-bold text-amber-800 bg-amber-100 rounded-full py-1 px-3">
-                    {lang === 'en' ? "✨ Daily Tracker" : "✨ برنامج المتابعة والورد اليومي"}
-                  </span>
-                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 font-sans tracking-tight leading-none">
-                    {lang === 'en' ? "Student Daily Learning Checklist" : "الخطة المقترحة والورد اليومي لطلب العلم"}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed font-sans" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                    {lang === 'en' 
-                      ? "Establish a consistent daily routine. Check off your learning and recitation goals to track your growth as an active student of knowledge."
-                      : "احرص على بناء عادات يومية راسخة. تتبّع أوراد القراءة والحفظ ومطالعة المتون لترقى في معارج العلم والعمل النافع."}
-                  </p>
-                  
-                  {/* Digital Progress Circle / Stats bar */}
-                  <div className="bg-[#FAF8F5] p-5 rounded-2xl border border-amber-500/10 flex items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">
-                        {lang === 'en' ? "TODAY'S PROGRESS" : "نسبة الإنجاز لليوم"}
-                      </span>
-                      <span className="text-2xl font-black text-slate-800 font-mono">
-                        {Math.round((
-                          ((localStorage.getItem('nafi_goal_quran') === 'true' ? 1 : 0) +
-                           (localStorage.getItem('nafi_goal_dhikr') === 'true' ? 1 : 0) +
-                           (localStorage.getItem('nafi_goal_coach') === 'true' ? 1 : 0) +
-                           (localStorage.getItem('nafi_goal_lesson') === 'true' ? 1 : 0)) / 4
-                        ) * 100)}%
-                      </span>
-                    </div>
-                    <div className="w-1/2 bg-slate-250 h-2.5 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-amber-600 h-full transition-all duration-500"
-                        style={{
-                          width: `${((
-                            (localStorage.getItem('nafi_goal_quran') === 'true' ? 1 : 0) +
-                            (localStorage.getItem('nafi_goal_dhikr') === 'true' ? 1 : 0) +
-                            (localStorage.getItem('nafi_goal_coach') === 'true' ? 1 : 0) +
-                            (localStorage.getItem('nafi_goal_lesson') === 'true' ? 1 : 0)
-                          ) / 4) * 100}%`
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                {/* Checklist options */}
-                <div className="lg:col-span-12 xl:col-span-7 space-y-3">
-                  {[
-                    { key: 'nafi_goal_quran', label_en: "Recite or Listen to 15 Minutes of Quran", label_ar: "ورد القرآن اليومي: تلاوة أو استماع (ربع ساعة)", desc_en: "Read from the Mushaf Explorer or listen to your preferred reciter.", desc_ar: "طالع السور والآيات من المصحف المفسر لورد تالٍ وقاطع لليوم." },
-                    { key: 'nafi_goal_dhikr', label_en: "Morning & Evening Athkar Routine", label_ar: "أذكار الصباح والمساء والسنن الرواتب", desc_en: "Keep your heart soft and tongue moist with supplications.", desc_ar: "احرص على أوراد الحفظ والتعوذ للتطهير والنشاط الوجداني." },
-                    { key: 'nafi_goal_coach', label_en: "Completed 1 Pronunciation Practice Session", label_ar: "جلسة تتبع وتصحيح نطق الآيات الصوتي", desc_en: "Open the AI Speech Coach to align your articulation of Arabic consonants.", desc_ar: "استخدم المصحح الأكاديمي الصوتي لتأكيد جودة المخارج والترتيل." },
-                    { key: 'nafi_goal_lesson', label_en: "Study a Curriculum Lesson segment", label_ar: "حضور درس أو مراجعة متن علمي مقترن", desc_en: "Strengthen your understanding of classical Fiqh, Tajweed or History.", desc_ar: "اختر مبحثاً فقهياً أو باباً تأصيلياً من المناهج للارتقاء الفكري." }
-                  ].map((item) => {
-                    const isChecked = localStorage.getItem(item.key) === 'true';
-                    return (
-                      <div 
-                        key={item.key}
-                        onClick={() => {
-                          const nextVal = !isChecked;
-                          localStorage.setItem(item.key, nextVal ? 'true' : 'false');
-                          // Simple state bump to re-render App.tsx
-                          setFaqOpenIdx(prev => prev === 999 ? null : 999);
-                        }}
-                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex gap-4 ${
-                          isChecked 
-                            ? 'bg-emerald-500/5 border-emerald-500/35 shadow-2xs' 
-                            : 'bg-slate-50 border-slate-200 hover:border-slate-350 hover:bg-white'
-                        }`}
-                      >
-                        <div className="pt-0.5 shrink-0" style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
-                          <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                            isChecked ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-white border-slate-300'
-                          }`}>
-                            {isChecked && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                          </div>
-                        </div>
-                        <div className="min-w-0 text-left flex-1" style={{ direction: lang === 'ar' ? 'rtl' : 'ltr', textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                          <h4 className={`text-xs font-extrabold ${isChecked ? 'text-slate-800 line-through opacity-70' : 'text-slate-800'}`}>
-                            {lang === 'en' ? item.label_en : item.label_ar}
-                          </h4>
-                          <p className="text-[10px] text-slate-400 mt-0.5 font-sans leading-normal">
-                            {lang === 'en' ? item.desc_en : item.desc_ar}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
 
           </motion.div>
         )}
@@ -3171,19 +2502,6 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* ASK THE MUFTI QA */}
-        {activeTab === 'scholarly' && (
-          <motion.div
-            key="scholarly"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <ScholarlyView lang={lang} />
-          </motion.div>
-        )}
-
         {/* DISCUSSION FORUM */}
         {activeTab === 'forum' && (
           <motion.div
@@ -3197,39 +2515,6 @@ export default function App() {
               lang={lang} 
               currentUser={progress.username ? { username: progress.username, email: progress.email } : null}
               onAuthSuccess={handleAuthSuccess}
-            />
-          </motion.div>
-        )}
-
-        {/* SCHOLARSHIPS GRANTS */}
-        {activeTab === 'scholarships' && (
-          <motion.div
-            key="scholarships"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <ScholarshipsView 
-              progress={progress} 
-              onToggleSaveScholarship={handleToggleSaveScholarship} 
-            />
-          </motion.div>
-        )}
-
-        {/* SAVED SCHOLARSHIPS WORKSPACE */}
-        {activeTab === 'saved-scholarships' && (
-          <motion.div
-            key="saved-scholarships"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <SavedScholarshipsView 
-              progress={progress} 
-              onToggleSaveScholarship={handleToggleSaveScholarship} 
-              lang={lang}
             />
           </motion.div>
         )}
@@ -3281,6 +2566,39 @@ export default function App() {
               onNavigateToTab={(tab) => { setActiveTab(tab); }}
               onRemoveBookmark={handleToggleSaveScholarship}
               onUpdateProgress={setProgress}
+            />
+          </motion.div>
+        )}
+
+        {/* SCHOLARSHIP SEARCH ENGINE */}
+        {activeTab === 'scholarships' && (
+          <motion.div
+            key="scholarships"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <ScholarshipsView 
+              progress={progress}
+              onToggleSaveScholarship={handleToggleSaveScholarship}
+            />
+          </motion.div>
+        )}
+
+        {/* SAVED SCHOLARSHIPS DESK */}
+        {activeTab === 'saved-scholarships' && (
+          <motion.div
+            key="saved-scholarships"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <SavedScholarshipsView 
+              progress={progress}
+              onToggleSaveScholarship={handleToggleSaveScholarship}
+              lang={lang}
             />
           </motion.div>
         )}

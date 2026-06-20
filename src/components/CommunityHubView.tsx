@@ -162,7 +162,7 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
         
         <div className="max-w-3xl space-y-4 relative z-10">
           <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-300 text-[10px] px-3.5 py-1.5 rounded-xl font-bold uppercase tracking-widest border border-emerald-500/35">
-            <GitBranch className="w-3.5 h-3.5 text-emerald-400" /> {lang === 'en' ? "First Open-Source Release" : "الإطلاق الأول مفتوح المصدر ✦ ركن المطورين"}
+            <GitBranch className="w-3.5 h-3.5 text-emerald-400" /> {lang === 'en' ? "First Open-Source Release" : "الإطلاق الأول مفتوح المصدر (ركن المطورين)"}
           </span>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
             {lang === 'en' 
@@ -203,7 +203,6 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
             <div className="border-t border-amber-900/10 pt-4 space-y-3">
               <div>
                 <h4 className="font-extrabold text-slate-800 text-xs flex items-center gap-1">
-                  <span className="text-[#C59B32] font-black">✦</span>
                   {lang === 'en' ? "Confused or Stuck? Send a DM!" : "هل تشعر بالتردد أو ترغب بمساعدة؟ تواصل معنا!"}
                 </h4>
                 <p className="text-slate-500 text-[11px] leading-relaxed mt-1">
@@ -406,7 +405,7 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
                           ))}
                         </div>
                         <div className="flex items-center gap-2 text-[9px] text-slate-400 font-mono font-bold">
-                          <span className="flex items-center gap-0.5">⭐ {proj.stars}</span>
+                          <span className="flex items-center gap-0.5">Stars: {proj.stars}</span>
                           <span className="flex items-center gap-0.5">⑂ {proj.forks}</span>
                         </div>
                       </div>
@@ -453,8 +452,8 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
             <div className="space-y-6">
               {roadmapFeatures.map((feat, idx) => (
                 <div key={idx} className="flex gap-4 items-start pb-5 border-b border-slate-100 last:border-0 last:pb-0">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/5 text-amber-800 border border-amber-500/20 shrink-0 flex items-center justify-center text-xs">
-                    ✦
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/5 text-amber-800 border border-amber-500/20 shrink-0 flex items-center justify-center text-xs font-mono">
+                    o
                   </div>
                   <div className="space-y-1">
                     <h4 className="font-extrabold text-slate-905 text-sm flex items-center gap-2">

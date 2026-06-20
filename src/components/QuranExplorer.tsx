@@ -2162,19 +2162,7 @@ export default function QuranExplorer({
                 className="bg-[#FCFAF2] border-[14px] border-double border-amber-800/25 rounded-[2.5rem] shadow-xl p-5 md:p-10 relative overflow-hidden transition-all duration-300 min-h-[550px] flex flex-col justify-between"
                 id="authentic-mushaf-paper"
               >
-                {/* Traditional Corner Arabesque Ornaments */}
-                <div className="absolute top-4 left-4 text-amber-800/15 pointer-events-none select-none">
-                  <span className="font-serif text-3xl font-black">✦</span>
-                </div>
-                <div className="absolute top-4 right-4 text-amber-800/15 pointer-events-none select-none">
-                  <span className="font-serif text-3xl font-black">✦</span>
-                </div>
-                <div className="absolute bottom-4 left-4 text-amber-800/15 pointer-events-none select-none">
-                  <span className="font-serif text-3xl font-black">✦</span>
-                </div>
-                <div className="absolute bottom-4 right-4 text-amber-800/15 pointer-events-none select-none">
-                  <span className="font-serif text-3xl font-black">✦</span>
-                </div>
+                {/* Traditional Corner Arabesque Ornaments removed */}
 
                 {/* Sub-header inside paper margins (Juz Number - Page Indicator) */}
                 <div className="flex items-center justify-between border-b border-amber-900/10 pb-3 mb-6 text-[11px] font-serif text-amber-950 font-bold select-none tracking-wide">
@@ -3104,8 +3092,6 @@ export default function QuranExplorer({
 
                       {/* GHOST CANVAS WORD-BY-WORD RECALL ENGINE */}
                       <div className="min-h-[250px] bg-gradient-to-br from-[#06241a] to-[#041711] border-[10px] border-double border-[#C59B32]/35 rounded-[2rem] p-6 md:p-8 flex flex-col justify-between relative overflow-hidden space-y-6 shadow-lg">
-                        <div className="absolute top-2 left-2 text-[#C59B32]/10 select-none font-serif text-lg">✦</div>
-                        <div className="absolute top-2 right-2 text-[#C59B32]/10 select-none font-serif text-lg">✦</div>
                         
                         {/* Title of active scope */}
                         <div className="flex items-center justify-between border-b border-[#C59B32]/15 pb-2 font-serif">

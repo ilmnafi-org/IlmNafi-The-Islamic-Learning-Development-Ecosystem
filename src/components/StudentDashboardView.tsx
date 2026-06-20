@@ -156,7 +156,7 @@ export default function StudentDashboardView({ lang, user, onLogout, onNavigateT
             <div className="flex justify-between items-start gap-4">
               <div className="space-y-1">
                 <span className="text-[9px] font-mono tracking-widest text-emerald-400 font-bold bg-emerald-950/80 border border-emerald-500/35 px-2.5 py-1 rounded-full inline-block">
-                  ★ {labels.activeVerified}
+                  {labels.activeVerified}
                 </span>
                 <p className="text-[10px] text-slate-400 mt-1.5">{lang === 'en' ? "Nafi Global Ledger Authority" : "ديوان التصديق لمنارة العلم"}</p>
               </div>
@@ -403,7 +403,7 @@ export default function StudentDashboardView({ lang, user, onLogout, onNavigateT
                   <div key={index} className="border border-amber-200 bg-amber-50/10 p-4 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[155px] shadow-sm">
                     {/* Tiny arch decoration */}
                     <div className="absolute right-0 bottom-0 opacity-10 font-bold text-6xl text-amber-700 pointer-events-none translate-y-4 translate-x-4">
-                      ★
+                      
                     </div>
                     
                     <div className="space-y-1">

@@ -414,19 +414,7 @@ export default function MushafReader({
             className={`${themeStyles.bg} ${themeStyles.borderStyle} ${themeStyles.border} rounded-[2.5rem] shadow-xl p-5 md:p-10 relative overflow-hidden transition-all duration-300 min-h-[550px] flex flex-col justify-between`}
             id="authentic-mushaf-paper"
           >
-            {/* Corner Ornaments */}
-            <div className={`absolute top-4 left-4 ${themeStyles.ornament} pointer-events-none select-none`}>
-              <span className="font-serif text-3xl font-black">✦</span>
-            </div>
-            <div className={`absolute top-4 right-4 ${themeStyles.ornament} pointer-events-none select-none`}>
-              <span className="font-serif text-3xl font-black">✦</span>
-            </div>
-            <div className={`absolute bottom-4 left-4 ${themeStyles.ornament} pointer-events-none select-none`}>
-              <span className="font-serif text-3xl font-black">✦</span>
-            </div>
-            <div className={`absolute bottom-4 right-4 ${themeStyles.ornament} pointer-events-none select-none`}>
-              <span className="font-serif text-3xl font-black">✦</span>
-            </div>
+            {/* Corner Ornaments removed */}
 
             {/* Inner Page Header */}
             <div className={`flex items-center justify-between border-b border-amber-900/10 pb-3 mb-4 text-[11px] font-serif ${themeStyles.text} font-bold select-none tracking-wide`}>

@@ -717,7 +717,7 @@ export default function StudentDashboard({
                     <div key={id} className="p-4 rounded-2xl border border-slate-200 bg-[#FAF8F5] relative flex flex-col justify-between hover:border-amber-600 transition space-y-3">
                       <div>
                         <span className="text-[9px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-100/50 px-2.5 py-0.5 rounded-lg inline-block uppercase tracking-wider mb-2">
-                          ★ {ref.coverage}
+                          {ref.coverage}
                         </span>
                         <h4 className="text-xs font-bold text-slate-905 line-clamp-2 leading-snug">{ref.title}</h4>
                         <span className="text-[10px] text-slate-400 font-semibold block mt-1.5">{ref.country}</span>
