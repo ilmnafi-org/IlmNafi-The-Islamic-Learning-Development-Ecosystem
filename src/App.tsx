@@ -1571,7 +1571,6 @@ export default function App() {
 
               <div className="grid grid-cols-2 gap-3 pb-6">
                 {[
-                  { id: 'curriculum', label: labels.curriculum, icon: BookOpen, color: 'text-amber-800 bg-amber-500/10' },
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
@@ -1611,7 +1610,6 @@ export default function App() {
       {/* SPACE FILLER FOR NAV BAR */}
       <div className="h-20 sm:h-24"></div>
 
-
       {/* RENDER ACTIVE TAB CANVASES */}
       <main className="flex-grow">
         <AnimatePresence mode="wait">
@@ -1646,7 +1644,7 @@ export default function App() {
                   </span>
                   <button 
                     onClick={() => setHeroIndex(prev => (prev + 1) % HERO_TEMPLATES.length)}
-                    className="ml-2 pl-2 border-l border-amber-500/30 text-amber-350 hover:text-white cursor-pointer transition text-[10px] font-black flex items-center gap-1.5 focus:outline-none"
+                    className="ml-2 pl-2 border-l border-amber-500/30 text-amber-300 hover:text-white cursor-pointer transition text-[10px] font-black flex items-center gap-1.5 focus:outline-none"
                     title="Cycle Wisdom"
                   >
                     <RefreshCw className="w-3 h-3 animate-spin-slow inline text-amber-400" />
@@ -1654,7 +1652,6 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Animated Heading - key forces exit/entry on index change */}
                 <motion.h1 
                   key={`title-${heroIndex}`}
                   initial={{ opacity: 0, y: -10 }}
@@ -1684,20 +1681,8 @@ export default function App() {
                     transition={{ duration: 0.3, delay: 0.15 }}
                     onClick={() => { setActiveTab('coach'); }}
                     className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3.5 rounded-2xl font-bold text-xs tracking-wide transition shadow-lg shadow-amber-950/20 cursor-pointer border border-amber-600 scale-[1.02] hover:scale-[1.05]"
-                    id="hero-btn-learning"
                   >
                     {lang === 'en' ? HERO_TEMPLATES[heroIndex].ctaStartEn : HERO_TEMPLATES[heroIndex].ctaStartAr}
-                  </motion.button>
-                  <motion.button 
-                    key={`cta2-${heroIndex}`}
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.2 }}
-                    onClick={() => { setActiveTab('curriculum'); }}
-                    className="border border-white/20 bg-white/5 hover:bg-white/10 text-white px-8 py-3.5 rounded-2xl font-bold text-xs tracking-wide transition backdrop-blur cursor-pointer scale-[1.02] hover:scale-[1.05]"
-                    id="hero-btn-curriculum"
-                  >
-                    {lang === 'en' ? HERO_TEMPLATES[heroIndex].ctaCurriculumEn : HERO_TEMPLATES[heroIndex].ctaCurriculumAr}
                   </motion.button>
                 </div>
 
@@ -1705,10 +1690,10 @@ export default function App() {
             </section>
 
             {/* PLATFORM VALUE PILLARS & FEATURES MATRIX */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12-custom" id="platform-value-pillars">
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12" id="platform-value-pillars">
               <div className="mt-12 space-y-6">
                 <div className="text-center">
-                  <h3 className="text-xl font-extrabold text-slate-900 font-sans tracking-tight">
+                  <h3 className="text-xl font-extrabold text-[#0a2e24] font-sans tracking-tight">
                     {lang === 'en' ? "Platform Core Portals" : "بوابات العلم والهدى"}
                   </h3>
                   <p className="text-xs text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
@@ -1717,7 +1702,7 @@ export default function App() {
                 </div>
 
                 {/* Redesigned Clean Icon-Based Portals Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                   
                   {/* PORTAL 1: HOLY QURAN */}
                   <div 
@@ -1725,7 +1710,7 @@ export default function App() {
                     className="premium-card hover:border-amber-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-quran"
                   >
-                    <div className="absolute top-1.5 right-1.5 bg-amber-150 text-[#C59B32] font-black text-[7px] tracking-widest px-1.5 py-0.5 rounded-full uppercase scale-90">NEW</div>
+                    <div className="absolute top-1.5 right-1.5 bg-amber-100 text-amber-800 font-bold text-[8px] tracking-wide px-1.5 py-0.5 rounded-full uppercase">NEW</div>
                     <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
                       <BookOpen className="w-5 h-5 text-amber-700" />
                     </div>
@@ -1739,26 +1724,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* PORTAL 2: EDUCATION CURRICULUMS */}
-                  <div 
-                    onClick={() => setActiveTab('curriculum')}
-                    className="premium-card hover:border-emerald-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
-                    id="terminal-portal-curriculum"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
-                      <GraduationCap className="w-5 h-5 text-emerald-800" />
-                    </div>
-                    <div className="mt-3 space-y-1">
-                      <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-emerald-800 leading-tight font-sans">
-                        {lang === 'en' ? "Curriculums" : "المناهج التأصيلية"}
-                      </h3>
-                      <p className="text-[10px] text-slate-400 font-semibold leading-none">
-                        {lang === 'en' ? "K-12 Syllabus" : "دروس العقيدة والفقه"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* PORTAL 3: AI RECITATION COACH */}
+                  {/* PORTAL 2: AI RECITATION COACH */}
                   <div 
                     onClick={() => setActiveTab('coach')}
                     className="premium-card hover:border-emerald-700 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
@@ -1768,7 +1734,7 @@ export default function App() {
                       <Mic className="w-5 h-5 text-emerald-800" />
                     </div>
                     <div className="mt-3 space-y-1">
-                      <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-emerald-700 leading-tight font-sans">
+                      <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-emerald-750 leading-tight font-sans">
                         {lang === 'en' ? "Recitation Coach" : "مصحح المخارج"}
                       </h3>
                       <p className="text-[10px] text-slate-400 font-semibold leading-none">
@@ -1777,7 +1743,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* PORTAL 4: IKHLAS DAILY TOOLS */}
+                  {/* PORTAL 3: DAILY DHIKR */}
                   <div 
                     onClick={() => setActiveTab('daily')}
                     className="premium-card hover:border-blue-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
@@ -1799,6 +1765,8 @@ export default function App() {
                 </div>
               </div>
             </section>
+
+
 
             {/* IN-DEPTH BENTO GRID */}
             <section className="max-w-[1280px] mx-auto px-4 md:px-12-custom mt-16" id="bento-grid-section">
@@ -1846,297 +1814,27 @@ export default function App() {
                       <p className="text-emerald-100/80 text-xs leading-relaxed mb-6">
                         {lang === 'en'
                           ? "Pronounce letters, adjust Makhārij, and analyze oral fluency instantly using advanced audio telemetry vectors."
-                          : "حلل نطقك ومخارج الحروف للأعيرة النطقية والتجويد في الحال وبأمان تام."}
+                          : "حلل نطقك ومخارج الحروف غيباً واسترجع إرشاداً مخصصاً لتصحيح التلاوة وتجويدها بدقة."}
                       </p>
                     </div>
-                    <span className="bg-amber-600 text-white font-bold tracking-wider text-[10px] uppercase px-4 py-2.5 rounded-xl hover:bg-amber-700 transition w-fit shadow-sm">
-                      {lang === 'en' ? "Open Coach" : "ابدأ تجربة المصحح"}
+                    <span className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase cursor-pointer relative z-10">
+                      {lang === 'en' ? "Open Recitation Studio" : "فتح معمل التجويد"} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </span>
-                  </div>
-
-                  {/* TILE 3: DAILY SPRIITUAL BOARD */}
-                  <div 
-                    onClick={() => { setActiveTab('daily'); }}
-                    className="bg-white rounded-3xl border border-slate-200/80 p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-800 mb-4 border border-amber-100">
-                        <Clock className="w-4 h-4 text-amber-700" />
-                      </div>
-                      <h4 className="text-base font-bold text-slate-900 mb-2 font-sans">
-                        {lang === 'en' ? "Daily Supplications & Tasbih" : "الأوراد والتسبيحات اليومية"}
-                      </h4>
-                      <p className="text-slate-500 text-xs leading-relaxed">
-                        {lang === 'en' ? "Interactive click Tasbih counter with audio feedbacks coupled with AI-powered Dua intention composer." : "عداد تسبيح رقمي مع مؤثرات تفاعلية، ومصمم أدعية يعتمد على رغبة وغايات المتعلم الفردية."}
-                      </p>
-                    </div>
-                    <span className="text-amber-800 text-[11px] font-bold uppercase mt-4 block">{lang === 'en' ? "Plan Daily Board" : "صمم وردك اليومي"} →</span>
-                  </div>
-
-                  {/* TILE 4: DISCUSSION SPACE */}
-                  <div 
-                    onClick={() => { setActiveTab('forum'); }}
-                    className="bg-white rounded-3xl border border-slate-200/80 p-8 hover:border-amber-600 hover:shadow-lg transition cursor-pointer shadow-sm flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-800 mb-4 border border-amber-100">
-                        <MessageSquare className="w-4 h-4 text-amber-700" />
-                      </div>
-                      <h4 className="text-base font-bold text-slate-900 mb-2 font-sans">
-                        {lang === 'en' ? "Open Student Forums" : "منتدى البحوث الطلابية"}
-                      </h4>
-                      <p className="text-slate-500 text-xs leading-relaxed">
-                        {lang === 'en' ? "Converse about pronunciation rhythms, university requirements, and share Golden Age review links." : "تبادل الشروح الفقهية، مراجع السير، والبحث مع زملاء التخصص العلمي والجامعي."}
-                      </p>
-                    </div>
-                    <span className="text-amber-800 text-[11px] font-bold uppercase mt-4 block">{lang === 'en' ? "Converse Forums" : "ادخل غرف النقاش"} →</span>
                   </div>
 
                 </div>
               </div>
             </section>
 
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-6" id="salah-lessons-suite">
-              <div className="bg-[#FAF9F5] border border-amber-900/10 rounded-3xl p-5 md:p-6 shadow-xs">
-                
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 pb-2 border-b border-amber-900/10 gap-2">
-                  <div>
-                    <span className="text-[8px] uppercase tracking-wider font-extrabold text-amber-900 bg-amber-100 py-0.5 px-2.5 rounded-full border border-amber-200 inline-block mb-1 font-sans">
-                      {lang === 'en' ? "Essential Islamic Pillars" : "تعليم أركان العبادات ومبانيها"}
-                    </span>
-                    <h3 className="text-base font-extrabold text-[#0c2420] tracking-tight">
-                      {lang === 'en' ? "The Core Lessons of Prayer" : "دروس ومحاور الصلاة الجوهرية"}
-                    </h3>
-                  </div>
-                  <button 
-                    onClick={() => setActiveTab('curriculum')}
-                    className="text-[10px] font-bold text-amber-800 hover:underline flex items-center gap-1 cursor-pointer font-sans bg-transparent border-0 self-end sm:self-auto"
-                  >
-                    {lang === 'en' ? "View full study curriculum →" : "عرض المنهج الدراسي بالكامل ←"}
-                  </button>
-                </div>
-
-                {/* Grid layout with 2 columns on mobile and 3 columns on tablet+ sizes as requested */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  
-                  {/* Card 1: Conditions & Pillars */}
-                  <div className="bg-white border border-slate-150 rounded-2xl p-3 flex flex-col justify-between hover:border-amber-900/20 transition-all">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 pb-1">
-                        <span className="w-4 h-4 rounded bg-emerald-50 text-emerald-800 text-[9px] font-black flex items-center justify-center shrink-0 border border-emerald-100 font-sans">
-                          ١
-                        </span>
-                        <h4 className="text-[11px] font-extrabold text-slate-900 font-sans leading-tight">
-                          {lang === 'en' ? "Canonical Pillars" : "الشروط والأركان المفروضة"}
-                        </h4>
-                      </div>
-                      <p className="text-[10px] text-[#64748b] leading-tight font-sans">
-                        {lang === 'en' 
-                          ? "Recognize the nine conditions of worship and fourteen mandatory pillars."
-                          : "معرفة شروط صحة الصلاة التسعة وأركانها الأربعة عشر اللازمة للقبول."}
-                      </p>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[8px] font-mono font-bold text-[#94a3b8]">
-                      <span>{lang === 'en' ? "FAQH" : "مبحث الفقه"}</span>
-                      <span className="text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded font-sans">9 + 14</span>
-                    </div>
-                  </div>
-
-                  {/* Card 2: Khushu' */}
-                  <div className="bg-white border border-slate-150 rounded-2xl p-3 flex flex-col justify-between hover:border-amber-900/20 transition-all">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 pb-1">
-                        <span className="w-4 h-4 rounded bg-emerald-50 text-emerald-800 text-[9px] font-black flex items-center justify-center shrink-0 border border-emerald-100 font-sans">
-                          ٢
-                        </span>
-                        <h4 className="text-[11px] font-extrabold text-slate-900 font-sans leading-tight">
-                          {lang === 'en' ? "Focus & Serenity" : "رعاية الطمأنينة والخشوع"}
-                        </h4>
-                      </div>
-                      <p className="text-[10px] text-[#64748b] leading-tight font-sans">
-                        {lang === 'en'
-                          ? "Cultivate concentration with paced breathing and steady eye gaze."
-                          : "تحقيق السكينة بالهدوء البصري وتدبر الكلمات أثناء الصلاة."}
-                      </p>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[8px] font-mono font-bold text-[#94a3b8]">
-                      <span>{lang === 'en' ? "FOCUS" : "الخشوع الباطن"}</span>
-                      <span className="text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded font-sans">{lang === 'en' ? "Mindful" : "حضور القلب"}</span>
-                    </div>
-                  </div>
-
-                  {/* Card 3: Fatihah Articulation */}
-                  <div className="bg-white border border-slate-150 rounded-2xl p-3 flex flex-col justify-between hover:border-amber-900/20 transition-all col-span-2 md:col-span-1">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 pb-1">
-                        <span className="w-4 h-4 rounded bg-amber-50 text-amber-800 text-[9px] font-black flex items-center justify-center shrink-0 border border-amber-100 font-sans">
-                          ٣
-                        </span>
-                        <h4 className="text-[11px] font-extrabold text-[#0c2420] tracking-tight">
-                          {lang === 'en' ? "Fatihah Precision" : "مخارج سورة الفاتحة"}
-                        </h4>
-                      </div>
-                      <p className="text-[10px] text-[#64748b] leading-tight font-sans">
-                        {lang === 'en'
-                          ? "Correct articulation of verses to prevent errors that affect validity."
-                          : "صيانة نطق الفاتحة من اللحن الجلي المغير للمعاني المؤثر على الصلاة."}
-                      </p>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[8px] font-mono font-bold text-[#94a3b8]">
-                      <span>{lang === 'en' ? "VOICE" : "التحليل الصوتي"}</span>
-                      <button
-                        onClick={() => setActiveTab('coach')}
-                        className="px-1.5 py-0.5 bg-emerald-800 hover:bg-emerald-950 text-white font-extrabold text-[8px] rounded transition-colors cursor-pointer border-0 font-sans"
-                      >
-                        {lang === 'en' ? "Launch" : "ابدأ"}
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </section>
-
-            {/* NEW SECTION B: INTERACTIVE BENEFICIAL-KNOWLEDGE PATH BUILDER */}
-            <section className="bg-slate-900 text-white rounded-[2.5rem] p-8 md:p-12 mx-[3%] py-12 md:py-16" id="study-planner">
-              <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                {/* Visual info left bar */}
-                <div className="lg:col-span-5 space-y-6">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-text-amber-400">
-                    <Sliders className="w-3.5 h-3.5" />
-                    <span className="font-bold text-[10px] uppercase tracking-wide text-amber-300">{lang === 'en' ? "Spiritual Growth Planner" : "مخطط البناء المعرفي التفاعلي"}</span>
-                  </div>
-                  <h3 className="text-3xl font-extrabold text-white font-sans tracking-tight">
-                    {lang === 'en' ? "Tailor Your Study Roadmap" : "صمم خطتك الدراسية لطلب العلم"}
+            {/* ACADEMY FELLOWS & TESTIMONIALS */}
+            <section className="max-w-[1280px] mx-auto px-4 md:px-12 mt-16" id="fellows-testimonials">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-extrabold text-[#0a2e24] font-sans tracking-tight">
+                    {lang === 'en' ? "Academy Scholar Voices" : "أصوات وبحوث قادة التغيير الفكري"}
                   </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                    {lang === 'en' 
-                      ? "Specify your daily minutes. Our mathematical planner calibrates lessons completed, required audio recitation tasks, and estimates your path dynamically." 
-                      : "حدد عدد الدقائق التي ترغب في استثمارها يومياً لطلب العلم، وستقوم الآلة بحساب خطتك وموادك لتساعدك على الحفاظ على وردك المنهجي تلقائياً."}
-                  </p>
-
-                  {/* Slider Control Container */}
-                  <div className="space-y-3 pt-4">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-slate-400">{lang === 'en' ? "Daily Commitment" : "الالتزام اليومي المقترح"}</span>
-                      <span className="font-mono text-amber-400 font-extrabold text-sm">{dailyCommitMinutes} {lang === 'en' ? "Minutes" : "دقيقة"}</span>
-                    </div>
-                    <input 
-                      type="range" 
-                      min="10" 
-                      max="120" 
-                      step="5"
-                      value={dailyCommitMinutes}
-                      onChange={(e) => setDailyCommitMinutes(Number(e.target.value))}
-                      className="w-full accent-amber-500 bg-slate-800 rounded-lg h-2 cursor-pointer"
-                    />
-                    <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                      <span>10m</span>
-                      <span>30m</span>
-                      <span>60m</span>
-                      <span>120m</span>
-                    </div>
-                  </div>
-
-                  {/* Focus Selection */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-extrabold text-slate-400 inline-block">{lang === 'en' ? "Core Study Focus" : "المسار التخصصي المرغوب"}</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: 'tajweed', labelEn: "Tajweed Coach", labelAr: "مصحح التجويد" },
-                        { id: 'jurisprudence', labelEn: "Comparative Law", labelAr: "مناهج الفقه" },
-                        { id: 'history', labelEn: "Islamic Science", labelAr: "ثقافة العلوم" },
-                        { id: 'scholarships', labelEn: "Grant Search", labelAr: "بحث الفرص والمنح" }
-                      ].map((focus) => (
-                        <button
-                          key={focus.id}
-                          onClick={() => setPlanFocus(focus.id as any)}
-                          className={`py-2 px-3 rounded-xl text-xs font-sans transition-all text-center border font-bold cursor-pointer ${
-                            planFocus === focus.id
-                              ? 'bg-amber-600 text-white border-transparent'
-                              : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                          }`}
-                        >
-                          {lang === 'en' ? focus.labelEn : focus.labelAr}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
-
-                {/* Computed results visual layout */}
-                <div className="lg:col-span-7 bg-white/5 rounded-3xl p-6 md:p-8 border border-white/10 space-y-6">
-                  <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider">{lang === 'en' ? "Your Estimated Path Blueprint" : "مخرجات خطتك المقترحة"}</h4>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-slate-950/40 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
-                      <span className="text-slate-400 text-[10px] uppercase font-bold">{lang === 'en' ? "Weekly Lectures" : "المقاطع الأسبوعية"}</span>
-                      <span className="text-2xl font-black text-white block mt-2">{getPlannerResults(dailyCommitMinutes, planFocus).weeklyLessons}</span>
-                      <span className="text-[9px] text-slate-500 mt-1">{lang === 'en' ? "bite-sized modules" : "وحدات علمية مبسطة"}</span>
-                    </div>
-
-                    <div className="bg-slate-950/40 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
-                      <span className="text-slate-400 text-[10px] uppercase font-bold">{lang === 'en' ? "Voice Practice" : "تطبيق صوتي"}</span>
-                      <span className="text-2xl font-black text-amber-500 block mt-2">{getPlannerResults(dailyCommitMinutes, planFocus).audioMinutes} {lang === 'en' ? "mins" : "دقيقة"}</span>
-                      <span className="text-[9px] text-slate-500 mt-1">{lang === 'en' ? "recitations with AI" : "مراجعة تلاوة بالذكاء"}</span>
-                    </div>
-
-                    <div className="bg-slate-950/40 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
-                      <span className="text-slate-400 text-[10px] uppercase font-bold">{lang === 'en' ? "Achievement ETA" : "إتمام المستوى"}</span>
-                      <span className="text-2xl font-black text-emerald-400 block mt-2">~{getPlannerResults(dailyCommitMinutes, planFocus).completionWeeks} {lang === 'en' ? "weeks" : "أسابيع"}</span>
-                      <span className="text-[9px] text-slate-500 mt-1">{lang === 'en' ? "to verify certificate" : "للحصول على التقييم"}</span>
-                    </div>
-                  </div>
-
-                  {/* Core Syllabus Snippets */}
-                  <div className="space-y-2 bg-slate-950/30 p-4 rounded-2xl border border-white/5">
-                    <p className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                      <Compass className="w-4 h-4 text-amber-400" />
-                      <span>{lang === 'en' ? "Syllabus Highlights" : "أبرز محتويات المنهج المبرمج"}</span>
-                    </p>
-                    <div className="space-y-1.5 pt-1 text-slate-400 text-xs">
-                      {getPlannerResults(dailyCommitMinutes, planFocus).syllabusPoints.map((pt, idx) => (
-                        <div key={idx} className="flex gap-2 items-center">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          <span>{pt}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button 
-                      onClick={() => { setActiveTab(planFocus === 'scholarships' ? 'scholarships' : planFocus === 'tajweed' ? 'coach' : 'curriculum'); }}
-                      className="flex-1 bg-amber-600 hover:bg-amber-700 py-3 rounded-xl text-center text-xs font-bold font-sans transition-all text-white shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <span>{lang === 'en' ? "Initialize Learning Stream" : "ابدأ تفعيل خطتك العلمية"}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-
-
-            {/* NEW SECTION E: ACCREDIATED FELLOWSHIP STORIES & SPOTLIGHT */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-20" id="fellowship-spotlight">
-              <div className="text-center mb-16 max-w-2xl mx-auto space-y-3">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-905 bg-amber-50 rounded-full border border-amber-250/20 py-1 px-3">
-                  {lang === 'en' ? "Academy Alumni Showcase" : "منصّة الانتفاع وقصص نجاح الزملاء"}
-                </span>
-                <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight font-sans">
-                  {lang === 'en' ? "Fellowships Mapped to Academic Realities" : "رحلات علمية واقعية للطلاب عبر الأقطار"}
-                </h3>
-                <p className="text-slate-500 text-xs">
-                  {lang === 'en' 
-                    ? "See how our students utilized our modular curriculums, interactive coach tools, and scholarship filters to advance their academic goals."
-                    : "اقرأ مراجعات وقصص الطلاب الموفقين الذين دمجوا بين التقييم الآني لمخارج الحروف مع تصفح قاعدة بيانات المنح الأكاديمية للدراسات العليا."
-                  }
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 
                 {/* Fellow Card 1 */}
                 <div className="bg-white p-8 rounded-3xl border border-slate-200 hover:shadow-lg transition flex flex-col justify-between space-y-6">
@@ -2214,111 +1912,9 @@ export default function App() {
                 </div>
 
               </div>
-            </section>
+            </div>
+          </section>
 
-            {/* NEW SECTION C: GLOBAL SCHOLAR PEER ACTIVE ACTIVITY FEED */}
-            <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-8" id="live-peers">
-              <div className="bg-slate-50 border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-sm">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-6 mb-6">
-                  <div>
-                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 bg-emerald-500/10 rounded-full border border-emerald-200/60 py-1 px-3 mb-2" style={{ direction: 'ltr' }}>
-                      <Activity className="w-3 h-3 animate-pulse text-emerald-600" />
-                      {lang === 'en' ? "Academy Global Sync" : "حلقات التدارس العالمية"}
-                    </span>
-                    <h3 className="text-xl font-bold text-slate-900 font-sans">
-                      {lang === 'en' ? "Real-time Peer Activity Circles" : "حلقات البث ومدارسات المتعلمين النشطة"}
-                    </h3>
-                  </div>
-
-                  {/* HIGHLY COMPACT ICON/AVATAR ROW CLUSTER */}
-                  <div className="flex flex-wrap gap-2.5 items-center justify-start md:justify-end">
-                    {ACTIVE_CIRCLES.map((circle) => {
-                      const isSelected = selectedCircleId === circle.id;
-                      // Get abbreviation based on ID
-                      const abbrev = circle.id.slice(0, 2).toUpperCase();
-                      return (
-                        <button
-                          key={circle.id}
-                          onClick={() => setSelectedCircleId(circle.id)}
-                          className={`w-11 h-11 rounded-full relative font-bold text-[11px] tracking-wider transition-all flex items-center justify-center cursor-pointer border-2 ${
-                            isSelected 
-                              ? 'border-amber-500 bg-amber-50 text-amber-950 scale-105 shadow-sm' 
-                              : 'border-slate-200 bg-white text-slate-650 hover:bg-slate-50 hover:border-slate-350'
-                          }`}
-                          title={lang === 'en' ? circle.city.en : circle.city.ar}
-                          id={`btn-peer-${circle.id}`}
-                        >
-                          <span>{abbrev}</span>
-                          <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-white"></span>
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* SINGLE DYNAMIC VIEWPORT FOR VALUE PRESENTATION */}
-                {(() => {
-                  const currentCircle = ACTIVE_CIRCLES.find(c => c.id === selectedCircleId) || ACTIVE_CIRCLES[0];
-                  return (
-                    <motion.div 
-                      key={selectedCircleId}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center"
-                    >
-                      <div className="md:col-span-8 space-y-3 text-right">
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">
-                            {lang === 'en' ? "Selected Broadcast Node" : "مركز البث المختار"}
-                          </p>
-                          <h4 className="text-lg font-black text-slate-800 leading-snug">
-                            {lang === 'en' ? currentCircle.city.en : currentCircle.city.ar}
-                          </h4>
-                        </div>
-                        <div className="p-4 bg-white rounded-2xl border border-slate-150 space-y-1">
-                          <p className="text-[9px] text-[#C59B32] font-black uppercase tracking-widest">{lang === 'en' ? "Active Discussion" : "موضوع التداول بمجلس الطلاب"}</p>
-                          <p className="text-xs md:text-sm font-bold text-slate-700 leading-relaxed font-serif">
-                            {lang === 'en' ? currentCircle.topic.en : currentCircle.topic.ar}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="md:col-span-4 flex flex-col sm:flex-row md:flex-col gap-3 justify-center items-stretch bg-white border border-slate-205 p-5 rounded-2xl">
-                        <div className="flex-1 text-center md:text-right">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{lang === 'en' ? "Simulated Attendance" : "الحضور الحالي"}</p>
-                          <div className="flex items-center justify-center md:justify-start gap-1 mt-0.5">
-                            <span className="text-xl font-mono font-black text-slate-800">{currentCircle.activeScholars}</span>
-                            <span className="text-[10px] text-slate-500 font-semibold">{lang === 'en' ? "online scholars" : "طالب متواجد الآن"}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex-1 space-y-2">
-                          <div className="inline-block text-[9px] font-extrabold text-amber-800 bg-amber-50 rounded py-0.5 px-2 font-mono w-full text-center">
-                            {lang === 'en' ? currentCircle.status.en : currentCircle.status.ar}
-                          </div>
-                          <button
-                            onClick={() => {
-                              setActiveTab('forum');
-                              setLiveToast({
-                                title: lang === 'en' ? "Redirecting..." : "جاري توجيهك الآن...",
-                                body: lang === 'en' ? "Redirecting to student discussion boards..." : "جاري توجيهك إلى مجالس النقاش وحوارات الطلاب..."
-                              });
-                              setTimeout(() => setLiveToast(null), 5000);
-                            }}
-                            className="w-full text-[10px] font-extrabold bg-slate-900 text-white rounded-xl py-2 hover:bg-slate-800 transition-colors cursor-pointer border-0"
-                          >
-                            {lang === 'en' ? "Enter Study Room →" : "دخول غرفة النقاش ←"}
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })()}
-              </div>
-            </section>
 
             {/* SECTION 4: PLATFORM ORIENTATION INTERACTIVE FAQ (REDESIGNED FOR EXTRAORDINARY CRAFT) */}
             <section className="max-w-[1280px] mx-auto px-4 md:px-12 py-12" id="faq-section">
