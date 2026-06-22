@@ -1,0 +1,143 @@
+{
+  "users": [
+    {
+      "id": "usr_qari",
+      "username": "Sheikh Yusuf",
+      "email": "yusuf@ilmnaafi.org",
+      "passwordHash": "8d969eee76ec243b87db6d761d453c0b118b4971c2610b6562ad31a28a2a89df",
+      "role": "teacher",
+      "weeklyMinutes": 120,
+      "lessonsCompleted": [
+        "les-taj-1",
+        "les-taj-2"
+      ],
+      "savedScholarships": [],
+      "recentRecitations": [],
+      "certificates": [],
+      "joinedForums": [
+        "recitation"
+      ],
+      "notifications": []
+    },
+    {
+      "id": "usr_scholar",
+      "username": "Dr. Fatimah",
+      "email": "fatimah@ilmnaafi.org",
+      "passwordHash": "8d969eee76ec243b87db6d761d453c0b118b4971c2610b6562ad31a28a2a89df",
+      "role": "researcher",
+      "weeklyMinutes": 180,
+      "lessonsCompleted": [
+        "les-his-1"
+      ],
+      "savedScholarships": [
+        "sch-isdb"
+      ],
+      "recentRecitations": [],
+      "certificates": [],
+      "joinedForums": [
+        "jurisprudence"
+      ],
+      "notifications": []
+    },
+    {
+      "id": "usr_student",
+      "username": "Suleiman",
+      "email": "student@ilmnaafi.org",
+      "passwordHash": "8d969eee76ec243b87db6d761d453c0b118b4971c2610b6562ad31a28a2a89df",
+      "role": "student",
+      "weeklyMinutes": 45,
+      "lessonsCompleted": [
+        "les-taj-1"
+      ],
+      "savedScholarships": [
+        "sch-isdb"
+      ],
+      "recentRecitations": [],
+      "certificates": [],
+      "joinedForums": [
+        "recitation",
+        "jurisprudence"
+      ],
+      "notifications": []
+    },
+    {
+      "id": "usr_noujaeift",
+      "username": "Suleiman",
+      "email": "suleiman@ilmnaafi.org",
+      "passwordHash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "role": "student",
+      "weeklyMinutes": 0,
+      "lessonsCompleted": [],
+      "savedScholarships": [],
+      "recentRecitations": [],
+      "certificates": []
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread_1",
+      "title": "Correct pronunciation of the letter 'Dad' (ض)",
+      "body": "Assalamu alaykum scholars. I am struggling with the articulation (makhraj) of the letter 'Dad' (ض). I often confuse it with 'Dhal' (ظ) or standard 'D' sound. Any practical advice or telemetry exercises to improve?",
+      "category": "recitation",
+      "author_id": "usr_student",
+      "author_name": "Suleiman",
+      "author_role": "Student Scholar",
+      "author_avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
+      "thumbs_up": 5,
+      "liked_by": [
+        "fatimah@ilmnaafi.org",
+        "yusuf@ilmnaafi.org"
+      ],
+      "created_at": "2026-06-20T10:00:00.000Z",
+      "replies": [
+        {
+          "id": "rep_1",
+          "body": "Wa alaykum assalam brother. The key is in the sides of the tongue (Hafatul-Lisan) contacting the upper molars, rather than placing the tip of the tongue on the teeth. Practice pressing the left side of the tongue against the left molars. Our AI Coach can visualize this wave-pattern for you.",
+          "author_name": "Sheikh Yusuf",
+          "author_role": "Faculty Qari",
+          "author_avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150",
+          "created_at": "2026-06-20T11:30:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "thread_2",
+      "title": "Sujud as-Sahw (Prosternation of Forgetfulness) requirements",
+      "body": "When a worshipper forgets a mandatory pillar (Rukn) vs a regular obligation (Wajib) in Salah, how does the application of Sujud as-Sahw differ? Does the prosternation happen before or after the Taslim?",
+      "category": "jurisprudence",
+      "author_id": "usr_student",
+      "author_name": "Suleiman",
+      "author_role": "Student Scholar",
+      "author_avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
+      "thumbs_up": 4,
+      "liked_by": [
+        "fatimah@ilmnaafi.org"
+      ],
+      "created_at": "2026-06-21T09:00:00.000Z",
+      "replies": [
+        {
+          "id": "rep_2",
+          "body": "Excellent academic inquiry. If a Pillar (Rukn) is missed, Sujud as-Sahw alone CANNOT compensate for it; you MUST perform that unit (Rak'ah) again. For Obligations (Wajib), Sujud as-Sahw compensates fully. Generally, if it was due to omission, perform it before Taslim; if due to addition, perform after.",
+          "author_name": "Dr. Fatimah",
+          "author_role": "Academic Researcher",
+          "author_avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
+          "created_at": "2026-06-21T10:15:00.000Z"
+        }
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "id": "iss_1",
+      "name": "Muhammad Ali",
+      "email": "muhammad.ali@example.com",
+      "issueType": "Quran/Tajweed Error",
+      "description": "Surah Al-Alaq Verse 1 translation typo in English under the home wisdom quote section.",
+      "screenshot": "",
+      "status": "Fixed",
+      "adminMemo": "Typo reviewed and corrected to matching pristine translations.",
+      "created_at": "2026-06-19T08:00:00.000Z",
+      "updated_at": "2026-06-19T12:00:00.000Z"
+    }
+  ]
+}

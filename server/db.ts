@@ -4,6 +4,8 @@
  */
 
 import { getSupabaseAdmin } from './supabase.js';
+import fs from 'fs';
+import path from 'path';
 
 export interface ServerNotification {
   id: string;
@@ -68,15 +70,157 @@ export interface ServerIssue {
 }
 
 // --- DB Helper Utilities ---
-function getSupabaseOrThrow() {
-  const s = getSupabaseAdmin();
-  if (!s) {
-    throw new Error(
-      "Supabase Connection Missing: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables are not configured in AI Studio. " +
-      "Please configure your Supabase variables in the AI Studio settings panel."
-    );
+// --- DB Helper & Fallback Engine ---
+const DB_FILE_PATH = path.join(process.cwd(), 'server', 'filesystem_db.json');
+
+let fallbackData: {
+  users: ServerUser[];
+  threads: ServerThread[];
+  issues: ServerIssue[];
+} | null = null;
+
+function getFallbackDb(): { users: ServerUser[]; threads: ServerThread[]; issues: ServerIssue[] } {
+  if (fallbackData) return fallbackData;
+
+  try {
+    if (fs.existsSync(DB_FILE_PATH)) {
+      const fileContent = fs.readFileSync(DB_FILE_PATH, 'utf-8');
+      fallbackData = JSON.parse(fileContent);
+    }
+  } catch (e) {
+    console.error("Failed to read fallback DB file:", e);
   }
-  return s;
+
+  if (!fallbackData) {
+    fallbackData = {
+      users: [
+        {
+          id: "usr_qari",
+          username: "Sheikh Yusuf",
+          email: "yusuf@ilmnaafi.org",
+          passwordHash: "8d969eee76ec243b87db6d761d453c0b118b4971c2610b6562ad31a28a2a89df", // password: 123456
+          role: "teacher",
+          weeklyMinutes: 120,
+          lessonsCompleted: ["les-taj-1", "les-taj-2"],
+          savedScholarships: [],
+          recentRecitations: [],
+          certificates: [],
+          joinedForums: ["recitation"],
+          notifications: []
+        },
+        {
+          id: "usr_scholar",
+          username: "Dr. Fatimah",
+          email: "fatimah@ilmnaafi.org",
+          passwordHash: "8d969eee76ec243b87db6d761d453c0b118b4971c2610b6562ad31a28a2a89df", // password: 123456
+          role: "researcher",
+          weeklyMinutes: 180,
+          lessonsCompleted: ["les-his-1"],
+          savedScholarships: ["sch-isdb"],
+          recentRecitations: [],
+          certificates: [],
+          joinedForums: ["jurisprudence"],
+          notifications: []
+        },
+        {
+          id: "usr_student",
+          username: "Suleiman",
+          email: "student@ilmnaafi.org",
+          passwordHash: "8d969eee76ec243b87db6d761d453c0b118b4971c2610b6562ad31a28a2a89df", // password: 123456
+          role: "student",
+          weeklyMinutes: 45,
+          lessonsCompleted: ["les-taj-1"],
+          savedScholarships: ["sch-isdb"],
+          recentRecitations: [],
+          certificates: [],
+          joinedForums: ["recitation", "jurisprudence"],
+          notifications: []
+        }
+      ],
+      threads: [
+        {
+          id: "thread_1",
+          title: "Correct pronunciation of the letter 'Dad' (ض)",
+          body: "Assalamu alaykum scholars. I am struggling with the articulation (makhraj) of the letter 'Dad' (ض). I often confuse it with 'Dhal' (ظ) or standard 'D' sound. Any practical advice or telemetry exercises to improve?",
+          category: "recitation",
+          author_id: "usr_student",
+          author_name: "Suleiman",
+          author_role: "Student Scholar",
+          author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
+          thumbs_up: 5,
+          liked_by: ["fatimah@ilmnaafi.org", "yusuf@ilmnaafi.org"],
+          created_at: "2026-06-20T10:00:00.000Z",
+          replies: [
+            {
+              id: "rep_1",
+              body: "Wa alaykum assalam brother. The key is in the sides of the tongue (Hafatul-Lisan) contacting the upper molars, rather than placing the tip of the tongue on the teeth. Practice pressing the left side of the tongue against the left molars. Our AI Coach can visualize this wave-pattern for you.",
+              author_name: "Sheikh Yusuf",
+              author_role: "Faculty Qari",
+              author_avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150",
+              created_at: "2026-06-20T11:30:00.000Z"
+            }
+          ]
+        },
+        {
+          id: "thread_2",
+          title: "Sujud as-Sahw (Prosternation of Forgetfulness) requirements",
+          body: "When a worshipper forgets a mandatory pillar (Rukn) vs a regular obligation (Wajib) in Salah, how does the application of Sujud as-Sahw differ? Does the prosternation happen before or after the Taslim?",
+          category: "jurisprudence",
+          author_id: "usr_student",
+          author_name: "Suleiman",
+          author_role: "Student Scholar",
+          author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
+          thumbs_up: 4,
+          liked_by: ["fatimah@ilmnaafi.org"],
+          created_at: "2026-06-21T09:00:00.000Z",
+          replies: [
+            {
+              id: "rep_2",
+              body: "Excellent academic inquiry. If a Pillar (Rukn) is missed, Sujud as-Sahw alone CANNOT compensate for it; you MUST perform that unit (Rak'ah) again. For Obligations (Wajib), Sujud as-Sahw compensates fully. Generally, if it was due to omission, perform it before Taslim; if due to addition, perform after.",
+              author_name: "Dr. Fatimah",
+              author_role: "Academic Researcher",
+              author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150",
+              created_at: "2026-06-21T10:15:00.000Z"
+            }
+          ]
+        }
+      ],
+      issues: [
+        {
+          id: "iss_1",
+          name: "Muhammad Ali",
+          email: "muhammad.ali@example.com",
+          issueType: "Quran/Tajweed Error",
+          description: "Surah Al-Alaq Verse 1 translation typo in English under the home wisdom quote section.",
+          screenshot: "",
+          status: "Fixed",
+          adminMemo: "Typo reviewed and corrected to matching pristine translations.",
+          created_at: "2026-06-19T08:00:00.000Z",
+          updated_at: "2026-06-19T12:00:00.000Z"
+        }
+      ]
+    };
+    saveFallbackDb();
+  }
+
+  return fallbackData;
+}
+
+function saveFallbackDb() {
+  if (!fallbackData) return;
+  try {
+    const parentDir = path.dirname(DB_FILE_PATH);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE_PATH, JSON.stringify(fallbackData, null, 2), 'utf-8');
+  } catch (e) {
+    console.error("Failed to write fallback DB file:", e);
+  }
+}
+
+function isSupabaseConfigured(): boolean {
+  return getSupabaseAdmin() !== null;
 }
 
 function handleSupabaseError(error: any, context: string) {
@@ -193,15 +337,21 @@ function mapIssueToDBIssue(i: Partial<ServerIssue>): any {
 class ServerDB {
   // --- USER CONTROLLERS ---
   public async getUsers(): Promise<ServerUser[]> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      return getFallbackDb().users;
+    }
+    const supabase = getSupabaseAdmin()!;
     const { data, error } = await supabase.from('ilm_users').select('*');
     handleSupabaseError(error, 'getUsers');
     return (data || []).map(mapDBUserToUser);
   }
 
   public async findUserByEmail(email: string): Promise<ServerUser | undefined> {
-    const supabase = getSupabaseOrThrow();
     const normEmail = email.trim().toLowerCase();
+    if (!isSupabaseConfigured()) {
+      return getFallbackDb().users.find(u => u.email.toLowerCase() === normEmail);
+    }
+    const supabase = getSupabaseAdmin()!;
     const { data, error } = await supabase
       .from('ilm_users')
       .select('*')
@@ -212,7 +362,10 @@ class ServerDB {
   }
 
   public async findUserById(id: string): Promise<ServerUser | undefined> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      return getFallbackDb().users.find(u => u.id === id);
+    }
+    const supabase = getSupabaseAdmin()!;
     const { data, error } = await supabase
       .from('ilm_users')
       .select('*')
@@ -223,14 +376,30 @@ class ServerDB {
   }
 
   public async createUser(user: ServerUser): Promise<void> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      db.users.push(user);
+      saveFallbackDb();
+      return;
+    }
+    const supabase = getSupabaseAdmin()!;
     const payload = mapUserToDBUser(user);
     const { error } = await (supabase.from('ilm_users') as any).insert(payload);
     handleSupabaseError(error, 'createUser');
   }
 
   public async updateUserProfile(id: string, updates: Partial<ServerUser>): Promise<boolean> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      const idx = db.users.findIndex(u => u.id === id);
+      if (idx > -1) {
+        db.users[idx] = { ...db.users[idx], ...updates };
+        saveFallbackDb();
+        return true;
+      }
+      return false;
+    }
+    const supabase = getSupabaseAdmin()!;
     const payload = mapUserToDBUser(updates);
     const { error } = await (supabase.from('ilm_users') as any)
       .update(payload)
@@ -241,7 +410,10 @@ class ServerDB {
 
   // --- FORUM CONTROLLERS ---
   public async getThreads(): Promise<ServerThread[]> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      return [...getFallbackDb().threads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    const supabase = getSupabaseAdmin()!;
     const { data, error } = await supabase.from('ilm_threads').select('*');
     handleSupabaseError(error, 'getThreads');
     return (data || [])
@@ -250,7 +422,10 @@ class ServerDB {
   }
 
   public async findThreadById(id: string): Promise<ServerThread | undefined> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      return getFallbackDb().threads.find(t => t.id === id);
+    }
+    const supabase = getSupabaseAdmin()!;
     const { data, error } = await supabase
       .from('ilm_threads')
       .select('*')
@@ -261,21 +436,44 @@ class ServerDB {
   }
 
   public async addThread(thread: ServerThread): Promise<void> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      db.threads.push(thread);
+      saveFallbackDb();
+      return;
+    }
+    const supabase = getSupabaseAdmin()!;
     const payload = mapThreadToDBThread(thread);
     const { error } = await (supabase.from('ilm_threads') as any).insert(payload);
     handleSupabaseError(error, 'addThread');
   }
 
   public async deleteThread(id: string): Promise<boolean> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      const lengthBefore = db.threads.length;
+      db.threads = db.threads.filter(t => t.id !== id);
+      saveFallbackDb();
+      return db.threads.length < lengthBefore;
+    }
+    const supabase = getSupabaseAdmin()!;
     const { error } = await (supabase.from('ilm_threads') as any).delete().eq('id', id);
     handleSupabaseError(error, 'deleteThread');
     return true;
   }
 
   public async updateThread(id: string, updates: Partial<ServerThread>): Promise<boolean> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      const idx = db.threads.findIndex(t => t.id === id);
+      if (idx > -1) {
+        db.threads[idx] = { ...db.threads[idx], ...updates };
+        saveFallbackDb();
+        return true;
+      }
+      return false;
+    }
+    const supabase = getSupabaseAdmin()!;
     const payload = mapThreadToDBThread(updates);
     const { error } = await (supabase.from('ilm_threads') as any).update(payload).eq('id', id);
     handleSupabaseError(error, 'updateThread');
@@ -284,7 +482,10 @@ class ServerDB {
 
   // --- ISSUE CONTROLLERS ---
   public async getIssues(): Promise<ServerIssue[]> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      return [...getFallbackDb().issues].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    const supabase = getSupabaseAdmin()!;
     const { data, error } = await supabase.from('ilm_issues').select('*');
     handleSupabaseError(error, 'getIssues');
     return (data || [])
@@ -293,7 +494,10 @@ class ServerDB {
   }
 
   public async findIssueById(id: string): Promise<ServerIssue | undefined> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      return getFallbackDb().issues.find(i => i.id === id);
+    }
+    const supabase = getSupabaseAdmin()!;
     const { data, error } = await supabase
       .from('ilm_issues')
       .select('*')
@@ -304,21 +508,44 @@ class ServerDB {
   }
 
   public async addIssue(issue: ServerIssue): Promise<void> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      db.issues.push(issue);
+      saveFallbackDb();
+      return;
+    }
+    const supabase = getSupabaseAdmin()!;
     const payload = mapIssueToDBIssue(issue);
     const { error } = await (supabase.from('ilm_issues') as any).insert(payload);
     handleSupabaseError(error, 'addIssue');
   }
 
   public async deleteIssue(id: string): Promise<boolean> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      const lengthBefore = db.issues.length;
+      db.issues = db.issues.filter(i => i.id !== id);
+      saveFallbackDb();
+      return db.issues.length < lengthBefore;
+    }
+    const supabase = getSupabaseAdmin()!;
     const { error } = await (supabase.from('ilm_issues') as any).delete().eq('id', id);
     handleSupabaseError(error, 'deleteIssue');
     return true;
   }
 
   public async updateIssue(id: string, updates: Partial<ServerIssue>): Promise<boolean> {
-    const supabase = getSupabaseOrThrow();
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      const idx = db.issues.findIndex(i => i.id === id);
+      if (idx > -1) {
+        db.issues[idx] = { ...db.issues[idx], ...updates };
+        saveFallbackDb();
+        return true;
+      }
+      return false;
+    }
+    const supabase = getSupabaseAdmin()!;
     const payload = mapIssueToDBIssue(updates);
     const { error } = await (supabase.from('ilm_issues') as any).update(payload).eq('id', id);
     handleSupabaseError(error, 'updateIssue');
