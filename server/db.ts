@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import { getSupabaseAdmin } from './supabase.js';
 
 export interface ServerNotification {
   id: string;
@@ -75,160 +73,224 @@ interface DBStructure {
   issues?: ServerIssue[];
 }
 
-const DEFAULT_DB_FILE = path.join(process.cwd(), 'server', 'db.json');
-let DB_FILE = DEFAULT_DB_FILE;
-
-// Under Cloud Run or read-only container platforms, local filesystems are read-only except /tmp
-const isProduction = process.env.NODE_ENV === 'production';
-if (isProduction) {
-  DB_FILE = path.join(os.tmpdir(), 'db.json');
-  try {
-    if (!fs.existsSync(DB_FILE) && fs.existsSync(DEFAULT_DB_FILE)) {
-      // Seed /tmp/db.json with pre-seeded data if it doesn't already exist
-      fs.copyFileSync(DEFAULT_DB_FILE, DB_FILE);
-      console.log(`[Database] Seeded database successfully in temp path: ${DB_FILE}`);
-    }
-  } catch (err: any) {
-    console.warn(`[Database] Failed to copy pre-seeded database to ${DB_FILE}:`, err.message);
-  }
-}
-
-// Default initial forum threads to seed the Discussion Board with premium scholarly discussions
-const DEFAULT_THREADS: ServerThread[] = [
-  {
-    id: 'thread_1',
-    title: 'Verification of Al-Jazariyyah vocal elongation boundaries in Hafs recitation',
-    body: 'Assalamu Alaikum scholars, as we study classical tajweed rules from Imam Al-Jazari’s prose, there are occasional debates on whether pre-measured elongation units (4 versus 5 harakat) on Madd Jaiz Munfasil are strictly required for validation or considered of optional beauty. What is the consensus among active Qaris today?',
-    category: 'recitation',
-    author_id: 'scholar_fajr',
-    author_name: 'Dr. Tariq Al-Mansoor',
-    author_role: 'Academic Researcher',
-    author_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
-    thumbs_up: 8,
-    liked_by: [],
-    created_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), // 3 days ago
-    replies: [
-      {
-        id: 'reply_1_1',
-        body: 'Imam Shatibi and Al-Jazari both agree that uniformity within your recital is key. If you begin with 4 counts, maintain 4 counts consistently throughout the stance to avoid phonetic dilution.',
-        author_name: 'Sheikh Yusuf Al-Asim',
-        author_role: 'Faculty Qari',
-        author_avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
-        created_at: new Date(Date.now() - 2.5 * 24 * 3600 * 1000).toISOString()
-      },
-      {
-        id: 'reply_1_2',
-        body: 'Jazakumullah Khairan for this clarification! This makes pedagogical design for our AI coach much more objective.',
-        author_name: 'Dr. Tariq Al-Mansoor',
-        author_role: 'Academic Researcher',
-        author_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
-        created_at: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString()
-      }
-    ]
-  },
-  {
-    id: 'thread_2',
-    title: 'Historical analysis of study manuscripts in medieval Baghdad and Cordoba',
-    body: 'I am researching the daily timetable and core syllabus books of K-12 students studying in the Al-Mustansiriya Madrasah of Baghdad (circa 1230 CE). Does anyone have primary source document links or translations of Imam Al-Ghazali’s treatises concerning child education timelines?',
-    category: 'history',
-    author_id: 'scholar_salah',
-    author_name: 'Sister Maryam Al-Sabah',
-    author_role: 'Student Scholar',
-    author_avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150',
-    thumbs_up: 5,
-    liked_by: [],
-    created_at: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
-    replies: [
-      {
-        id: 'reply_2_1',
-        body: 'Look at G. Makdisi’s classic "The Rise of Colleges: Institutions of Learning in Islam". He devotes two whole chapters to academic schedules in Baghdad and Baghdad-associated endowment charters.',
-        author_name: 'Dr. Tariq Al-Mansoor',
-        author_role: 'Academic Researcher',
-        author_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
-        created_at: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString()
-      }
-    ]
-  },
-  {
-    id: 'thread_3',
-    title: 'IsDB Graduate Scholarship Program - 2026 application cycle guidelines',
-    body: 'The Islamic Development Bank has announced the opening details for fully-funded fellowships covering Sustainable Science and Classical Islamic Economics. Ensure you submit your academic proposal along with a letter of commendation from your local religious faculty.',
-    category: 'scholarships',
-    author_id: 'scholar_yusuf',
-    author_name: 'Sheikh Yusuf Al-Asim',
-    author_role: 'Faculty Qari',
-    author_avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
-    thumbs_up: 12,
-    liked_by: [],
-    created_at: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
-    replies: []
-  }
-];
-
 class ServerDB {
-  private data: DBStructure = { users: [], threads: DEFAULT_THREADS, issues: [] };
+  private data: DBStructure = { users: [], threads: [], issues: [] };
+  private isSupabaseSyncing = false;
 
   constructor() {
-    this.load();
+    // Non-blocking asynchronous cloud database synchronize on boot
+    this.syncWithSupabase().catch(err => {
+      console.error("[Supabase startup sync failed]", err);
+    });
   }
 
-  private load(): void {
+  public async syncWithSupabase(): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) {
+      console.log("[Supabase] Skipping sync: SUPABASE_URL or keys not configured yet.");
+      return;
+    }
+
+    if (this.isSupabaseSyncing) return;
+    this.isSupabaseSyncing = true;
+
     try {
-      if (fs.existsSync(DB_FILE)) {
-        const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
-        const parsed = JSON.parse(fileContent);
+      console.log("[Supabase] Fetching latest records from dynamic cloud ledger...");
+
+      // Wrap fetches dynamically to prevent compilation errors and catch failures
+      const fetchTable = async (table: string): Promise<{ data: any[] | null; error: any }> => {
+        try {
+          const res = await (supabase as any).from(table).select('*');
+          return { data: res.data, error: res.error };
+        } catch (err: any) {
+          return { data: null, error: err };
+        }
+      };
+
+      const [usersRes, threadsRes, issuesRes] = await Promise.all([
+        fetchTable('ilm_users'),
+        fetchTable('ilm_threads'),
+        fetchTable('ilm_issues')
+      ]);
+
+      const usersError = usersRes.error;
+      const threadsError = threadsRes.error;
+
+      if (usersRes.data && !usersError && threadsRes.data && !threadsError) {
+        console.log(`[Supabase] Restoring state from relational tables. Users: ${usersRes.data.length}, Threads: ${threadsRes.data.length}`);
+        
+        const mappedUsers: ServerUser[] = usersRes.data.map((u: any) => ({
+          id: u.id,
+          username: u.username || '',
+          email: u.email || '',
+          passwordHash: u.password_hash || u.passwordHash || '',
+          role: u.role || 'student',
+          weeklyMinutes: u.weekly_minutes ?? u.weeklyMinutes ?? 0,
+          lessonsCompleted: u.lessons_completed || u.lessonsCompleted || [],
+          savedScholarships: u.saved_scholarships || u.savedScholarships || [],
+          recentRecitations: u.recent_recitations || u.recentRecitations || [],
+          certificates: u.certificates || [],
+          joinedForums: u.joined_forums || u.joinedForums || [],
+          notifications: u.notifications || []
+        }));
+
+        const mappedThreads: ServerThread[] = threadsRes.data.map((t: any) => ({
+          id: t.id,
+          title: t.title || '',
+          body: t.body || '',
+          category: t.category || 'general',
+          author_id: t.author_id || t.authorId || '',
+          author_name: t.author_name || t.author || '',
+          author_role: t.author_role || t.role || '',
+          author_avatar: t.author_avatar || t.avatar || '',
+          thumbs_up: t.thumbs_up ?? t.thumbsUp ?? 0,
+          liked_by: t.liked_by || t.likedBy || [],
+          created_at: t.created_at || t.date || new Date().toISOString(),
+          replies: t.replies || []
+        }));
+
+        const mappedIssues: ServerIssue[] = (issuesRes.data || []).map((i: any) => ({
+          id: i.id,
+          name: i.name || '',
+          email: i.email || '',
+          issueType: i.issue_type || i.issueType || 'Other',
+          description: i.description || '',
+          screenshot: i.screenshot || '',
+          status: i.status || 'Pending',
+          adminMemo: i.admin_memo || i.adminMemo || '',
+          created_at: i.created_at || new Date().toISOString(),
+          updated_at: i.updated_at || new Date().toISOString()
+        }));
+
         this.data = {
-          users: parsed.users || [],
-          threads: parsed.threads || DEFAULT_THREADS,
-          issues: parsed.issues || []
+          users: mappedUsers,
+          threads: mappedThreads,
+          issues: mappedIssues
         };
+        
       } else {
-        this.save();
+        console.warn("[Supabase] Relational schema and single-table fallbacks empty or unpopulated. Initializing empty database.");
       }
-    } catch (e) {
-      console.warn("Unable to load JSON database, using in-memory fallback:", e);
+    } catch (e: any) {
+      console.error("[Supabase] State loading process failed:", e.message);
+    } finally {
+      this.isSupabaseSyncing = false;
     }
   }
 
-  private save(): void {
+  // --- IMMEDIATE SUPABASE INTERACTION WRAPPERS ---
+  private async saveUserToSupabase(u: ServerUser): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return;
     try {
-      const dir = path.dirname(DB_FILE);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
-
-      // Also persist to default workspace path if writable to survive container restarts/redeployments in workspace
-      try {
-        if (DB_FILE !== DEFAULT_DB_FILE) {
-          const defaultDir = path.dirname(DEFAULT_DB_FILE);
-          if (!fs.existsSync(defaultDir)) {
-            fs.mkdirSync(defaultDir, { recursive: true });
-          }
-          fs.writeFileSync(DEFAULT_DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
-        }
-      } catch (wsErr: any) {
-        // Safely catch read-only filesystem exceptions in true production cloud runs
+      const payload = {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        password_hash: u.passwordHash,
+        role: u.role,
+        weekly_minutes: u.weeklyMinutes,
+        lessons_completed: u.lessonsCompleted,
+        saved_scholarships: u.savedScholarships,
+        recent_recitations: u.recentRecitations,
+        certificates: u.certificates,
+        joined_forums: u.joinedForums || [],
+        notifications: u.notifications || []
+      };
+      const res = await (supabase as any).from('ilm_users').upsert(payload);
+      if (res.error) {
+        console.error("[Supabase] Error saving user:", res.error.message);
+      } else {
+        console.log(`[Supabase] Live updated user ${u.email}`);
       }
     } catch (e: any) {
-      console.error(`[Database] Failed to write to primary path ${DB_FILE}:`, e.message);
-      // Fallback on-the-fly to temp directory to avoid application crash/unusable state
-      const fallbackPath = path.join(os.tmpdir(), 'db.json');
-      if (DB_FILE !== fallbackPath) {
-        console.warn(`[Database] Attempting write fallback to temp directory: ${fallbackPath}`);
-        try {
-          if (!fs.existsSync(fallbackPath) && fs.existsSync(DEFAULT_DB_FILE)) {
-            try {
-              fs.copyFileSync(DEFAULT_DB_FILE, fallbackPath);
-            } catch (copyErr) {}
-          }
-          DB_FILE = fallbackPath;
-          fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
-          console.log(`[Database] Successfully wrote database to fallback path: ${DB_FILE}`);
-        } catch (fbErr: any) {
-          console.error(`[Database] Fallback write failed:`, fbErr.message);
-        }
+      console.error("[Supabase User Upsert Exception]", e.message);
+    }
+  }
+
+  private async saveThreadToSupabase(t: ServerThread): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return;
+    try {
+      const payload = {
+        id: t.id,
+        title: t.title,
+        body: t.body,
+        category: t.category,
+        author_id: t.author_id,
+        author_name: t.author_name,
+        author_role: t.author_role,
+        author_avatar: t.author_avatar,
+        thumbs_up: t.thumbs_up,
+        liked_by: t.liked_by,
+        replies: t.replies,
+        created_at: t.created_at
+      };
+      const res = await (supabase as any).from('ilm_threads').upsert(payload);
+      if (res.error) {
+        console.error("[Supabase] Error saving thread:", res.error.message);
+      } else {
+        console.log(`[Supabase] Live updated thread ${t.id}`);
       }
+    } catch (e: any) {
+      console.error("[Supabase Thread Upsert Exception]", e.message);
+    }
+  }
+
+  private async deleteThreadFromSupabase(id: string): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return;
+    try {
+      const res = await (supabase as any).from('ilm_threads').delete().eq('id', id);
+      if (res.error) {
+        console.error("[Supabase] Error deleting thread:", res.error.message);
+      } else {
+        console.log(`[Supabase] Live deleted thread ${id}`);
+      }
+    } catch (e: any) {
+      console.error("[Supabase Thread Delete Exception]", e.message);
+    }
+  }
+
+  private async saveIssueToSupabase(i: ServerIssue): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return;
+    try {
+      const payload = {
+        id: i.id,
+        name: i.name,
+        email: i.email,
+        issue_type: i.issueType,
+        description: i.description,
+        screenshot: i.screenshot || null,
+        status: i.status,
+        admin_memo: i.adminMemo || null,
+        created_at: i.created_at,
+        updated_at: i.updated_at
+      };
+      const res = await (supabase as any).from('ilm_issues').upsert(payload);
+      if (res.error) {
+        console.error("[Supabase] Error saving support issue:", res.error.message);
+      } else {
+        console.log(`[Supabase] Live updated support issue ${i.id}`);
+      }
+    } catch (e: any) {
+      console.error("[Supabase Issue Upsert Exception]", e.message);
+    }
+  }
+
+  private async deleteIssueFromSupabase(id: string): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return;
+    try {
+      const res = await (supabase as any).from('ilm_issues').delete().eq('id', id);
+      if (res.error) {
+        console.error("[Supabase] Error deleting support issue:", res.error.message);
+      } else {
+        console.log(`[Supabase] Live deleted support issue ${id}`);
+      }
+    } catch (e: any) {
+      console.error("[Supabase Issue Delete Exception]", e.message);
     }
   }
 
@@ -247,7 +309,7 @@ class ServerDB {
 
   public createUser(user: ServerUser): void {
     this.data.users.push(user);
-    this.save();
+    this.saveUserToSupabase(user);
   }
 
   public updateUserProfile(id: string, updates: Partial<ServerUser>): boolean {
@@ -255,7 +317,7 @@ class ServerDB {
     if (!user) return false;
 
     Object.assign(user, updates);
-    this.save();
+    this.saveUserToSupabase(user);
     return true;
   }
 
@@ -273,14 +335,14 @@ class ServerDB {
 
   public addThread(thread: ServerThread): void {
     this.data.threads.push(thread);
-    this.save();
+    this.saveThreadToSupabase(thread);
   }
 
   public deleteThread(id: string): boolean {
     const lengthBefore = this.data.threads.length;
     this.data.threads = this.data.threads.filter(t => t.id !== id);
     if (this.data.threads.length !== lengthBefore) {
-      this.save();
+      this.deleteThreadFromSupabase(id);
       return true;
     }
     return false;
@@ -291,7 +353,7 @@ class ServerDB {
     if (!thread) return false;
 
     Object.assign(thread, updates);
-    this.save();
+    this.saveThreadToSupabase(thread);
     return true;
   }
 
@@ -309,7 +371,7 @@ class ServerDB {
       this.data.issues = [];
     }
     this.data.issues.push(issue);
-    this.save();
+    this.saveIssueToSupabase(issue);
   }
 
   public deleteIssue(id: string): boolean {
@@ -317,7 +379,7 @@ class ServerDB {
     const lengthBefore = this.data.issues.length;
     this.data.issues = this.data.issues.filter(i => i.id !== id);
     if (this.data.issues.length !== lengthBefore) {
-      this.save();
+      this.deleteIssueFromSupabase(id);
       return true;
     }
     return false;
@@ -328,7 +390,7 @@ class ServerDB {
     if (!issue) return false;
 
     Object.assign(issue, updates);
-    this.save();
+    this.saveIssueToSupabase(issue);
     return true;
   }
 }
