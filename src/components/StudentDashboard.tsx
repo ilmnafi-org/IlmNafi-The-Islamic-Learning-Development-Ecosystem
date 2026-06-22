@@ -400,25 +400,25 @@ export default function StudentDashboard({
                   </div>
                 </div>
 
-                {/* STATS SUMMARY GRID: Elevated Shadow-Heavy Borderless Panel */}
-                <div className="bg-white rounded-[2.25rem] p-6 space-y-4 shadow-[0_24px_55px_rgba(0,0,0,0.07)]">
+                {/* STATS SUMMARY GRID */}
+                <div className="bg-white rounded-3xl border border-slate-200/85 p-6 space-y-4 shadow-sm">
                   <h3 className="text-xs font-bold text-slate-850 uppercase tracking-widest pb-2 border-b border-slate-100">
                     {labels.weeklyFocus}
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                    <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.studyMin}</span>
                       <div className="mt-1 text-lg font-black text-slate-900">{progress.weeklyMinutes}</div>
                     </div>
-                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                    <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.articlesRead}</span>
                       <div className="mt-1 text-lg font-black text-slate-900">{activeLessons.length}</div>
                     </div>
-                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                    <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.savedGrants}</span>
                       <div className="mt-1 text-lg font-black text-slate-900">{progress.savedScholarships.length}</div>
                     </div>
-                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                    <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.avgAccuracy}</span>
                       <div className="mt-1 text-lg font-black text-emerald-800">{averageAccuracy}%</div>
                     </div>
@@ -429,7 +429,7 @@ export default function StudentDashboard({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
                   {/* RECENT RECITATIONS */}
-                  <div className="bg-white rounded-[2.25rem] p-6 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-4">
+                  <div className="bg-white rounded-3xl border border-slate-200/85 p-5 shadow-sm space-y-4">
                     <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
                        <Volume2 className="w-4 h-4 text-emerald-800 shrink-0" />
                        {labels.recentEvaluations}
@@ -442,12 +442,12 @@ export default function StudentDashboard({
                     ) : (
                       <div className="space-y-2.5 max-h-[200px] overflow-y-auto">
                         {progress.recentRecitations.map((rec, index) => (
-                          <div key={index} className="p-3 rounded-xl bg-slate-50/60 flex items-center justify-between text-xs" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                          <div key={index} className="p-3 rounded-xl border border-slate-100 bg-[#FAF8F5] flex items-center justify-between text-xs" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
                             <div className="text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
                               <p className="font-extrabold text-slate-800 truncate">{rec.verse}</p>
                               <span className="text-[9px] text-slate-400 font-mono block mt-0.5">{rec.date}</span>
                             </div>
-                            <span className="font-black bg-emerald-50 text-emerald-950 px-2 py-1 rounded-lg border border-transparent font-mono shrink-0">{rec.score}%</span>
+                            <span className="font-black bg-emerald-50 text-emerald-950 px-2 py-1 rounded-lg border border-emerald-250/20 font-mono shrink-0">{rec.score}%</span>
                           </div>
                         ))}
                       </div>
@@ -455,7 +455,7 @@ export default function StudentDashboard({
                   </div>
 
                   {/* SCHOLARSHIP BOOKMARKS IN OVERVIEW */}
-                  <div className="bg-white rounded-[2.25rem] p-6 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-4">
+                  <div className="bg-white rounded-3xl border border-slate-200/85 p-5 shadow-sm space-y-4">
                     <h3 className="text-xs font-bold text-slate-905 uppercase tracking-widest flex items-center gap-2">
                        <Bookmark className="w-4 h-4 text-emerald-800 shrink-0" />
                        {labels.bookmarksBlock}
@@ -470,7 +470,7 @@ export default function StudentDashboard({
                         {progress.savedScholarships.map(id => {
                           const ref = scholarLookup[id] || { title: id, country: "Global Opportunities", coverage: "Funded" };
                           return (
-                            <div key={id} className="p-3 rounded-xl bg-slate-50/60 flex items-center justify-between text-xs">
+                            <div key={id} className="p-3 rounded-xl border border-slate-100 bg-[#FAF8F5] flex items-center justify-between text-xs">
                               <div className="truncate pr-2">
                                 <h4 className="font-bold text-slate-800 truncate leading-snug">{ref.title}</h4>
                                 <span className="text-[9px] text-slate-400 block tracking-tight font-medium mt-0.5">{ref.country}</span>
@@ -486,12 +486,12 @@ export default function StudentDashboard({
                 </div>
 
                 {/* QUICK NAV LINKS */}
-                <div className="bg-white rounded-[2.25rem] p-5 shadow-[0_24px_55px_rgba(0,0,0,0.07)] flex flex-col sm:flex-row gap-3">
-                  <button onClick={() => { onNavigateToTab('coach'); }} className="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/50 border border-transparent font-extrabold text-xs text-emerald-950 cursor-pointer">
+                <div className="bg-white rounded-3xl border border-slate-200/85 p-5 shadow-sm flex flex-col sm:flex-row gap-3">
+                  <button onClick={() => { onNavigateToTab('coach'); }} className="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/50 border border-emerald-100 font-extrabold text-xs text-emerald-950 cursor-pointer">
                     <span>{labels.goToRecitation}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => { onNavigateToTab('curriculum'); }} className="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-orange-50 hover:bg-orange-100/50 border border-transparent font-extrabold text-xs text-orange-955 cursor-pointer">
+                  <button onClick={() => { onNavigateToTab('curriculum'); }} className="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-orange-50 hover:bg-orange-100/50 border border-orange-100 font-extrabold text-xs text-orange-955 cursor-pointer">
                     <span>{labels.goToCurriculum}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -510,8 +510,8 @@ export default function StudentDashboard({
                 className="space-y-6"
               >
                 
-                 {/* SACRED DIGITAL CERTIFICATES WALLET: Rounded, Borderless, Heavy Shadow */}
-                <div className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-6">
+                {/* SACRED DIGITAL CERTIFICATES WALLET */}
+                <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 shadow-sm space-y-6">
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-1.5" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
                       <Award className="w-5 h-5 text-amber-800 shrink-0" />
@@ -524,9 +524,9 @@ export default function StudentDashboard({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {certificatesList.map((cert, index) => (
-                      <div key={index} className="bg-amber-500/[0.04] p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[155px] shadow-[0_12px_35px_rgba(0,0,0,0.03)]">
+                      <div key={index} className="border border-amber-250 bg-amber-50/10 p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[155px] shadow-sm">
                         <div className="space-y-1">
-                          <span className="text-[8px] font-mono tracking-wider bg-amber-100 text-amber-955 px-2.5 py-0.5 rounded-full inline-block">
+                          <span className="text-[8px] font-mono tracking-wider bg-amber-100 border border-amber-300 text-amber-955 px-2.5 py-0.5 rounded-full inline-block">
                             {lang === 'en' ? `Grade: ${cert.grade}` : `درجة المطابقة: ${cert.grade}`}
                           </span>
                           <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug pt-1" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
@@ -541,18 +541,51 @@ export default function StudentDashboard({
                     ))}
                   </div>
 
-                  <div className="bg-slate-50 p-3.5 rounded-xl flex items-center justify-between text-[9px] text-slate-400/90 font-mono uppercase" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                  <div className="bg-slate-50 border border-slate-150 p-3.5 rounded-xl flex items-center justify-between text-[9px] text-slate-400/90 font-mono uppercase" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
                     <span>{lang === 'en' ? "Immutable Cryptographic Ledger Hash" : "محفظة تصديق أكاديمية مؤمنة كلياً"}</span>
                     <span>SHA-256://NAFI-VERIFIED</span>
                   </div>
                 </div>
 
                 {/* COMPLETED ROADMAP */}
-                <div className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-4">
+                <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 shadow-sm space-y-4">
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900">
-                      {lang === 'en' ? "Academic Curriculu                 {/* SPIRITUAL & ACADEMIC PLANNER DAILY HABITS */}
-                <div className="bg-white rounded-[2.5rem] p-6 md:p-8 space-y-6 shadow-[0_24px_55px_rgba(0,0,0,0.07)]">
+                      {lang === 'en' ? "Academic Curriculum Roadmap" : "سجل المواد والكتب المنجزة"}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {lang === 'en' ? "Verified study lessons finalized within the Academy portal." : "خارطة المقررات المكتملة وشواهد اجتهادك العلمي."}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {activeLessons.map((les) => (
+                      <div key={les.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                        <div className="space-y-0.5" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                          <span className="text-[8px] font-extrabold text-emerald-800 uppercase tracking-widest block">{les.cat}</span>
+                          <h4 className="text-xs font-bold text-slate-800">{les.title}</h4>
+                        </div>
+                        <span className="text-[10px] font-black text-emerald-850 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg shrink-0">100% PASS</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </motion.div>
+            )}
+
+            {/* DEVOTION TRACKER TAB */}
+            {innerTab === 'devotion' && (
+              <motion.div
+                key="devotion"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                
+                {/* SPIRITUAL & ACADEMIC PLANNER DAILY HABITS */}
+                <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 space-y-6 shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -562,7 +595,7 @@ export default function StudentDashboard({
                       <p className="text-[11px] text-slate-500 font-medium">Mark your daily milestones to verify steady comprehensive progress.</p>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <span className="text-[10px] font-black text-emerald-950 font-mono bg-emerald-100 px-2.5 py-1 rounded-xl">
+                      <span className="text-[10px] font-black text-emerald-950 font-mono bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-xl">
                         {completedCount}/{totalTasks} ({dailyProgressPercent}%)
                       </span>
                     </div>
@@ -578,7 +611,7 @@ export default function StudentDashboard({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                     
                     {/* Salah section */}
-                    <div className="space-y-3 bg-[#FAF8F5]/80 p-5 rounded-[1.75rem]">
+                    <div className="space-y-3 bg-[#FAF8F5] p-5 rounded-2xl border border-slate-150">
                       <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pb-1 border-b border-amber-900/10 mb-1">
                         {labels.prayerTracker}
                       </h4>
@@ -593,30 +626,6 @@ export default function StudentDashboard({
                           const isChecked = dailyChecklist[salah.key as keyof typeof dailyChecklist];
                           return (
                             <button
-                              key={salah.key}
-                              onClick={() => toggleCheck(salah.key as any)}
-                              className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
-                                isChecked 
-                                  ? 'bg-emerald-50 border-emerald-250 text-emerald-900 font-extrabold' 
-                                  : 'bg-white border-transparent text-slate-600 hover:bg-slate-50'
-                              }`}
-                              style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
-                            >
-                              <span className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                                <span className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'}`}>
-                                  {isChecked && <Check className="w-2.5 h-2.5" />}
-                                </span>
-                                <span>{salah.label}</span>
-                              </span>
-                              <span className="text-[10px] font-mono text-slate-400 font-bold">{salah.time}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* General tasks section */}
-                    <div className="space-y-3 bg-[#FAF8F5]/80 p-5 rounded-[1.75rem] flex flex-col justify-between">        <button
                               key={salah.key}
                               onClick={() => toggleCheck(salah.key as any)}
                               className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
