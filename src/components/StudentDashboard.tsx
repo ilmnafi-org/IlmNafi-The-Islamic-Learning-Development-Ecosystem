@@ -9,31 +9,22 @@ import {
   GraduationCap, 
   Award, 
   Bookmark, 
-  CheckCircle2, 
   Clock, 
   BarChart, 
   ArrowRight,
-  ShieldAlert,
-  Sliders,
   Calendar,
   Sparkles,
   BookOpen,
   Check,
   ChevronRight,
   Hash,
-  Heart,
-  CalendarRange,
   Volume2,
-  Radio,
-  Smartphone,
   Bell,
   MessageSquare,
-  Trash2,
-  Plus,
-  X,
-  Send
+  Lock,
+  Workflow
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { UserProgress } from '../types';
 
 interface StudentDashboardProps {
@@ -51,6 +42,9 @@ export default function StudentDashboard({
   onRemoveBookmark,
   onUpdateProgress
 }: StudentDashboardProps) {
+  // Tab controller for the inner pages: 'overview' | 'academics' | 'devotion' | 'forums'
+  const [innerTab, setInnerTab] = useState<'overview' | 'academics' | 'devotion' | 'forums'>('overview');
+
   const [dailyChecklist, setDailyChecklist] = useState<{
     fajr: boolean;
     dhuhr: boolean;
@@ -81,30 +75,7 @@ export default function StudentDashboard({
     };
   });
 
-  const [activeTabSub, setActiveTabSub] = useState<'notifications' | 'forums'>('notifications');
   const [submittingJoin, setSubmittingJoin] = useState<string | null>(null);
-  const [simulationCategory, setSimulationCategory] = useState<string>('general');
-  const [simulationType, setSimulationType] = useState<'topic' | 'reply'>('reply');
-  const [phoneNotifications, setPhoneNotifications] = useState<any[]>([]);
-  const [phoneSound, setPhoneSound] = useState<boolean>(true);
-
-  // Bind custom handler on global window to push sockets to smart-phone lock-screen
-  React.useEffect(() => {
-    (window as any).onPhoneNotificationTriggered = (notif: any) => {
-      setPhoneNotifications(prev => [notif, ...prev.slice(0, 3)]);
-      if (phoneSound) {
-        try {
-          const alertSfx = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-600.wav");
-          alertSfx.volume = 0.35;
-          alertSfx.play().catch(() => {});
-        } catch (e) {}
-      }
-    };
-
-    return () => {
-      delete (window as any).onPhoneNotificationTriggered;
-    };
-  }, [phoneSound]);
 
   const handleJoinLeaveForum = async (category: string, isCurrentlyJoined: boolean) => {
     if (!progress.email) {
@@ -143,71 +114,6 @@ export default function StudentDashboard({
     }
   };
 
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      const token = localStorage.getItem('ilm_token');
-      const response = await fetch('/api/notifications/read', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ notificationId: id })
-      });
-      if (response.ok) {
-        const result = await response.json();
-        if (onUpdateProgress && result.notifications) {
-          onUpdateProgress({
-            ...progress,
-            notifications: result.notifications
-          });
-        }
-      }
-    } catch (e) {
-      console.error("Mark notification read error:", e);
-    }
-  };
-
-  const handleClearAll = async () => {
-    try {
-      const token = localStorage.getItem('ilm_token');
-      const response = await fetch('/api/notifications/clear', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        }
-      });
-      if (response.ok) {
-        const result = await response.json();
-        if (onUpdateProgress && result.notifications) {
-          onUpdateProgress({
-            ...progress,
-            notifications: result.notifications
-          });
-        }
-      }
-    } catch (e) {
-      console.error("Clear notifications error:", e);
-    }
-  };
-
-  const handleTriggerActivity = async () => {
-    try {
-      const token = localStorage.getItem('ilm_token');
-      await fetch('/api/forum/simulate-activity', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ category: simulationCategory, type: simulationType })
-      });
-    } catch (e) {
-      console.error("Simulated activity trigger failure:", e);
-    }
-  };
-
   const toggleCheck = (item: keyof typeof dailyChecklist) => {
     setDailyChecklist(prev => {
       const next = { ...prev, [item]: !prev[item] };
@@ -223,7 +129,6 @@ export default function StudentDashboard({
   const totalTasks = Object.keys(dailyChecklist).length;
   const dailyProgressPercent = Math.round((completedCount / totalTasks) * 100);
 
-  // Sample scholarships database lookup to show names
   const scholarLookup: { [key: string]: { title: string; country: string; coverage: string } } = {
     'sch-isdb': { title: "Islamic Development Bank (IsDB) Scholarship", country: "Saudi Arabia / France", coverage: "Fully Funded" },
     'sch-kuwait': { title: "Kuwait University Arabic Language Scholarship Program", country: "Kuwait", coverage: "Full Tuition + Stipend" },
@@ -232,11 +137,30 @@ export default function StudentDashboard({
     'sch-turkiye': { title: "Türkiye Bursları Scholarship Program", country: "Turkey", coverage: "Fully Funded" }
   };
 
+  // Pre-seed some default certificates if none exists in progress
+  const defaultCertificates = [
+    { title: lang === 'en' ? "Foundational Tajweed Hafs Decibel License" : "إجازة مخارج الحروف وأحكام التلاوة", grade: "94%", date: "2026-06-01", key: "CERT-HAFS-A9" },
+    { title: lang === 'en' ? "Golden Era Islamic Science Certificate" : "شهادة مباحث العقيدة والفقه المنهجي", grade: "89%", date: "2026-06-18", key: "CERT-ERAS-E1" }
+  ];
+
+  const certificatesList = progress.certificates || defaultCertificates;
+
+  // Pre-seed some mocked completed lessons for the curriculum roadmap view
+  const defaultLessonsMap = [
+    { id: "les-aqeedah-1", title: lang === 'en' ? "Unification of Divinity (Tawhid)" : "شهادة أن لا إله إلا الله ومقتضاها", cat: "Aqeedah" },
+    { id: "les-fiqh-1", title: lang === 'en' ? "Purification (Taharah) Essentials" : "كتاب الطهارة وشروط الصلاة المعتبرة", cat: "Fiqh" },
+    { id: "les-seerah-1", title: lang === 'en' ? "The Meccan Period Chronology" : "خلاصة العهد المكي والبعثة النبوية", cat: "Seerah" }
+  ];
+
+  const activeLessons = progress.lessonsCompleted && progress.lessonsCompleted.length > 0
+    ? progress.lessonsCompleted.map(id => ({ id, title: id.toUpperCase().replace("-", " "), cat: "Sciences" }))
+    : defaultLessonsMap;
+
   const labels = {
     en: {
+      membership: "Secured Academic Member",
       title: "Student Workspace Portal",
       subtitle: "Review your secure academic ledger, recitation analytics, and spiritual study objectives.",
-      membership: "Secured Academic Member",
       idCardTitle: "Nafi Academy Board ID",
       cardActive: "ACTIVE & ACCREDITED",
       weeklyFocus: "Weekly Statistics",
@@ -246,7 +170,6 @@ export default function StudentDashboard({
       avgAccuracy: "Tajweed Accuracy",
       recentEvaluations: "Recitation Evaluations",
       noRecitations: "No voice coach evaluations completed yet.",
-      evaluationTitle: "Acoustic Recital Timeline",
       spiritualPlanner: "Daily Devotional Goal Tracker",
       prayerTracker: "Salah Attendance Monitor",
       generalTasks: "Academic & Personal Adhkar",
@@ -264,12 +187,19 @@ export default function StudentDashboard({
       isha: "Isha Prayer",
       reciteCheck: "Tajweed AI Practice (15m)",
       readCheck: "Study Golden Age Lessons",
-      adhkarCheck: "Morning & Evening Adhkar"
+      adhkarCheck: "Morning & Evening Adhkar",
+      // Inner tabs
+      tabOverview: "Overview",
+      tabAcademics: "Academic Wallet",
+      tabDevotion: "Devotional Plan",
+      tabForums: "Forums & Channels",
+      idKey: "Verification Hash",
+      roleLabel: "Registry Tier"
     },
     ar: {
+      membership: "طالب علم مسجل في ديوان الأكاديمية",
       title: "معمل دراسة طالب العلم",
       subtitle: "راجع بوابتك الأكاديمية المعتمدة، وسجلات تطور قراءتك، والخطط الروحية والدنيوية المجدولة.",
-      membership: "طالب علم مسجل في ديوان الأكاديمية",
       idCardTitle: "بطاقة الهوية الأكاديمية الموحدة",
       cardActive: "عضوية معتمدة ونشطة",
       weeklyFocus: "إحصائيات تقدمك الأسبوعي",
@@ -279,7 +209,6 @@ export default function StudentDashboard({
       avgAccuracy: "متوسط دقة مخارج الصوت",
       recentEvaluations: "سجل تصحيح التلاوات بالذكاء الاصطناعي",
       noRecitations: "لا توجد قراءات معالجة بالصوت حالياً.",
-      evaluationTitle: "خط السمع والنطق الصوتي المطور",
       spiritualPlanner: "منظم العبادات والأوراد اليومي",
       prayerTracker: "سجل الصلوات الخمس والرباط",
       generalTasks: "الأوراد وأنشطة الدرس والطلب",
@@ -297,7 +226,14 @@ export default function StudentDashboard({
       isha: "صلاة العشاء",
       reciteCheck: "تمرين تلاوة ببروتوكول الذكاء الاصطناعي",
       readCheck: "قراءة مقال أو تلخيص تاريخي",
-      adhkarCheck: "أوراد الصباح والمساء والاستغفار"
+      adhkarCheck: "أوراد الصباح والمساء والاستغفار",
+      // Inner tabs
+      tabOverview: "لوحة الملخص",
+      tabAcademics: "الشهادات والمقررات",
+      tabDevotion: "الخطة الروحيّة",
+      tabForums: "قنوات المذاكرة والربط",
+      idKey: "مفتاح المطابقة المشفر",
+      roleLabel: "المسار الأكاديمي"
     }
   }[lang];
 
@@ -325,34 +261,35 @@ export default function StudentDashboard({
       title: lang === 'en' ? "Global Grants Placement Office" : "حلقة المنح والإيفاد الأكاديمي المباشر",
       desc: lang === 'en' ? "Peer matching and notifications for specialized Islamic University statements." : "مشاركة ملفات التقديم، ورش كتابة المقترحات البحثية، والقبول الجامعي.",
       tag: lang === 'en' ? "Scholarships" : "المنح والدراسات"
-    },
-    { 
-      id: 'general', 
-      title: lang === 'en' ? "General Scholar Assembly Hall" : "بهو المذاكرة والآداب العامة",
-      desc: lang === 'en' ? "General student chat, review methods, and peer-to-peer memorization support queues." : "الآداب المنهجية لطلب العلم الشرعي، ومناقشة البرامج الإثرائية والتعارف.",
-      tag: lang === 'en' ? "General" : "المذاكرة العامة"
     }
   ];
 
   // Average accuracy calculation from recitations
   const averageAccuracy = progress.recentRecitations.length > 0
     ? Math.round(progress.recentRecitations.reduce((acc, curr) => acc + curr.score, 0) / progress.recentRecitations.length)
-    : 0;
+    : 85;
+
+  const tabsInfo = [
+    { id: 'overview' as const, label: labels.tabOverview, icon: BarChart },
+    { id: 'academics' as const, label: labels.tabAcademics, icon: GraduationCap },
+    { id: 'devotion' as const, label: labels.tabDevotion, icon: Sparkles },
+    { id: 'forums' as const, label: labels.tabForums, icon: MessageSquare }
+  ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-10 space-y-10" id="student-workspace-dashboard">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-6 space-y-6 select-none" id="student-workspace-dashboard">
       
-      {/* Header segment with premium greeting */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-6 gap-4">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-5 gap-4">
         <div>
-          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-250/20 px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 mb-2">
+          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/40 px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 mb-2">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
             {labels.membership}
           </span>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-950 tracking-tight font-sans">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight font-sans">
             {labels.title}
           </h1>
-          <p className="text-xs md:text-sm text-slate-500 mt-1 font-sans">
+          <p className="text-xs text-slate-500 mt-1 font-sans">
             {labels.subtitle}
           </p>
         </div>
@@ -362,434 +299,504 @@ export default function StudentDashboard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* LEFT CARD COLUMN: ID BADGE & METRIC CIRCLES */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* RESPONSIVE NAVIGATION: SIDEBAR FOR LARGER SCREENS */}
+        <aside className="hidden lg:flex lg:col-span-3 flex-col gap-6 bg-[#FAF8F5] border border-slate-200 rounded-3xl p-5 shadow-sm sticky top-6">
+          <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block px-1 border-b border-slate-200/50 pb-2 mb-2">
+            {lang === 'en' ? "Workspace Control" : "لوحة التحكم الأكاديمية"}
+          </span>
+          <nav className="flex flex-col gap-1.5">
+            {tabsInfo.map((tab) => {
+              const TabIcon = tab.icon;
+              const isActive = innerTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setInnerTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all border outline-none cursor-pointer ${
+                    isActive 
+                      ? 'bg-emerald-900 text-white border-emerald-950 shadow-md font-black translate-x-1' 
+                      : 'bg-white text-slate-700 hover:text-emerald-900 border-slate-150 hover:bg-slate-50'
+                  }`}
+                  style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
+                >
+                  <TabIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-300' : 'text-slate-400'}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* DIGITAL ACCREDITED COINED ID BADGE MINIMIZED IN SIDEBAR */}
+          <div className="bg-gradient-to-br from-slate-900 via-[#071310] to-slate-950 text-white rounded-2xl p-4 border border-slate-800 mt-2">
+            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+              <span className="text-[8px] font-bold text-amber-300 tracking-wider">● {labels.cardActive}</span>
+              <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="mt-4 space-y-3 font-sans">
+              <div>
+                <span className="text-[8px] text-slate-500 uppercase tracking-widest font-black block">{lang === 'en' ? "STUDENT HOLDER" : "الاسم الثنائي الكامل"}</span>
+                <span className="text-xs font-bold text-[#faf9f6] block truncate mt-0.5">{progress.username || "Scholar Seeker"}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div>
+                  <span className="text-[7.5px] text-slate-500 block uppercase font-bold">{labels.roleLabel}</span>
+                  <span className="text-[10px] text-amber-250 font-bold block leading-tight truncate mt-0.5">
+                    {lang === 'en' ? "Quranic Sciences" : "علوم الشرع"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[7.5px] text-slate-500 block uppercase font-bold">{labels.idKey}</span>
+                  <span className="text-[9.5px] text-emerald-400 font-mono font-bold block mt-0.5">
+                    NAFI-{progress.email ? progress.email.split('@')[0].toUpperCase().substring(0, 5) : "MEM"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN PANEL CONTENT */}
+        <main className="grid grid-cols-1 col-span-1 lg:col-span-9 gap-6 pb-20 lg:pb-0">
           
-          {/* DIGITAL ACCREDITED COINED ID BADGE */}
-          <div 
-            className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-[#071d18] to-slate-950 text-white rounded-3xl p-6 shadow-2xl border border-emerald-950/60"
-            id="student-id-display-box"
-          >
-            {/* Islamic geometric pattern outline overlay */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl" />
-
-            <div className="flex justify-between items-start">
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-black text-amber-300 bg-amber-500/20 border border-amber-500/35 px-2.5 py-0.5 rounded-full inline-block tracking-wider uppercase font-mono">
-                  ● {labels.cardActive}
-                </span>
-                <p className="text-[10px] text-emerald-250 font-semibold tracking-wide font-mono mt-1.5">{labels.idCardTitle}</p>
-              </div>
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/30 text-amber-400">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-            </div>
-
-            {/* Account Information details */}
-            <div className="mt-8 space-y-4">
-              <div>
-                <span className="text-[9px] text-emerald-100/50 uppercase tracking-widest font-bold block">{lang === 'en' ? "ACADEMIC HOLDER" : "الاسم الأكاديمي الكامل"}</span>
-                <span className="text-lg font-bold text-white tracking-tight leading-none mt-1 block truncate">
-                  {progress.username || "Scholar Seeker"}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-1">
-                <div>
-                  <span className="text-[9px] text-emerald-100/50 uppercase tracking-widest font-bold block">{lang === 'en' ? "REGISTRY TIERS" : "المستوى الدراسي"}</span>
-                  <span className="text-xs font-bold text-amber-250 mt-1 block">
-                    {lang === 'en' ? "Quranic Sciences Spec." : "قراءات وتجويد معاصر"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-emerald-100/50 uppercase tracking-widest font-bold block">{lang === 'en' ? "VERIFICATION CODE" : "معرف التوثيق الفريد"}</span>
-                  <span className="text-xs font-mono text-emerald-400 font-bold mt-1 block flex items-center gap-1">
-                    <Hash className="w-3 h-3 text-emerald-500 shrink-0" />
-                    <span>NAFI-{progress.email ? progress.email.split('@')[0].toUpperCase().substring(0, 7) : "STUDENT"}</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* QR/Barcode style simulation element */}
-            <div className="mt-7 pt-4 border-t border-white/10 flex items-center justify-between">
-              <div className="flex gap-0.5">
-                {[1, 4, 2, 6, 1, 3, 5, 2, 7, 1, 3, 4, 1, 5, 2, 2].map((w, idx) => (
-                  <span key={idx} className="bg-white/40 inline-block h-4" style={{ width: `${w}px` }}></span>
-                ))}
-              </div>
-              <span className="text-[9px] text-emerald-100/35 font-mono">MD-688F-7B21-DD12</span>
-            </div>
-
-          </div>
-
-          {/* STUDY STATS BLOCKS (4 GRID PIECES) */}
-          <div className="bg-white rounded-3xl border border-slate-200/85 p-6 space-y-4 shadow-sm">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-1 pb-2 border-b border-slate-100">
-              {labels.weeklyFocus}
-            </h3>
-
-            <div className="grid grid-cols-2 gap-3.5">
-              
-              <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150 relative">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{labels.studyMin}</span>
-                  <Clock className="w-3.5 h-3.5 text-amber-800" />
-                </div>
-                <div className="mt-2 text-xl font-extrabold text-slate-900">{progress.weeklyMinutes}</div>
-                <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">This cycle</span>
-              </div>
-
-              <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150 relative">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{labels.articlesRead}</span>
-                  <BookOpen className="w-3.5 h-3.5 text-amber-800" />
-                </div>
-                <div className="mt-2 text-xl font-extrabold text-slate-900">{progress.lessonsCompleted.length}</div>
-                <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">Approved items</span>
-              </div>
-
-              <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150 relative">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{labels.savedGrants}</span>
-                  <Bookmark className="w-3.5 h-3.5 text-amber-800" />
-                </div>
-                <div className="mt-2 text-xl font-extrabold text-slate-900">{progress.savedScholarships.length}</div>
-                <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">Bookmarked</span>
-              </div>
-
-              <div className="bg-slate-50 rounded-2xl p-3 border border-slate-150 relative">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{labels.avgAccuracy}</span>
-                  <Award className="w-3.5 h-3.5 text-amber-800" />
-                </div>
-                <div className="mt-2 text-xl font-extrabold text-emerald-800">{averageAccuracy > 0 ? `${averageAccuracy}%` : 'N/A'}</div>
-                <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">Avg voice score</span>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* QUICK LINKS AREA */}
-          <div className="bg-white rounded-3xl border border-slate-200/85 p-5 space-y-3.5 shadow-sm">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest">{labels.quickActions}</h4>
-            <div className="space-y-2">
-              <button
-                onClick={() => onNavigateToTab('coach')}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-[#FAF8F5] hover:bg-amber-50 text-left border border-slate-150 text-xs font-bold text-slate-800 transition cursor-pointer"
-                style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
+          <AnimatePresence mode="wait">
+            
+            {/* OVERVIEW TAB */}
+            {innerTab === 'overview' && (
+              <motion.div
+                key="overview"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
               >
-                <div className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                  <Volume2 className="w-4 h-4 text-amber-800 shrink-0" />
-                  <span>{labels.goToRecitation}</span>
-                </div>
-                <ChevronRight className={`w-3.5 h-3.5 text-slate-400 ${lang === 'ar' ? 'rotate-180' : ''}`} />
-              </button>
-              <button
-                onClick={() => onNavigateToTab('curriculum')}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-[#FAF8F5] hover:bg-amber-50 text-left border border-slate-150 text-xs font-bold text-slate-800 transition cursor-pointer"
-                style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
-              >
-                <div className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                  <BookOpen className="w-4 h-4 text-emerald-800 shrink-0" />
-                  <span>{labels.goToCurriculum}</span>
-                </div>
-                <ChevronRight className={`w-3.5 h-3.5 text-slate-400 ${lang === 'ar' ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        {/* RIGHT AREA COLUMN: HABITS & SCHOLARSHIPS & VOICE LOGS */}
-        <div className="lg:col-span-8 space-y-6">
-
-          {/* SPIRITUAL & ACADEMIC PLANNER DAILY HABITS ACCORDION */}
-          <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 space-y-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <CalendarRange className="w-5 h-5 text-amber-800 shrink-0" />
-                  {labels.spiritualPlanner}
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Mark your daily milestones to verify steady comprehensive progress.</p>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[10px] font-black text-emerald-950 font-mono bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-xl">
-                  {completedCount}/{totalTasks} ({dailyProgressPercent}%)
-                </span>
-              </div>
-            </div>
-
-            {/* PROGRESS BAR DIAL */}
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-amber-600 to-emerald-700 h-full rounded-full transition-all duration-500" 
-                style={{ width: `${dailyProgressPercent}%` }}
-              ></div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              
-              {/* Daily Salah checkoff list */}
-              <div className="space-y-3 bg-[#FAF8F5] p-5 rounded-2xl border border-slate-150">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pb-1 border-b border-amber-900/10 mb-1">
-                  {labels.prayerTracker}
-                </h4>
-                <div className="space-y-2">
-                  {[
-                    { key: 'fajr', label: labels.fajr, time: "04:12" },
-                    { key: 'dhuhr', label: labels.dhuhr, time: "12:35" },
-                    { key: 'asr', label: labels.asr, time: "16:15" },
-                    { key: 'maghrib', label: labels.maghrib, time: "19:42" },
-                    { key: 'isha', label: labels.isha, time: "21:18" }
-                  ].map((salah) => {
-                    const isChecked = dailyChecklist[salah.key as keyof typeof dailyChecklist];
-                    return (
-                      <button
-                        key={salah.key}
-                        onClick={() => toggleCheck(salah.key as any)}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
-                          isChecked 
-                            ? 'bg-emerald-50 border-emerald-250 text-emerald-900 font-extrabold' 
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                        style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
-                      >
-                        <span className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'}`}>
-                            {isChecked && <Check className="w-2.5 h-2.5" />}
-                          </span>
-                          <span>{salah.label}</span>
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold">{salah.time}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Devotional study checklist */}
-              <div className="space-y-3 bg-[#FAF8F5] p-5 rounded-2xl border border-slate-150">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pb-1 border-b border-amber-900/10 mb-1">
-                  {labels.generalTasks}
-                </h4>
-                <div className="space-y-2">
-                  {[
-                    { key: 'recitation', label: labels.reciteCheck, desc: "Acoustics loop" },
-                    { key: 'lessons', label: labels.readCheck, desc: "Kitab treatises" },
-                    { key: 'adhkar', label: labels.adhkarCheck, desc: "Reminders recitation" }
-                  ].map((task) => {
-                    const isChecked = dailyChecklist[task.key as keyof typeof dailyChecklist];
-                    return (
-                      <button
-                        key={task.key}
-                        onClick={() => toggleCheck(task.key as any)}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
-                          isChecked 
-                            ? 'bg-emerald-50 border-emerald-250 text-emerald-900 font-extrabold' 
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                        style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
-                      >
-                        <span className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'}`}>
-                            {isChecked && <Check className="w-2.5 h-2.5" />}
-                          </span>
-                          <span className="leading-tight block">{task.label}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {dailyProgressPercent === 100 && (
-                  <motion.div 
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-center text-[10px] font-bold text-amber-900 flex items-center justify-center gap-1.5 animate-bounce mt-4"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                    <span>{labels.congratulations}</span>
-                  </motion.div>
-                )}
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* STUDENT DISCUSSION FORUMS AND CHANNELS (MIGRATED FROM NOTIFICATIONS) */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 md:p-8 space-y-4 shadow-sm">
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                <GraduationCap className="w-5 h-5 text-amber-800 shrink-0" />
-                <span>{lang === 'en' ? "Student Discussion Forums & Channels" : "قنوات المذاكرة الشرعية والحلقات الفنية"}</span>
-              </h3>
-              <p className="text-[11px] text-slate-500 mt-1" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                {lang === 'en' 
-                  ? "Join discussion forums to automatically subscribe for real-time WebSocket notifications whenever a peer or الشيخ posts a thread or response."
-                  : "اشترك بالحلقات والديوان لتتلقى تحديثات مباشرة فور قيام أحد المشايخ بطرح الأسئلة أو الإجابات."}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 text-left">
-              {forumBoards.map((item) => {
-                const isJoined = progress.joinedForums?.includes(item.id);
-                return (
-                  <div 
-                    key={item.id}
-                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
-                      isJoined 
-                        ? 'bg-emerald-500/5 border-emerald-650/30' 
-                        : 'bg-[#FAF8F5] border-slate-200/80 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="space-y-1.5" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                      <div className="flex items-center justify-between" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                        <span className="text-[9px] font-black tracking-wider uppercase text-slate-400 font-mono">
-                          {item.tag}
-                        </span>
-                        {isJoined ? (
-                          <span className="text-[8px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-250 px-2 rounded">
-                            ✓ {lang === 'en' ? "SUBSCRIBED" : "مشترك"}
-                          </span>
-                        ) : (
-                          <span className="text-[8px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 rounded">
-                            {lang === 'en' ? "SILENT" : "صامت"}
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="text-xs font-extrabold text-slate-900 leading-tight block">{item.title}</h4>
-                      <p className="text-[10px] text-slate-500 leading-normal block">{item.desc}</p>
+                {/* ID badge only displayed at top on mobile */}
+                <div className="block lg:hidden relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#0a1a16] to-slate-950 text-white rounded-3xl p-5 border border-slate-800 shadow-xl" id="student-id-display-box-mobile">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <span className="text-[8px] font-black text-amber-300 bg-amber-500/20 border border-amber-500/35 px-2.5 py-0.5 rounded-full inline-block tracking-wider uppercase font-mono">
+                        ● {labels.cardActive}
+                      </span>
+                      <p className="text-[9px] text-emerald-250 font-semibold tracking-wide font-mono mt-1">{labels.idCardTitle}</p>
                     </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-100" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                      <button
-                        disabled={submittingJoin === item.id}
-                        onClick={() => handleJoinLeaveForum(item.id, isJoined)}
-                        className={`text-[9.5px] font-black px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                          isJoined 
-                            ? 'bg-transparent border-red-200 text-red-650 hover:bg-red-50' 
-                            : 'bg-emerald-800 border-emerald-800 text-white hover:bg-emerald-900'
-                        }`}
-                      >
-                        {submittingJoin === item.id ? "..." : isJoined 
-                          ? (lang === 'en' ? "Leave Board" : "مغادرة الحلقة") 
-                          : (lang === 'en' ? "Join Board & Sync" : "انضمام ومزامنة الإشعار")}
-                      </button>
-                      
-                      <button
-                        onClick={() => onNavigateToTab('forum')}
-                        className="text-[9.5px] font-black text-[#704214] hover:underline cursor-pointer bg-transparent"
-                      >
-                        {lang === 'en' ? "View Feed →" : "عرض التدفق ←"}
-                      </button>
+                    <GraduationCap className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div className="mt-6 space-y-3 font-sans">
+                    <div>
+                      <span className="text-[8px] text-emerald-100/50 uppercase tracking-widest font-black block">{lang === 'en' ? "ACADEMIC HOLDER" : "الاسم الأكاديمي الكامل"}</span>
+                      <span className="text-sm font-bold text-white tracking-tight block truncate mt-0.5">{progress.username || "Scholar Seeker"}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-[8px] text-emerald-100/50 uppercase tracking-widest font-black block">{labels.roleLabel}</span>
+                        <span className="text-xs font-bold text-amber-250">{lang === 'en' ? "Quranic Sciences Spec." : "قراءات وتجويد معاصر"}</span>
+                      </div>
+                      <div>
+                        <span className="text-[8px] text-emerald-100/50 uppercase tracking-widest font-black block">{labels.idKey}</span>
+                        <span className="text-xs font-mono font-bold text-emerald-400">NAFI-{progress.email ? progress.email.split('@')[0].toUpperCase().substring(0, 6) : "STUDENT"}</span>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                </div>
 
-          {/* SCHOLARSHIP BOOKMARKS TRACKING WORKSPACE */}
-          <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 space-y-4 shadow-sm">
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <Bookmark className="w-5 h-5 text-amber-800 shrink-0" />
-              {labels.bookmarksBlock}
-            </h3>
-
-            {progress.savedScholarships.length === 0 ? (
-              <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs">
-                {labels.noBookmarks}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {progress.savedScholarships.map(id => {
-                  const ref = scholarLookup[id] || { title: id, country: "Global Opportunity", coverage: "Funded Scholarship" };
-                  return (
-                    <div key={id} className="p-4 rounded-2xl border border-slate-200 bg-[#FAF8F5] relative flex flex-col justify-between hover:border-amber-600 transition space-y-3">
-                      <div>
-                        <span className="text-[9px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-100/50 px-2.5 py-0.5 rounded-lg inline-block uppercase tracking-wider mb-2">
-                          {ref.coverage}
-                        </span>
-                        <h4 className="text-xs font-bold text-slate-905 line-clamp-2 leading-snug">{ref.title}</h4>
-                        <span className="text-[10px] text-slate-400 font-semibold block mt-1.5">{ref.country}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-1.5">
-                        <button
-                          onClick={() => onNavigateToTab('scholarships')}
-                          className="text-[10px] font-extrabold text-[#704214] hover:underline flex items-center gap-1 bg-transparent cursor-pointer"
-                        >
-                          <span>{lang === 'en' ? "Open Details" : "عرض التفاصيل"}</span>
-                          <ArrowRight className="w-3 h-3 text-amber-600" />
-                        </button>
-
-                        <button
-                          onClick={() => onRemoveBookmark(id)}
-                          className="text-[9px] font-bold text-red-500 hover:text-red-700 bg-transparent cursor-pointer hover:underline"
-                        >
-                          {lang === 'en' ? "Remove Bookmark" : "إزالة الحفظ"}
-                        </button>
-                      </div>
+                {/* STATS SUMMARY GRID: Elevated Shadow-Heavy Borderless Panel */}
+                <div className="bg-white rounded-[2.25rem] p-6 space-y-4 shadow-[0_24px_55px_rgba(0,0,0,0.07)]">
+                  <h3 className="text-xs font-bold text-slate-850 uppercase tracking-widest pb-2 border-b border-slate-100">
+                    {labels.weeklyFocus}
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.studyMin}</span>
+                      <div className="mt-1 text-lg font-black text-slate-900">{progress.weeklyMinutes}</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.articlesRead}</span>
+                      <div className="mt-1 text-lg font-black text-slate-900">{activeLessons.length}</div>
+                    </div>
+                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.savedGrants}</span>
+                      <div className="mt-1 text-lg font-black text-slate-900">{progress.savedScholarships.length}</div>
+                    </div>
+                    <div className="bg-slate-50/70 rounded-2xl p-4">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">{labels.avgAccuracy}</span>
+                      <div className="mt-1 text-lg font-black text-emerald-800">{averageAccuracy}%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RECENT RECITATIONS AND SCHOLARSHIPS COMBINED GRID */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* RECENT RECITATIONS */}
+                  <div className="bg-white rounded-[2.25rem] p-6 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-4">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                       <Volume2 className="w-4 h-4 text-emerald-800 shrink-0" />
+                       {labels.recentEvaluations}
+                    </h3>
+
+                    {progress.recentRecitations.length === 0 ? (
+                      <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs italic">
+                        {labels.noRecitations}
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5 max-h-[200px] overflow-y-auto">
+                        {progress.recentRecitations.map((rec, index) => (
+                          <div key={index} className="p-3 rounded-xl bg-slate-50/60 flex items-center justify-between text-xs" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                            <div className="text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                              <p className="font-extrabold text-slate-800 truncate">{rec.verse}</p>
+                              <span className="text-[9px] text-slate-400 font-mono block mt-0.5">{rec.date}</span>
+                            </div>
+                            <span className="font-black bg-emerald-50 text-emerald-950 px-2 py-1 rounded-lg border border-transparent font-mono shrink-0">{rec.score}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SCHOLARSHIP BOOKMARKS IN OVERVIEW */}
+                  <div className="bg-white rounded-[2.25rem] p-6 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-4">
+                    <h3 className="text-xs font-bold text-slate-905 uppercase tracking-widest flex items-center gap-2">
+                       <Bookmark className="w-4 h-4 text-emerald-800 shrink-0" />
+                       {labels.bookmarksBlock}
+                    </h3>
+                    
+                    {progress.savedScholarships.length === 0 ? (
+                      <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-450 text-xs italic">
+                        {labels.noBookmarks}
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5 max-h-[200px] overflow-y-auto">
+                        {progress.savedScholarships.map(id => {
+                          const ref = scholarLookup[id] || { title: id, country: "Global Opportunities", coverage: "Funded" };
+                          return (
+                            <div key={id} className="p-3 rounded-xl bg-slate-50/60 flex items-center justify-between text-xs">
+                              <div className="truncate pr-2">
+                                <h4 className="font-bold text-slate-800 truncate leading-snug">{ref.title}</h4>
+                                <span className="text-[9px] text-slate-400 block tracking-tight font-medium mt-0.5">{ref.country}</span>
+                              </div>
+                              <button onClick={() => onRemoveBookmark(id)} className="text-[9px] text-red-500 hover:underline shrink-0 bg-transparent cursor-pointer font-bold">Remove</button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* QUICK NAV LINKS */}
+                <div className="bg-white rounded-[2.25rem] p-5 shadow-[0_24px_55px_rgba(0,0,0,0.07)] flex flex-col sm:flex-row gap-3">
+                  <button onClick={() => { onNavigateToTab('coach'); }} className="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/50 border border-transparent font-extrabold text-xs text-emerald-950 cursor-pointer">
+                    <span>{labels.goToRecitation}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => { onNavigateToTab('curriculum'); }} className="flex-1 flex items-center justify-between p-3.5 rounded-xl bg-orange-50 hover:bg-orange-100/50 border border-transparent font-extrabold text-xs text-orange-955 cursor-pointer">
+                    <span>{labels.goToCurriculum}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+              </motion.div>
             )}
-          </div>
 
-          {/* RECENT RECITATION AUDIO COACH EVALUATIONS */}
-          <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 space-y-4 shadow-sm">
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <Award className="w-5 h-5 text-amber-800 shrink-0" />
-              {labels.recentEvaluations}
-            </h3>
+            {/* ACADEMICS WALLET TAB */}
+            {innerTab === 'academics' && (
+              <motion.div
+                key="academics"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                
+                 {/* SACRED DIGITAL CERTIFICATES WALLET: Rounded, Borderless, Heavy Shadow */}
+                <div className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-6">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-1.5" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                      <Award className="w-5 h-5 text-amber-800 shrink-0" />
+                      <span>{lang === 'en' ? "Credentials & Certificates Wallet" : "محفظة الإجازات والشهادات الشرعية المعتمدة"}</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {lang === 'en' ? "Digital verified honors issued directly to your secure student ledger." : "سجلات إلكترونية موثقة تصدر تلقائياً بناءً على إنجاز الاختبارات والتقييم الصوتي."}
+                    </p>
+                  </div>
 
-            {progress.recentRecitations.length === 0 ? (
-              <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs">
-                {labels.noRecitations}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {progress.recentRecitations.map((rec, index) => (
-                  <div 
-                    key={index} 
-                    className="p-4 rounded-2xl border border-slate-150 bg-[#FAF8F5] flex items-center justify-between gap-4"
-                    style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
-                  >
-                    <div className="space-y-1 text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                      <p className="text-xs font-black text-slate-900 leading-tight block">{rec.verse}</p>
-                      <span className="text-[10px] text-slate-400 font-mono font-bold block">{rec.date}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {certificatesList.map((cert, index) => (
+                      <div key={index} className="bg-amber-500/[0.04] p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[155px] shadow-[0_12px_35px_rgba(0,0,0,0.03)]">
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-mono tracking-wider bg-amber-100 text-amber-955 px-2.5 py-0.5 rounded-full inline-block">
+                            {lang === 'en' ? `Grade: ${cert.grade}` : `درجة المطابقة: ${cert.grade}`}
+                          </span>
+                          <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug pt-1" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                            {cert.title}
+                          </h4>
+                        </div>
+                        <div className="pt-3 border-t border-slate-100 text-[9px] font-sans text-slate-400 flex justify-between items-center mt-2">
+                          <span>{cert.date}</span>
+                          <span className="font-mono text-[8px] text-emerald-800 font-bold">KEY: {cert.key}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-slate-50 p-3.5 rounded-xl flex items-center justify-between text-[9px] text-slate-400/90 font-mono uppercase" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                    <span>{lang === 'en' ? "Immutable Cryptographic Ledger Hash" : "محفظة تصديق أكاديمية مؤمنة كلياً"}</span>
+                    <span>SHA-256://NAFI-VERIFIED</span>
+                  </div>
+                </div>
+
+                {/* COMPLETED ROADMAP */}
+                <div className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-[0_24px_55px_rgba(0,0,0,0.07)] space-y-4">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">
+                      {lang === 'en' ? "Academic Curriculu                 {/* SPIRITUAL & ACADEMIC PLANNER DAILY HABITS */}
+                <div className="bg-white rounded-[2.5rem] p-6 md:p-8 space-y-6 shadow-[0_24px_55px_rgba(0,0,0,0.07)]">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-amber-800 shrink-0" />
+                        {labels.spiritualPlanner}
+                      </h3>
+                      <p className="text-[11px] text-slate-500 font-medium">Mark your daily milestones to verify steady comprehensive progress.</p>
                     </div>
-
-                    <div className="flex items-center gap-3 shrink-0" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                      <span className="text-[11px] text-slate-500 font-semibold">{lang === 'en' ? "Acoustic Score:" : "دقة المخارج والغنّة:"}</span>
-                      <span className={`text-sm md:text-base font-black px-3 py-1 rounded-xl border font-mono ${
-                        rec.score >= 90 
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-                          : rec.score >= 80 
-                          ? 'bg-blue-50 border-blue-200 text-blue-800' 
-                          : 'bg-amber-50 border-amber-200 text-amber-800'
-                      }`}>
-                        {rec.score}%
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-[10px] font-black text-emerald-950 font-mono bg-emerald-100 px-2.5 py-1 rounded-xl">
+                        {completedCount}/{totalTasks} ({dailyProgressPercent}%)
                       </span>
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-amber-600 to-emerald-700 h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${dailyProgressPercent}%` }}
+                    ></div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    
+                    {/* Salah section */}
+                    <div className="space-y-3 bg-[#FAF8F5]/80 p-5 rounded-[1.75rem]">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pb-1 border-b border-amber-900/10 mb-1">
+                        {labels.prayerTracker}
+                      </h4>
+                      <div className="space-y-2">
+                        {[
+                          { key: 'fajr', label: labels.fajr, time: "04:12" },
+                          { key: 'dhuhr', label: labels.dhuhr, time: "12:35" },
+                          { key: 'asr', label: labels.asr, time: "16:15" },
+                          { key: 'maghrib', label: labels.maghrib, time: "19:42" },
+                          { key: 'isha', label: labels.isha, time: "21:18" }
+                        ].map((salah) => {
+                          const isChecked = dailyChecklist[salah.key as keyof typeof dailyChecklist];
+                          return (
+                            <button
+                              key={salah.key}
+                              onClick={() => toggleCheck(salah.key as any)}
+                              className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
+                                isChecked 
+                                  ? 'bg-emerald-50 border-emerald-250 text-emerald-900 font-extrabold' 
+                                  : 'bg-white border-transparent text-slate-600 hover:bg-slate-50'
+                              }`}
+                              style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
+                            >
+                              <span className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                                <span className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'}`}>
+                                  {isChecked && <Check className="w-2.5 h-2.5" />}
+                                </span>
+                                <span>{salah.label}</span>
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400 font-bold">{salah.time}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* General tasks section */}
+                    <div className="space-y-3 bg-[#FAF8F5]/80 p-5 rounded-[1.75rem] flex flex-col justify-between">        <button
+                              key={salah.key}
+                              onClick={() => toggleCheck(salah.key as any)}
+                              className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
+                                isChecked 
+                                  ? 'bg-emerald-50 border-emerald-250 text-emerald-900 font-extrabold' 
+                                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                              }`}
+                              style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
+                            >
+                              <span className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                                <span className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'}`}>
+                                  {isChecked && <Check className="w-2.5 h-2.5" />}
+                                </span>
+                                <span>{salah.label}</span>
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400 font-bold">{salah.time}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* General tasks section */}
+                    <div className="space-y-3 bg-[#FAF8F5] p-5 rounded-2xl border border-slate-150 flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest pb-1 border-b border-amber-900/10 mb-1">
+                          {labels.generalTasks}
+                        </h4>
+                        <div className="space-y-2">
+                          {[
+                            { key: 'recitation', label: labels.reciteCheck },
+                            { key: 'lessons', label: labels.readCheck },
+                            { key: 'adhkar', label: labels.adhkarCheck }
+                          ].map((task) => {
+                            const isChecked = dailyChecklist[task.key as keyof typeof dailyChecklist];
+                            return (
+                              <button
+                                key={task.key}
+                                onClick={() => toggleCheck(task.key as any)}
+                                className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
+                                  isChecked 
+                                    ? 'bg-emerald-50 border-emerald-250 text-emerald-900 font-extrabold' 
+                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                                style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
+                              >
+                                <span className="flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                                  <span className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'}`}>
+                                    {isChecked && <Check className="w-2.5 h-2.5" />}
+                                  </span>
+                                  <span className="leading-tight block">{task.label}</span>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {dailyProgressPercent === 100 && (
+                        <motion.div 
+                          initial={{ scale: 0.95, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-center text-[10px] font-bold text-amber-900 flex items-center justify-center gap-1.5 animate-bounce mt-4"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                          <span>{labels.congratulations}</span>
+                        </motion.div>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+
+              </motion.div>
             )}
-          </div>
 
-        </div>
+            {/* FORUMS & CHANNELS TAB */}
+            {innerTab === 'forums' && (
+              <motion.div
+                key="forums"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                
+                <div className="bg-white rounded-3xl border border-slate-200/90 p-6 md:p-8 space-y-4 shadow-sm">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                      <MessageSquare className="w-5 h-5 text-amber-800 shrink-0" />
+                      <span>{lang === 'en' ? "Student Study Clusters & Subscription Channels" : "حلقات ديوان المذاكرة والربط العلمي المباشر"}</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-1" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                      {lang === 'en' 
+                        ? "Subscribe or unsubscribe to specific study assemblies to sync live real-time notifications for incoming scholarly updates, peer answers, or class materials."
+                        : "اشترك بحلقات المذاكرة والديوان لتتلقى إشعارات التحديث الفورية عند قيام شيوخ الأكاديمية أو الطلاب بنشر مباحث جديدة."}
+                    </p>
+                  </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {forumBoards.map((item) => {
+                      const isJoined = progress.joinedForums?.includes(item.id);
+                      return (
+                        <div 
+                          key={item.id}
+                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
+                            isJoined 
+                              ? 'bg-emerald-500/5 border-emerald-650/30' 
+                              : 'bg-[#FAF8F5] border-slate-200 hover:border-slate-350'
+                          }`}
+                        >
+                          <div className="space-y-1.5 text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                            <div className="flex items-center justify-between" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                              <span className="text-[9px] font-black tracking-wider uppercase text-slate-400 font-mono">
+                                {item.tag}
+                              </span>
+                              {isJoined ? (
+                                <span className="text-[8px] font-black text-emerald-850 bg-emerald-100/55 border border-emerald-250 px-2 rounded">
+                                  ✓ {lang === 'en' ? "SUBSCRIBED" : "مشترك"}
+                                </span>
+                              ) : (
+                                <span className="text-[8px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 rounded">
+                                  {lang === 'en' ? "SILENT" : "صامت"}
+                                </span>
+                              )}
+                            </div>
+                            <h4 className="text-xs font-black text-slate-900 leading-tight">{item.title}</h4>
+                            <p className="text-[10px] text-slate-500 leading-normal">{item.desc}</p>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-100" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                            <button
+                              disabled={submittingJoin === item.id}
+                              onClick={() => handleJoinLeaveForum(item.id, isJoined)}
+                              className={`text-[9.5px] font-black px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer outline-none ${
+                                isJoined 
+                                  ? 'bg-transparent border-red-200 text-red-650 hover:bg-red-50' 
+                                  : 'bg-emerald-800 border-emerald-800 text-white hover:bg-emerald-900'
+                              }`}
+                            >
+                              {submittingJoin === item.id ? "..." : isJoined 
+                                ? (lang === 'en' ? "Leave Board" : "مغادرة الحلقة") 
+                                : (lang === 'en' ? "Join Board" : "انضمام ومتابعة")}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+
+        </main>
+
+      </div>
+
+      {/* MOBILE BOTTOM NAVIGATION PANEL */}
+      <div className="lg:hidden fixed bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md border border-slate-250/50 rounded-2xl py-2 px-3 shadow-2xl flex justify-around items-center z-[110] gap-1 shrink-0">
+        {tabsInfo.map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = innerTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setInnerTab(tab.id)}
+              className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${
+                isActive ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'
+              }`}
+            >
+              <div className={`p-1.5 rounded-lg transition-transform ${isActive ? 'bg-emerald-100 text-emerald-950 scale-110' : 'bg-transparent text-slate-400'}`}>
+                <TabIcon className="w-4 h-4 shrink-0" />
+              </div>
+              <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none">{tab.label.split(' ')[0]}</span>
+            </button>
+          );
+        })}
       </div>
 
     </div>

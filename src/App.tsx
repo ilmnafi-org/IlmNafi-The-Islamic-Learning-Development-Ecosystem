@@ -57,7 +57,6 @@ import AICoachView from './components/AICoachView';
 import QuranExplorer from './components/QuranExplorer';
 import CommunityHubView from './components/CommunityHubView';
 import { DailyView } from './components/DailyView';
-import { ForumView } from './components/ForumView';
 import AuthPage from './components/AuthPage';
 import { DeenSuite } from './components/DeenSuite';
 import StudentDashboard from './components/StudentDashboard';
@@ -254,8 +253,8 @@ function formatTo12Hour(timeStr: string): string {
 }
 
 export default function App() {
-  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'forum' | 'auth' | 'community' | 'dashboard'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'forum' | 'auth' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
+  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'auth' | 'community' | 'dashboard'
+  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'auth' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMoreNav, setShowMoreNav] = useState(false);
@@ -1005,14 +1004,13 @@ export default function App() {
       desc: "Beneficial Knowledge Platform",
       tagline: "Sacred Academic Tradition & Audio Technology",
       subtitle: "Discover a unified scholarly platform combining K-12 open-source Islamic curriculum, advanced AI recitation guidance, and a global scholarships database.",
-      ctaStart: "Recitation Coach",
+      ctaStart: "Learn Tajweed",
       ctaCurriculum: "Explore Curriculum",
       curriculum: "Curriculum",
-      coach: "AI Reciter",
+      coach: "Learn Tajweed",
       quran: "Quran Browser",
       daily: "Dhikr & Tasbih",
       scholarly: "Scholar Network",
-      forum: "Class Forums",
       scholarships: "Grant Database",
       signin: "Student ID Login",
       signout: "Sign Out",
@@ -1046,14 +1044,13 @@ export default function App() {
       desc: "جامعة التعليم الإسلامي المفتوح",
       tagline: "قنوات العلوم الشريفة وفنون التلاوة الصوتية بالذكاء الاصطناعي",
       subtitle: "نظام أكاديمي موحد يربط متعلمي العلوم المنهجية (فقه، عقيدة، وسيرة)، وأدوات تصحيح التجويد لآيات الذكر الحكيم، وقاعدة بيانات المنح الموثقة مجاناً بالكامل.",
-      ctaStart: "مصحح المخارج الفوري",
+      ctaStart: "تعلّم التجويد",
       ctaCurriculum: "تصفح المناهج العلمية",
       curriculum: "مناهج التعليم",
-      coach: "مصحح التلاوة",
+      coach: "تعلّم التجويد",
       quran: "القرآن الكريم",
       daily: "الأوراد والتسابيح",
       scholarly: "شبكة العلماء",
-      forum: "مجلس الطلاب",
       scholarships: "المنح الأكاديمية",
       signin: "بطاقة الهوية الأكاديمية",
       signout: "تسجيل الخروج",
@@ -1230,7 +1227,7 @@ export default function App() {
             <button
               onClick={() => setShowMoreNav(!showMoreNav)}
               className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-1 border ${
-                showMoreNav || ['forum', 'scholarships', 'saved-scholarships', 'community', 'api-docs', 'notifications', 'settings'].includes(activeTab)
+                showMoreNav || ['scholarships', 'saved-scholarships', 'community', 'api-docs', 'notifications', 'settings'].includes(activeTab)
                   ? 'text-amber-900 bg-amber-50/90 border-amber-200/60 font-extrabold shadow-sm'
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border-transparent'
               }`}
@@ -1250,26 +1247,6 @@ export default function App() {
                   className={`absolute ${lang === 'ar' ? 'left-auto right-0' : 'right-auto left-0'} mt-2 w-72 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl p-2.5 z-[100] gap-0.5 flex flex-col`}
                   id="nav-more-dropdown-panel"
                 >
-                  <button 
-                    onClick={() => { setActiveTab('forum'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'forum' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-forum"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-800 shrink-0">
-                      <MessageSquare className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px]">{labels.forum}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Discuss academic topics" : "نقاشات ومجالس علمية"}
-                      </span>
-                    </div>
-                  </button>
-
                   <button 
                     onClick={() => { setActiveTab('community'); setShowMoreNav(false); }}
                     className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
@@ -1574,7 +1551,6 @@ export default function App() {
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
-                  { id: 'forum', label: labels.forum, icon: MessageSquare, color: 'text-sky-800 bg-sky-500/10' },
                   { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'api-docs', label: labels.apiDocs, icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-amber-700 bg-amber-500/10' },
@@ -2045,6 +2021,7 @@ export default function App() {
               onAddRecitation={handleAddRecitation} 
               practiceVerse={practiceVerse}
               onClearPracticeVerse={() => setPracticeVerse(null)}
+              lang={lang}
             />
           </motion.div>
         )}
@@ -2095,23 +2072,6 @@ export default function App() {
             transition={{ duration: 0.25 }}
           >
             <DailyView lang={lang} onDrawerChange={(drawer) => setAdhkarDrawerActive(drawer)} />
-          </motion.div>
-        )}
-
-        {/* DISCUSSION FORUM */}
-        {activeTab === 'forum' && (
-          <motion.div
-            key="forum"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <ForumView 
-              lang={lang} 
-              currentUser={progress.username ? { username: progress.username, email: progress.email } : null}
-              onAuthSuccess={handleAuthSuccess}
-            />
           </motion.div>
         )}
 

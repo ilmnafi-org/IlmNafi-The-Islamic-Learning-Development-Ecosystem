@@ -87,4 +87,5 @@ export interface UserProgress {
   notifications?: ClientNotification[];
   qiraat?: 'hafs' | 'warsh';
   tajweedMode?: boolean;
+  certificates?: { title: string; grade: string; date: string; key: string }[];
 }
