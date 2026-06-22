@@ -104,39 +104,43 @@ const wss = new WebSocketServer({ server });
 const wsClients = new Map<string, WebSocket>();
 
 // Real-Time notification dispatcher
-function sendLiveNotification(targetEmail: string, notification: { title: string; body: string; type: string; referenceId?: string }) {
+async function sendLiveNotification(targetEmail: string, notification: { title: string; body: string; type: string; referenceId?: string }) {
   const normEmail = targetEmail.toLowerCase();
-  const user = dbStore.findUserByEmail(normEmail);
-  if (!user) return;
+  try {
+    const user = await dbStore.findUserByEmail(normEmail);
+    if (!user) return;
 
-  const notifId = "notif_" + Math.random().toString(36).substr(2, 9);
-  const serverNotif = {
-    id: notifId,
-    title: notification.title,
-    body: notification.body,
-    type: notification.type as any,
-    referenceId: notification.referenceId,
-    isRead: false,
-    createdAt: new Date().toISOString()
-  };
+    const notifId = "notif_" + Math.random().toString(36).substr(2, 9);
+    const serverNotif = {
+      id: notifId,
+      title: notification.title,
+      body: notification.body,
+      type: notification.type as any,
+      referenceId: notification.referenceId,
+      isRead: false,
+      createdAt: new Date().toISOString()
+    };
 
-  if (!user.notifications) {
-    user.notifications = [];
-  }
-  user.notifications.unshift(serverNotif);
-  dbStore.updateUserProfile(user.id, { notifications: user.notifications });
-
-  // Publish to connected WebSocket client
-  const ws = wsClients.get(normEmail);
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    try {
-      ws.send(JSON.stringify({
-        type: "notification",
-        notification: serverNotif
-      }));
-    } catch (e) {
-      console.error("Failed to push websocket notification:", e);
+    if (!user.notifications) {
+      user.notifications = [];
     }
+    user.notifications.unshift(serverNotif);
+    await dbStore.updateUserProfile(user.id, { notifications: user.notifications });
+
+    // Publish to connected WebSocket client
+    const ws = wsClients.get(normEmail);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify({
+          type: "notification",
+          notification: serverNotif
+        }));
+      } catch (e) {
+         console.error("Failed to push websocket notification:", e);
+      }
+    }
+  } catch (err: any) {
+    console.error(`[Notification Dispatch Failed] target: ${normEmail}, error:`, err.message);
   }
 }
 
@@ -269,7 +273,7 @@ interface AuthenticatedRequest extends express.Request {
 }
 
 // Authentication Middleware checking the HttpOnly cookie's validity or Authorization headers
-function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+async function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
   let token = req.cookies?.ilm_session;
   
   if (!token && req.headers.authorization) {
@@ -285,7 +289,7 @@ function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next:
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
-    const user = dbStore.findUserById(decoded.id);
+    const user = await dbStore.findUserById(decoded.id);
     
     if (!user) {
       return res.status(401).json({ error: "Access denied. Matching scholar profile not found." });
@@ -293,7 +297,7 @@ function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next:
 
     req.user = user;
     next();
-  } catch (err) {
+  } catch (err: any) {
     return res.status(401).json({ error: "Session expired or corrupted. Please authorize credentials again." });
   }
 }
@@ -301,7 +305,7 @@ function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next:
 // --- SECURE AUTHENTICATION ENDPOINTS (HttpOnly Cookie & Bearer driven) ---
 
 // 1. Get current active session
-app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
+app.get("/api/auth/session", async (req: AuthenticatedRequest, res) => {
   let token = req.cookies?.ilm_session;
   
   if (!token && req.headers.authorization) {
@@ -317,7 +321,7 @@ app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
-    const user = dbStore.findUserById(decoded.id);
+    const user = await dbStore.findUserById(decoded.id);
     
     if (!user) {
       return res.json({ user: null });
@@ -346,7 +350,7 @@ app.get("/api/auth/session", (req: AuthenticatedRequest, res) => {
 });
 
 // 2. Registrate student/teacher account
-app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), (req, res) => {
+app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), async (req, res) => {
   const { email, password, name, role } = req.body;
 
   if (!email || !password || !name) {
@@ -371,54 +375,59 @@ app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), (req, res) => {
     return res.status(400).json({ error: "Your access password PIN should be at least 6 characters in length to safeguard your study history." });
   }
 
-  const existingUser = dbStore.findUserByEmail(normalizedEmail);
-  if (existingUser) {
-    return res.status(400).json({ error: "This academic email is already registered on our global ledger." });
-  }
-
-  const userId = "usr_" + Math.random().toString(36).substr(2, 9);
-  const passwordHash = hashPassword(password);
-
-  const newUser: ServerUser = {
-    id: userId,
-    username: name.trim(),
-    email: normalizedEmail,
-    passwordHash,
-    role: role || "student",
-    weeklyMinutes: 0,
-    lessonsCompleted: [],
-    savedScholarships: [],
-    recentRecitations: [],
-    certificates: []
-  };
-
-  dbStore.createUser(newUser);
-
-  // Sign credential
-  const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: "1d" });
-  res.cookie("ilm_session", token, COOKIE_OPTIONS);
-
-  res.json({
-    token,
-    user: {
-      id: newUser.id,
-      username: newUser.username,
-      email: newUser.email,
-      passwordHash: newUser.passwordHash,
-      role: newUser.role,
-      weeklyMinutes: newUser.weeklyMinutes,
-      lessonsCompleted: newUser.lessonsCompleted,
-      savedScholarships: newUser.savedScholarships,
-      recentRecitations: newUser.recentRecitations,
-      certificates: newUser.certificates,
-      joinedForums: newUser.joinedForums || [],
-      notifications: newUser.notifications || []
+  try {
+    const existingUser = await dbStore.findUserByEmail(normalizedEmail);
+    if (existingUser) {
+      return res.status(400).json({ error: "This academic email is already registered on our database." });
     }
-  });
+
+    const userId = "usr_" + Math.random().toString(36).substr(2, 9);
+    const passwordHash = hashPassword(password);
+
+    const newUser: ServerUser = {
+      id: userId,
+      username: name.trim(),
+      email: normalizedEmail,
+      passwordHash,
+      role: role || "student",
+      weeklyMinutes: 0,
+      lessonsCompleted: [],
+      savedScholarships: [],
+      recentRecitations: [],
+      certificates: []
+    };
+
+    await dbStore.createUser(newUser);
+
+    // Sign credential
+    const token = jwt.sign({ id: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: "1d" });
+    res.cookie("ilm_session", token, COOKIE_OPTIONS);
+
+    res.json({
+      token,
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        passwordHash: newUser.passwordHash,
+        role: newUser.role,
+        weeklyMinutes: newUser.weeklyMinutes,
+        lessonsCompleted: newUser.lessonsCompleted,
+        savedScholarships: newUser.savedScholarships,
+        recentRecitations: newUser.recentRecitations,
+        certificates: newUser.certificates,
+        joinedForums: newUser.joinedForums || [],
+        notifications: newUser.notifications || []
+      }
+    });
+  } catch (err: any) {
+    console.error("[Signup Error]:", err);
+    return res.status(500).json({ error: err.message || "Failed to create user account of the student." });
+  }
 });
 
 // 3. Authenticate / Login portal
-app.post("/api/auth/login", rateLimiter(30, 15 * 60 * 1000), (req, res) => {
+app.post("/api/auth/login", rateLimiter(30, 15 * 60 * 1000), async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -426,38 +435,44 @@ app.post("/api/auth/login", rateLimiter(30, 15 * 60 * 1000), (req, res) => {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  const user = dbStore.findUserByEmail(normalizedEmail);
+  
+  try {
+    const user = await dbStore.findUserByEmail(normalizedEmail);
 
-  if (!user) {
-    return res.status(401).json({ error: "Account credentials matching this email do not exist." });
-  }
-
-  const checkHash = hashPassword(password);
-  if (user.passwordHash !== checkHash) {
-    return res.status(401).json({ error: "Incorrect Access PIN or password." });
-  }
-
-  // Sign credential
-  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1d" });
-  res.cookie("ilm_session", token, COOKIE_OPTIONS);
-
-  res.json({
-    token,
-    user: {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      passwordHash: user.passwordHash,
-      role: user.role,
-      weeklyMinutes: user.weeklyMinutes,
-      lessonsCompleted: user.lessonsCompleted,
-      savedScholarships: user.savedScholarships,
-      recentRecitations: user.recentRecitations,
-      certificates: user.certificates,
-      joinedForums: user.joinedForums || [],
-      notifications: user.notifications || []
+    if (!user) {
+      return res.status(401).json({ error: "Account credentials matching this email do not exist." });
     }
-  });
+
+    const checkHash = hashPassword(password);
+    if (user.passwordHash !== checkHash) {
+      return res.status(401).json({ error: "Incorrect Access PIN or password." });
+    }
+
+    // Sign credential
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1d" });
+    res.cookie("ilm_session", token, COOKIE_OPTIONS);
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        passwordHash: user.passwordHash,
+        role: user.role,
+        weeklyMinutes: user.weeklyMinutes,
+        lessonsCompleted: user.lessonsCompleted,
+        savedScholarships: user.savedScholarships,
+        recentRecitations: user.recentRecitations,
+        certificates: user.certificates,
+        joinedForums: user.joinedForums || [],
+        notifications: user.notifications || []
+      }
+    });
+  } catch (err: any) {
+    console.error("[Login Error]:", err);
+    return res.status(500).json({ error: err.message || "Authentication process failed." });
+  }
 });
 
 // 4. Terminate session / SignOut clear cookie
@@ -467,7 +482,7 @@ app.post("/api/auth/logout", (req, res) => {
 });
 
 // 5. Update user academic progress
-app.post("/api/auth/update-session", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/auth/update-session", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { progress } = req.body;
   const user = req.user;
 
@@ -475,22 +490,27 @@ app.post("/api/auth/update-session", authenticateJWT, (req: AuthenticatedRequest
     return res.status(400).json({ error: "Malformed update body criteria." });
   }
 
-  // Persist progression metrics safely
-  dbStore.updateUserProfile(user.id, {
-    weeklyMinutes: progress.weeklyMinutes ?? user.weeklyMinutes,
-    lessonsCompleted: progress.lessonsCompleted ?? user.lessonsCompleted,
-    savedScholarships: progress.savedScholarships ?? user.savedScholarships,
-    recentRecitations: progress.recentRecitations ?? user.recentRecitations,
-    certificates: progress.certificates ?? user.certificates,
-    joinedForums: progress.joinedForums ?? user.joinedForums,
-    notifications: progress.notifications ?? user.notifications
-  });
+  try {
+    // Persist progression metrics safely
+    await dbStore.updateUserProfile(user.id, {
+      weeklyMinutes: progress.weeklyMinutes ?? user.weeklyMinutes,
+      lessonsCompleted: progress.lessonsCompleted ?? user.lessonsCompleted,
+      savedScholarships: progress.savedScholarships ?? user.savedScholarships,
+      recentRecitations: progress.recentRecitations ?? user.recentRecitations,
+      certificates: progress.certificates ?? user.certificates,
+      joinedForums: progress.joinedForums ?? user.joinedForums,
+      notifications: progress.notifications ?? user.notifications
+    });
 
-  res.json({ success: true });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("[Update Session Error]:", err);
+    return res.status(500).json({ error: err.message || "Failed to update session progress." });
+  }
 });
 
 // 6. Cryptographic self-healing session synchronization on container reboot/deploy
-app.post("/api/auth/sync-session", (req, res) => {
+app.post("/api/auth/sync-session", async (req, res) => {
   let token = req.cookies?.ilm_session;
   if (!token && req.headers.authorization) {
     const parts = req.headers.authorization.split(" ");
@@ -511,7 +531,7 @@ app.post("/api/auth/sync-session", (req, res) => {
       return res.status(400).json({ error: "Cryptographic session payload signature mismatch." });
     }
 
-    const existingUser = dbStore.findUserById(user.id);
+    const existingUser = await dbStore.findUserById(user.id);
     if (!existingUser) {
       const newUser: ServerUser = {
         id: user.id,
@@ -527,10 +547,10 @@ app.post("/api/auth/sync-session", (req, res) => {
         joinedForums: user.joinedForums || [],
         notifications: user.notifications || []
       };
-      dbStore.createUser(newUser);
+      await dbStore.createUser(newUser);
       console.warn(`[Database] Cryptographically restored user from self-healing token: ${newUser.email}`);
     } else {
-      dbStore.updateUserProfile(user.id, {
+      await dbStore.updateUserProfile(user.id, {
         weeklyMinutes: Math.max(existingUser.weeklyMinutes, user.weeklyMinutes || 0),
         lessonsCompleted: Array.from(new Set([...(existingUser.lessonsCompleted || []), ...(user.lessonsCompleted || [])])),
         savedScholarships: Array.from(new Set([...(existingUser.savedScholarships || []), ...(user.savedScholarships || [])])),
@@ -539,7 +559,7 @@ app.post("/api/auth/sync-session", (req, res) => {
       });
     }
 
-    const updatedUser = dbStore.findUserById(user.id);
+    const updatedUser = await dbStore.findUserById(user.id);
     res.json({ success: true, user: updatedUser });
   } catch (err: any) {
     res.status(401).json({ error: "Session verification expired or failed: " + err.message });
@@ -549,13 +569,18 @@ app.post("/api/auth/sync-session", (req, res) => {
 
 // --- DISCUSSION FORUM STUDY BOARD API ENDPOINTS ---
 
-// 1. Fetch available threads in the school directory
-app.get("/api/forum/threads", (req, res) => {
-  res.json({ threads: dbStore.getThreads() });
+/// 1. Fetch available threads in the school directory
+app.get("/api/forum/threads", async (req, res) => {
+  try {
+    const threads = await dbStore.getThreads();
+    res.json({ threads });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to fetch forum threads." });
+  }
 });
 
 // 2. Create interactive discussion thread
-app.post("/api/forum/threads", authenticateJWT, checkIdempotency, (req: AuthenticatedRequest, res) => {
+app.post("/api/forum/threads", authenticateJWT, checkIdempotency, async (req: AuthenticatedRequest, res) => {
   const { title, category, body } = req.body;
   const user = req.user;
 
@@ -585,99 +610,117 @@ app.post("/api/forum/threads", authenticateJWT, checkIdempotency, (req: Authenti
     replies: []
   };
 
-  dbStore.addThread(newThread);
+  try {
+    await dbStore.addThread(newThread);
 
-  // Send real-time notifications to users who have joined this category forum
-  const allUsersList = dbStore.getUsers();
-  for (const recipient of allUsersList) {
-    if (recipient.id !== user.id && recipient.joinedForums?.includes(category)) {
-      sendLiveNotification(recipient.email, {
-        title: `New topic in ${category === 'recitation' ? 'Tajweed' : category === 'history' ? 'History' : category === 'jurisprudence' ? 'Jurisprudence' : category === 'scholarships' ? 'Scholarships' : 'General'}`,
-        body: `${user.username} posted: "${title.substring(0, 45)}${title.length > 45 ? '...' : ''}"`,
-        type: 'forum_msg',
-        referenceId: threadId
-      });
+    // Send real-time notifications to users who have joined this category forum
+    const allUsersList = await dbStore.getUsers();
+    for (const recipient of allUsersList) {
+      if (recipient.id !== user.id && recipient.joinedForums?.includes(category)) {
+        sendLiveNotification(recipient.email, {
+          title: `New topic in ${category === 'recitation' ? 'Tajweed' : category === 'history' ? 'History' : category === 'jurisprudence' ? 'Jurisprudence' : category === 'scholarships' ? 'Scholarships' : 'General'}`,
+          body: `${user.username} posted: "${title.substring(0, 45)}${title.length > 45 ? '...' : ''}"`,
+          type: 'forum_msg',
+          referenceId: threadId
+        });
+      }
     }
-  }
 
-  res.json({ thread: newThread });
+    res.json({ thread: newThread });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to add thread." });
+  }
 });
 
 // 3. Destroy a forum thread (restricted to creators or faculty/teachers)
-app.delete("/api/forum/threads/:id", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.delete("/api/forum/threads/:id", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const user = req.user;
 
   if (!user) return res.status(401).json({ error: "Unauthorized" });
-  const thread = dbStore.findThreadById(id);
 
-  if (!thread) {
-    return res.status(404).json({ error: "Discussion thread not found." });
+  try {
+    const thread = await dbStore.findThreadById(id);
+
+    if (!thread) {
+      return res.status(404).json({ error: "Discussion thread not found." });
+    }
+
+    if (thread.author_id === user.id || user.role === "teacher") {
+      await dbStore.deleteThread(id);
+      return res.json({ success: true });
+    }
+
+    res.status(403).json({ error: "Access denied. Only the discussion creator or faculty can remove topics." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to delete thread." });
   }
-
-  if (thread.author_id === user.id || user.role === "teacher") {
-    dbStore.deleteThread(id);
-    return res.json({ success: true });
-  }
-
-  res.status(403).json({ error: "Access denied. Only the discussion creator or faculty can remove topics." });
 });
 
 // 4. Emulate or register interactive thumbs up / support
-app.post("/api/forum/threads/:id/like", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/forum/threads/:id/like", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const user = req.user;
 
   if (!user) return res.status(401).json({ error: "Authentication status required." });
-  const thread = dbStore.findThreadById(id);
 
-  if (!thread) {
-    return res.status(404).json({ error: "Discussion topic not found." });
-  }
+  try {
+    const thread = await dbStore.findThreadById(id);
 
-  const email = user.email.toLowerCase();
-  let updatedLikedBy = [...thread.liked_by];
-  const index = updatedLikedBy.indexOf(email);
-
-  if (index > -1) {
-    updatedLikedBy.splice(index, 1);
-  } else {
-    updatedLikedBy.push(email);
-  }
-
-  dbStore.updateThread(id, {
-    liked_by: updatedLikedBy,
-    thumbs_up: updatedLikedBy.length
-  });
-
-  const updatedThread = dbStore.findThreadById(id)!;
-  res.json({
-    thread: {
-      id: updatedThread.id,
-      title: updatedThread.title,
-      body: updatedThread.body,
-      category: updatedThread.category,
-      author_id: updatedThread.author_id,
-      author: updatedThread.author_name,
-      role: updatedThread.author_role,
-      avatar: updatedThread.author_avatar,
-      thumbsUp: updatedThread.thumbs_up,
-      likedBy: updatedThread.liked_by,
-      date: new Date(updatedThread.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
-      replies: updatedThread.replies.map(r => ({
-        id: r.id,
-        body: r.body,
-        author: r.author_name,
-        role: r.author_role,
-        avatar: r.author_avatar,
-        date: new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      }))
+    if (!thread) {
+      return res.status(404).json({ error: "Discussion topic not found." });
     }
-  });
+
+    const email = user.email.toLowerCase();
+    let updatedLikedBy = [...thread.liked_by];
+    const index = updatedLikedBy.indexOf(email);
+
+    if (index > -1) {
+      updatedLikedBy.splice(index, 1);
+    } else {
+      updatedLikedBy.push(email);
+    }
+
+    await dbStore.updateThread(id, {
+      liked_by: updatedLikedBy,
+      thumbs_up: updatedLikedBy.length
+    });
+
+    const updatedThread = await dbStore.findThreadById(id);
+    if (!updatedThread) {
+      return res.status(404).json({ error: "Discussion topic not found after update." });
+    }
+
+    res.json({
+      thread: {
+        id: updatedThread.id,
+        title: updatedThread.title,
+        body: updatedThread.body,
+        category: updatedThread.category,
+        author_id: updatedThread.author_id,
+        author: updatedThread.author_name,
+        role: updatedThread.author_role,
+        avatar: updatedThread.author_avatar,
+        thumbsUp: updatedThread.thumbs_up,
+        likedBy: updatedThread.liked_by,
+        date: new Date(updatedThread.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+        replies: updatedThread.replies.map(r => ({
+          id: r.id,
+          body: r.body,
+          author: r.author_name,
+          role: r.author_role,
+          avatar: r.author_avatar,
+          date: new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+        }))
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to process thread like status." });
+  }
 });
 
 // 5. Append replies to a topic
-app.post("/api/forum/threads/:id/replies", authenticateJWT, checkIdempotency, (req: AuthenticatedRequest, res) => {
+app.post("/api/forum/threads/:id/replies", authenticateJWT, checkIdempotency, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const { body } = req.body;
   const user = req.user;
@@ -687,83 +730,91 @@ app.post("/api/forum/threads/:id/replies", authenticateJWT, checkIdempotency, (r
     return res.status(400).json({ error: "Reply body cannot be left blank." });
   }
 
-  const thread = dbStore.findThreadById(id);
-  if (!thread) {
-    return res.status(404).json({ error: "Discussion topic not found." });
-  }
+  try {
+    const thread = await dbStore.findThreadById(id);
+    if (!thread) {
+      return res.status(404).json({ error: "Discussion topic not found." });
+    }
 
-  const currentRole = user.role === "teacher" ? "Faculty Qari" : user.role === "researcher" ? "Academic Researcher" : "Student Scholar";
-  const currentAvatar = user.role === "teacher" 
-    ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" 
-    : "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150";
+    const currentRole = user.role === "teacher" ? "Faculty Qari" : user.role === "researcher" ? "Academic Researcher" : "Student Scholar";
+    const currentAvatar = user.role === "teacher" 
+      ? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" 
+      : "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150";
 
-  const replyId = "rep_" + Math.random().toString(36).substr(2, 9);
-  const newReply: ServerReply = {
-    id: replyId,
-    body: body.trim(),
-    author_name: user.username,
-    author_role: currentRole,
-    author_avatar: currentAvatar,
-    created_at: new Date().toISOString()
-  };
+    const replyId = "rep_" + Math.random().toString(36).substr(2, 9);
+    const newReply: ServerReply = {
+      id: replyId,
+      body: body.trim(),
+      author_name: user.username,
+      author_role: currentRole,
+      author_avatar: currentAvatar,
+      created_at: new Date().toISOString()
+    };
 
-  const updatedReplies = [...thread.replies, newReply];
-  dbStore.updateThread(id, { replies: updatedReplies });
+    const updatedReplies = [...thread.replies, newReply];
+    await dbStore.updateThread(id, { replies: updatedReplies });
 
-  // Send real-time notifications to the thread author and any subscribed category peers
-  const threadAuthor = dbStore.findUserById(thread.author_id);
-  if (threadAuthor && threadAuthor.id !== user.id) {
-    sendLiveNotification(threadAuthor.email, {
-      title: "New reply on your thread",
-      body: `${user.username} replied: "${body.substring(0, 40)}${body.length > 40 ? '...' : ''}"`,
-      type: 'forum_reply',
-      referenceId: thread.id
-    });
-  }
-
-  // Notify other members of joined category forum who are NOT the replier or the author
-  const activeCategory = thread.category;
-  const allUsersList = dbStore.getUsers();
-  for (const recipient of allUsersList) {
-    if (recipient.id !== user.id && recipient.id !== thread.author_id && recipient.joinedForums?.includes(activeCategory)) {
-      sendLiveNotification(recipient.email, {
-        title: `Comment thread update`,
-        body: `${user.username} answered in joined ${activeCategory === 'recitation' ? 'Tajweed' : activeCategory === 'history' ? 'History' : activeCategory === 'jurisprudence' ? 'Jurisprudence' : activeCategory === 'scholarships' ? 'Scholarships' : 'General'} forum.`,
+    // Send real-time notifications to the thread author and any subscribed category peers
+    const threadAuthor = await dbStore.findUserById(thread.author_id);
+    if (threadAuthor && threadAuthor.id !== user.id) {
+      sendLiveNotification(threadAuthor.email, {
+        title: "New reply on your thread",
+        body: `${user.username} replied: "${body.substring(0, 40)}${body.length > 40 ? '...' : ''}"`,
         type: 'forum_reply',
         referenceId: thread.id
-      });
+      }).catch(e => console.error("Notification trigger failed:", e));
     }
-  }
 
-  const updatedThread = dbStore.findThreadById(id)!;
-  res.json({
-    thread: {
-      id: updatedThread.id,
-      title: updatedThread.title,
-      body: updatedThread.body,
-      category: updatedThread.category,
-      author_id: updatedThread.author_id,
-      author: updatedThread.author_name,
-      role: updatedThread.author_role,
-      avatar: updatedThread.author_avatar,
-      thumbsUp: updatedThread.thumbs_up,
-      likedBy: updatedThread.liked_by,
-      date: new Date(updatedThread.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
-      replies: updatedThread.replies.map(r => ({
-        id: r.id,
-        body: r.body,
-        author: r.author_name,
-        role: r.author_role,
-        avatar: r.author_avatar,
-        date: new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      }))
+    // Notify other members of joined category forum who are NOT the replier or the author
+    const activeCategory = thread.category;
+    const allUsersList = await dbStore.getUsers();
+    for (const recipient of allUsersList) {
+      if (recipient.id !== user.id && recipient.id !== thread.author_id && recipient.joinedForums?.includes(activeCategory)) {
+        sendLiveNotification(recipient.email, {
+          title: `Comment thread update`,
+          body: `${user.username} answered in joined ${activeCategory === 'recitation' ? 'Tajweed' : activeCategory === 'history' ? 'History' : activeCategory === 'jurisprudence' ? 'Jurisprudence' : activeCategory === 'scholarships' ? 'Scholarships' : 'General'} forum.`,
+          type: 'forum_reply',
+          referenceId: thread.id
+        }).catch(e => console.error("Notification trigger failed:", e));
+      }
     }
-  });
+
+    const updatedThread = await dbStore.findThreadById(id);
+    if (!updatedThread) {
+      return res.status(404).json({ error: "Discussion topic not found after reply." });
+    }
+
+    res.json({
+      thread: {
+        id: updatedThread.id,
+        title: updatedThread.title,
+        body: updatedThread.body,
+        category: updatedThread.category,
+        author_id: updatedThread.author_id,
+        author: updatedThread.author_name,
+        role: updatedThread.author_role,
+        avatar: updatedThread.author_avatar,
+        thumbsUp: updatedThread.thumbs_up,
+        likedBy: updatedThread.liked_by,
+        date: new Date(updatedThread.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+        replies: updatedThread.replies.map(r => ({
+          id: r.id,
+          body: r.body,
+          author: r.author_name,
+          role: r.author_role,
+          avatar: r.author_avatar,
+          date: new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+        }))
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to post thread reply." });
+  }
 });
 
 
 // Join a specific forum category to receive live pushes and alerts
-app.post("/api/forum/join", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/forum/join", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { category } = req.body;
   const user = req.user;
 
@@ -771,17 +822,21 @@ app.post("/api/forum/join", authenticateJWT, (req: AuthenticatedRequest, res) =>
   if (!category) return res.status(400).json({ error: "Missing category reference." });
 
   const currentJoined = user.joinedForums || [];
-  if (!currentJoined.includes(category)) {
-    const updated = [...currentJoined, category];
-    dbStore.updateUserProfile(user.id, { joinedForums: updated });
-    return res.json({ success: true, joinedForums: updated });
-  }
+  try {
+    if (!currentJoined.includes(category)) {
+      const updated = [...currentJoined, category];
+      await dbStore.updateUserProfile(user.id, { joinedForums: updated });
+      return res.json({ success: true, joinedForums: updated });
+    }
 
-  res.json({ success: true, joinedForums: currentJoined });
+    res.json({ success: true, joinedForums: currentJoined });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to join forum." });
+  }
 });
 
 // Leave a specific forum category
-app.post("/api/forum/leave", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/forum/leave", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { category } = req.body;
   const user = req.user;
 
@@ -790,12 +845,16 @@ app.post("/api/forum/leave", authenticateJWT, (req: AuthenticatedRequest, res) =
 
   const currentJoined = user.joinedForums || [];
   const updated = currentJoined.filter(c => c !== category);
-  dbStore.updateUserProfile(user.id, { joinedForums: updated });
-  res.json({ success: true, joinedForums: updated });
+  try {
+    await dbStore.updateUserProfile(user.id, { joinedForums: updated });
+    res.json({ success: true, joinedForums: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to leave forum." });
+  }
 });
 
 // Mark notification as read (either single or 'all')
-app.post("/api/notifications/read", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/notifications/read", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const { notificationId } = req.body;
   const user = req.user;
 
@@ -811,22 +870,30 @@ app.post("/api/notifications/read", authenticateJWT, (req: AuthenticatedRequest,
     }
   }
 
-  dbStore.updateUserProfile(user.id, { notifications });
-  res.json({ success: true, notifications });
+  try {
+    await dbStore.updateUserProfile(user.id, { notifications });
+    res.json({ success: true, notifications });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to read notifications." });
+  }
 });
 
 // Clear all notifications archive
-app.post("/api/notifications/clear", authenticateJWT, (req: AuthenticatedRequest, res) => {
+app.post("/api/notifications/clear", authenticateJWT, async (req: AuthenticatedRequest, res) => {
   const user = req.user;
 
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  dbStore.updateUserProfile(user.id, { notifications: [] });
-  res.json({ success: true, notifications: [] });
+  try {
+    await dbStore.updateUserProfile(user.id, { notifications: [] });
+    res.json({ success: true, notifications: [] });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to clear notifications." });
+  }
 });
 
 // Simulator to broadcast peer questions or replies to showcase immediate WebSockets sync
-app.post("/api/forum/simulate-activity", (req, res) => {
+app.post("/api/forum/simulate-activity", async (req, res) => {
   const { category, type } = req.body;
   const normalizedCat = category || 'general';
   const displayCategoryName = normalizedCat === 'recitation' ? 'Tajweed' : normalizedCat === 'history' ? 'History' : normalizedCat === 'jurisprudence' ? 'Jurisprudence' : normalizedCat === 'scholarships' ? 'Scholarships' : 'General';
@@ -851,22 +918,27 @@ app.post("/api/forum/simulate-activity", (req, res) => {
   }
 
   // Send to all users connected/subscribed to normalizedCat
-  const allUsersList = dbStore.getUsers();
-  let countDispatched = 0;
+  try {
+    const allUsersList = await dbStore.getUsers();
+    let countDispatched = 0;
 
-  for (const recipient of allUsersList) {
-    if (recipient.joinedForums?.includes(normalizedCat)) {
-      sendLiveNotification(recipient.email, {
-        title: title,
-        body: `${selectedMock.name} posted: "${body}"`,
-        type: type === 'topic' ? 'forum_msg' : 'forum_reply',
-        referenceId: 'thread_1'
-      });
-      countDispatched++;
+    for (const recipient of allUsersList) {
+      if (recipient.joinedForums?.includes(normalizedCat)) {
+        // Run in background without blocking
+        sendLiveNotification(recipient.email, {
+          title: title,
+          body: `${selectedMock.name} posted: "${body}"`,
+          type: type === 'topic' ? 'forum_msg' : 'forum_reply',
+          referenceId: 'thread_1'
+        }).catch(e => console.error("Notification simulator error:", e));
+        countDispatched++;
+      }
     }
-  }
 
-  res.json({ success: true, countDispatched, message: "Live activity socket stream successfully broadcasted." });
+    res.json({ success: true, countDispatched, message: "Live activity socket stream successfully broadcasted." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to simulate activity." });
+  }
 });
 
 
@@ -1258,16 +1330,20 @@ app.get("/api/health", (req, res) => {
 });
 
 // GET: Retrieve all reported issues (latest first)
-app.get("/api/issues", (req, res) => {
-  const issues = dbStore.getIssues();
-  const sorted = [...issues].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-  res.json(sorted);
+app.get("/api/issues", async (req, res) => {
+  try {
+    const issues = await dbStore.getIssues();
+    const sorted = [...issues].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    res.json(sorted);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to fetch reported issues." });
+  }
 });
 
 // POST: Submit a new issue or feedback
-app.post("/api/issues", express.json({ limit: '10mb' }), (req, res) => {
+app.post("/api/issues", express.json({ limit: '10mb' }), async (req, res) => {
   const { name, email, issueType, description, screenshot } = req.body;
 
   if (!name || !email || !issueType || !description) {
@@ -1286,55 +1362,67 @@ app.post("/api/issues", express.json({ limit: '10mb' }), (req, res) => {
     updated_at: new Date().toISOString()
   };
 
-  dbStore.addIssue(newIssue);
+  try {
+    await dbStore.addIssue(newIssue);
 
-  // Trigger simulated e-mail logs
-  console.info(`\n📧 [EMAIL DISPATCHER] -> Sent to: devspak-s8@ilmnaafi.org\nSubject: New [${issueType}] reported by ${name}\nIssue ID: ${newIssue.id}\nDetail: ${description}\n`);
+    // Trigger simulated e-mail logs
+    console.info(`\n📧 [EMAIL DISPATCHER] -> Sent to: devspak-s8@ilmnaafi.org\nSubject: New [${issueType}] reported by ${name}\nIssue ID: ${newIssue.id}\nDetail: ${description}\n`);
 
-  res.status(201).json({ 
-    success: true, 
-    message: "Alhamdulillah! Your issue has been stored and escalated.",
-    issue: newIssue
-  });
+    res.status(201).json({ 
+      success: true, 
+      message: "Alhamdulillah! Your issue has been stored and escalated.",
+      issue: newIssue
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to report issue." });
+  }
 });
 
 // POST: Resolve / Update an existing issue
-app.post("/api/issues/:id/resolve", express.json(), (req, res) => {
+app.post("/api/issues/:id/resolve", express.json(), async (req, res) => {
   const { id } = req.params;
   const { adminMemo, status } = req.body;
 
-  const issue = dbStore.findIssueById(id);
-  if (!issue) {
-    return res.status(404).json({ error: "Issue not found." });
+  try {
+    const issue = await dbStore.findIssueById(id);
+    if (!issue) {
+      return res.status(404).json({ error: "Issue not found." });
+    }
+
+    const targetStatus = status || 'Fixed';
+    const updates: Partial<ServerIssue> = {
+      status: targetStatus,
+      adminMemo: adminMemo || "Marked as fixed by review board.",
+      updated_at: new Date().toISOString()
+    };
+
+    await dbStore.updateIssue(id, updates);
+
+    // Trigger automatic email to reporter
+    console.info(`\n📧 [EMAIL DISPATCHER] -> Sent to reporter: ${issue.email}\nSubject: [RESOLVED] Issue #${issue.id} status updated to ${targetStatus}\nMemo: ${updates.adminMemo}\n`);
+
+    res.json({
+      success: true,
+      message: `Issue status updated to ${targetStatus}.`,
+      issue: { ...issue, ...updates }
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to update issue status." });
   }
-
-  const targetStatus = status || 'Fixed';
-  const updates: Partial<ServerIssue> = {
-    status: targetStatus,
-    adminMemo: adminMemo || "Marked as fixed by review board.",
-    updated_at: new Date().toISOString()
-  };
-
-  dbStore.updateIssue(id, updates);
-
-  // Trigger automatic email to reporter
-  console.info(`\n📧 [EMAIL DISPATCHER] -> Sent to reporter: ${issue.email}\nSubject: [RESOLVED] Issue #${issue.id} status updated to ${targetStatus}\nMemo: ${updates.adminMemo}\n`);
-
-  res.json({
-    success: true,
-    message: `Issue status updated to ${targetStatus}.`,
-    issue: { ...issue, ...updates }
-  });
 });
 
 // DELETE: Deletes an issue
-app.delete("/api/issues/:id", (req, res) => {
+app.delete("/api/issues/:id", async (req, res) => {
   const { id } = req.params;
-  const success = dbStore.deleteIssue(id);
-  if (success) {
-    res.json({ success: true, message: "Issue deleted successfully." });
-  } else {
-    res.status(404).json({ error: "Issue not found." });
+  try {
+    const success = await dbStore.deleteIssue(id);
+    if (success) {
+      res.json({ success: true, message: "Issue deleted successfully." });
+    } else {
+      res.status(404).json({ error: "Issue not found." });
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to delete issue." });
   }
 });
 

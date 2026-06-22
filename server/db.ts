@@ -67,330 +67,261 @@ export interface ServerIssue {
   updated_at: string;
 }
 
-interface DBStructure {
-  users: ServerUser[];
-  threads: ServerThread[];
-  issues?: ServerIssue[];
+// --- DB Helper Utilities ---
+function getSupabaseOrThrow() {
+  const s = getSupabaseAdmin();
+  if (!s) {
+    throw new Error(
+      "Supabase Connection Missing: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables are not configured in AI Studio. " +
+      "Please configure your Supabase variables in the AI Studio settings panel."
+    );
+  }
+  return s;
+}
+
+function handleSupabaseError(error: any, context: string) {
+  if (error) {
+    console.error(`[Supabase Error during ${context}]:`, error);
+    let extraTip = "";
+    if (error.code === '42P01') {
+      extraTip = " Hint: The database table does not exist. Did you execute the SQL script in your Supabase SQL Editor?";
+    } else if (error.message && error.message.includes("API key")) {
+      extraTip = " Hint: The provided service role API key appears to be invalid or deactivated.";
+    }
+    throw new Error(`Supabase Query Failed (${context}): ${error.message}.${extraTip}`);
+  }
+}
+
+function mapDBUserToUser(row: any): ServerUser {
+  return {
+    id: row.id,
+    username: row.username || '',
+    email: row.email || '',
+    passwordHash: row.password_hash || row.passwordHash || '',
+    role: row.role || 'student',
+    weeklyMinutes: row.weekly_minutes ?? row.weeklyMinutes ?? 0,
+    lessonsCompleted: row.lessons_completed || row.lessonsCompleted || [],
+    savedScholarships: row.saved_scholarships || row.savedScholarships || [],
+    recentRecitations: row.recent_recitations || row.recentRecitations || [],
+    certificates: row.certificates || [],
+    joinedForums: row.joined_forums || row.joinedForums || [],
+    notifications: row.notifications || []
+  };
+}
+
+function mapUserToDBUser(u: Partial<ServerUser>): any {
+  const payload: any = {};
+  if (u.id !== undefined) payload.id = u.id;
+  if (u.username !== undefined) payload.username = u.username;
+  if (u.email !== undefined) payload.email = u.email;
+  if (u.passwordHash !== undefined) payload.password_hash = u.passwordHash;
+  if (u.role !== undefined) payload.role = u.role;
+  if (u.weeklyMinutes !== undefined) payload.weekly_minutes = u.weeklyMinutes;
+  if (u.lessonsCompleted !== undefined) payload.lessons_completed = u.lessonsCompleted;
+  if (u.savedScholarships !== undefined) payload.saved_scholarships = u.savedScholarships;
+  if (u.recentRecitations !== undefined) payload.recent_recitations = u.recentRecitations;
+  if (u.certificates !== undefined) payload.certificates = u.certificates;
+  if (u.joinedForums !== undefined) payload.joined_forums = u.joinedForums;
+  if (u.notifications !== undefined) payload.notifications = u.notifications;
+  return payload;
+}
+
+function mapDBThreadToThread(row: any): ServerThread {
+  return {
+    id: row.id,
+    title: row.title || '',
+    body: row.body || '',
+    category: row.category || 'general',
+    author_id: row.author_id || row.authorId || '',
+    author_name: row.author_name || row.author || '',
+    author_role: row.author_role || row.role || '',
+    author_avatar: row.author_avatar || row.avatar || '',
+    thumbs_up: row.thumbs_up ?? row.thumbsUp ?? 0,
+    liked_by: row.liked_by || row.likedBy || [],
+    created_at: row.created_at || row.date || new Date().toISOString(),
+    replies: row.replies || []
+  };
+}
+
+function mapThreadToDBThread(t: Partial<ServerThread>): any {
+  const payload: any = {};
+  if (t.id !== undefined) payload.id = t.id;
+  if (t.title !== undefined) payload.title = t.title;
+  if (t.body !== undefined) payload.body = t.body;
+  if (t.category !== undefined) payload.category = t.category;
+  if (t.author_id !== undefined) payload.author_id = t.author_id;
+  if (t.author_name !== undefined) payload.author_name = t.author_name;
+  if (t.author_role !== undefined) payload.author_role = t.author_role;
+  if (t.author_avatar !== undefined) payload.author_avatar = t.author_avatar;
+  if (t.thumbs_up !== undefined) payload.thumbs_up = t.thumbs_up;
+  if (t.liked_by !== undefined) payload.liked_by = t.liked_by;
+  if (t.replies !== undefined) payload.replies = t.replies;
+  if (t.created_at !== undefined) payload.created_at = t.created_at;
+  return payload;
+}
+
+function mapDBIssueToIssue(i: any): ServerIssue {
+  return {
+    id: i.id,
+    name: i.name || '',
+    email: i.email || '',
+    issueType: i.issue_type || i.issueType || 'Other',
+    description: i.description || '',
+    screenshot: i.screenshot || '',
+    status: i.status || 'Pending',
+    adminMemo: i.admin_memo || i.adminMemo || '',
+    created_at: i.created_at || new Date().toISOString(),
+    updated_at: i.updated_at || new Date().toISOString()
+  };
+}
+
+function mapIssueToDBIssue(i: Partial<ServerIssue>): any {
+  const payload: any = {};
+  if (i.id !== undefined) payload.id = i.id;
+  if (i.name !== undefined) payload.name = i.name;
+  if (i.email !== undefined) payload.email = i.email;
+  if (i.issueType !== undefined) payload.issue_type = i.issueType;
+  if (i.description !== undefined) payload.description = i.description;
+  if (i.screenshot !== undefined) payload.screenshot = i.screenshot;
+  if (i.status !== undefined) payload.status = i.status;
+  if (i.adminMemo !== undefined) payload.admin_memo = i.adminMemo;
+  if (i.created_at !== undefined) payload.created_at = i.created_at;
+  if (i.updated_at !== undefined) payload.updated_at = i.updated_at;
+  return payload;
 }
 
 class ServerDB {
-  private data: DBStructure = { users: [], threads: [], issues: [] };
-  private isSupabaseSyncing = false;
-
-  constructor() {
-    // Non-blocking asynchronous cloud database synchronize on boot
-    this.syncWithSupabase().catch(err => {
-      console.error("[Supabase startup sync failed]", err);
-    });
-  }
-
-  public async syncWithSupabase(): Promise<void> {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) {
-      console.log("[Supabase] Skipping sync: SUPABASE_URL or keys not configured yet.");
-      return;
-    }
-
-    if (this.isSupabaseSyncing) return;
-    this.isSupabaseSyncing = true;
-
-    try {
-      console.log("[Supabase] Fetching latest records from dynamic cloud ledger...");
-
-      // Wrap fetches dynamically to prevent compilation errors and catch failures
-      const fetchTable = async (table: string): Promise<{ data: any[] | null; error: any }> => {
-        try {
-          const res = await (supabase as any).from(table).select('*');
-          return { data: res.data, error: res.error };
-        } catch (err: any) {
-          return { data: null, error: err };
-        }
-      };
-
-      const [usersRes, threadsRes, issuesRes] = await Promise.all([
-        fetchTable('ilm_users'),
-        fetchTable('ilm_threads'),
-        fetchTable('ilm_issues')
-      ]);
-
-      const usersError = usersRes.error;
-      const threadsError = threadsRes.error;
-
-      if (usersRes.data && !usersError && threadsRes.data && !threadsError) {
-        console.log(`[Supabase] Restoring state from relational tables. Users: ${usersRes.data.length}, Threads: ${threadsRes.data.length}`);
-        
-        const mappedUsers: ServerUser[] = usersRes.data.map((u: any) => ({
-          id: u.id,
-          username: u.username || '',
-          email: u.email || '',
-          passwordHash: u.password_hash || u.passwordHash || '',
-          role: u.role || 'student',
-          weeklyMinutes: u.weekly_minutes ?? u.weeklyMinutes ?? 0,
-          lessonsCompleted: u.lessons_completed || u.lessonsCompleted || [],
-          savedScholarships: u.saved_scholarships || u.savedScholarships || [],
-          recentRecitations: u.recent_recitations || u.recentRecitations || [],
-          certificates: u.certificates || [],
-          joinedForums: u.joined_forums || u.joinedForums || [],
-          notifications: u.notifications || []
-        }));
-
-        const mappedThreads: ServerThread[] = threadsRes.data.map((t: any) => ({
-          id: t.id,
-          title: t.title || '',
-          body: t.body || '',
-          category: t.category || 'general',
-          author_id: t.author_id || t.authorId || '',
-          author_name: t.author_name || t.author || '',
-          author_role: t.author_role || t.role || '',
-          author_avatar: t.author_avatar || t.avatar || '',
-          thumbs_up: t.thumbs_up ?? t.thumbsUp ?? 0,
-          liked_by: t.liked_by || t.likedBy || [],
-          created_at: t.created_at || t.date || new Date().toISOString(),
-          replies: t.replies || []
-        }));
-
-        const mappedIssues: ServerIssue[] = (issuesRes.data || []).map((i: any) => ({
-          id: i.id,
-          name: i.name || '',
-          email: i.email || '',
-          issueType: i.issue_type || i.issueType || 'Other',
-          description: i.description || '',
-          screenshot: i.screenshot || '',
-          status: i.status || 'Pending',
-          adminMemo: i.admin_memo || i.adminMemo || '',
-          created_at: i.created_at || new Date().toISOString(),
-          updated_at: i.updated_at || new Date().toISOString()
-        }));
-
-        this.data = {
-          users: mappedUsers,
-          threads: mappedThreads,
-          issues: mappedIssues
-        };
-        
-      } else {
-        console.warn("[Supabase] Relational schema and single-table fallbacks empty or unpopulated. Initializing empty database.");
-      }
-    } catch (e: any) {
-      console.error("[Supabase] State loading process failed:", e.message);
-    } finally {
-      this.isSupabaseSyncing = false;
-    }
-  }
-
-  // --- IMMEDIATE SUPABASE INTERACTION WRAPPERS ---
-  private async saveUserToSupabase(u: ServerUser): Promise<void> {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) return;
-    try {
-      const payload = {
-        id: u.id,
-        username: u.username,
-        email: u.email,
-        password_hash: u.passwordHash,
-        role: u.role,
-        weekly_minutes: u.weeklyMinutes,
-        lessons_completed: u.lessonsCompleted,
-        saved_scholarships: u.savedScholarships,
-        recent_recitations: u.recentRecitations,
-        certificates: u.certificates,
-        joined_forums: u.joinedForums || [],
-        notifications: u.notifications || []
-      };
-      const res = await (supabase as any).from('ilm_users').upsert(payload);
-      if (res.error) {
-        console.error("[Supabase] Error saving user:", res.error.message);
-      } else {
-        console.log(`[Supabase] Live updated user ${u.email}`);
-      }
-    } catch (e: any) {
-      console.error("[Supabase User Upsert Exception]", e.message);
-    }
-  }
-
-  private async saveThreadToSupabase(t: ServerThread): Promise<void> {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) return;
-    try {
-      const payload = {
-        id: t.id,
-        title: t.title,
-        body: t.body,
-        category: t.category,
-        author_id: t.author_id,
-        author_name: t.author_name,
-        author_role: t.author_role,
-        author_avatar: t.author_avatar,
-        thumbs_up: t.thumbs_up,
-        liked_by: t.liked_by,
-        replies: t.replies,
-        created_at: t.created_at
-      };
-      const res = await (supabase as any).from('ilm_threads').upsert(payload);
-      if (res.error) {
-        console.error("[Supabase] Error saving thread:", res.error.message);
-      } else {
-        console.log(`[Supabase] Live updated thread ${t.id}`);
-      }
-    } catch (e: any) {
-      console.error("[Supabase Thread Upsert Exception]", e.message);
-    }
-  }
-
-  private async deleteThreadFromSupabase(id: string): Promise<void> {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) return;
-    try {
-      const res = await (supabase as any).from('ilm_threads').delete().eq('id', id);
-      if (res.error) {
-        console.error("[Supabase] Error deleting thread:", res.error.message);
-      } else {
-        console.log(`[Supabase] Live deleted thread ${id}`);
-      }
-    } catch (e: any) {
-      console.error("[Supabase Thread Delete Exception]", e.message);
-    }
-  }
-
-  private async saveIssueToSupabase(i: ServerIssue): Promise<void> {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) return;
-    try {
-      const payload = {
-        id: i.id,
-        name: i.name,
-        email: i.email,
-        issue_type: i.issueType,
-        description: i.description,
-        screenshot: i.screenshot || null,
-        status: i.status,
-        admin_memo: i.adminMemo || null,
-        created_at: i.created_at,
-        updated_at: i.updated_at
-      };
-      const res = await (supabase as any).from('ilm_issues').upsert(payload);
-      if (res.error) {
-        console.error("[Supabase] Error saving support issue:", res.error.message);
-      } else {
-        console.log(`[Supabase] Live updated support issue ${i.id}`);
-      }
-    } catch (e: any) {
-      console.error("[Supabase Issue Upsert Exception]", e.message);
-    }
-  }
-
-  private async deleteIssueFromSupabase(id: string): Promise<void> {
-    const supabase = getSupabaseAdmin();
-    if (!supabase) return;
-    try {
-      const res = await (supabase as any).from('ilm_issues').delete().eq('id', id);
-      if (res.error) {
-        console.error("[Supabase] Error deleting support issue:", res.error.message);
-      } else {
-        console.log(`[Supabase] Live deleted support issue ${id}`);
-      }
-    } catch (e: any) {
-      console.error("[Supabase Issue Delete Exception]", e.message);
-    }
-  }
-
   // --- USER CONTROLLERS ---
-  public getUsers(): ServerUser[] {
-    return this.data.users;
+  public async getUsers(): Promise<ServerUser[]> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase.from('ilm_users').select('*');
+    handleSupabaseError(error, 'getUsers');
+    return (data || []).map(mapDBUserToUser);
   }
 
-  public findUserByEmail(email: string): ServerUser | undefined {
-    return this.data.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  public async findUserByEmail(email: string): Promise<ServerUser | undefined> {
+    const supabase = getSupabaseOrThrow();
+    const normEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase
+      .from('ilm_users')
+      .select('*')
+      .eq('email', normEmail)
+      .maybeSingle();
+    handleSupabaseError(error, 'findUserByEmail');
+    return data ? mapDBUserToUser(data) : undefined;
   }
 
-  public findUserById(id: string): ServerUser | undefined {
-    return this.data.users.find(u => u.id === id);
+  public async findUserById(id: string): Promise<ServerUser | undefined> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase
+      .from('ilm_users')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    handleSupabaseError(error, 'findUserById');
+    return data ? mapDBUserToUser(data) : undefined;
   }
 
-  public createUser(user: ServerUser): void {
-    this.data.users.push(user);
-    this.saveUserToSupabase(user);
+  public async createUser(user: ServerUser): Promise<void> {
+    const supabase = getSupabaseOrThrow();
+    const payload = mapUserToDBUser(user);
+    const { error } = await (supabase.from('ilm_users') as any).insert(payload);
+    handleSupabaseError(error, 'createUser');
   }
 
-  public updateUserProfile(id: string, updates: Partial<ServerUser>): boolean {
-    const user = this.findUserById(id);
-    if (!user) return false;
-
-    Object.assign(user, updates);
-    this.saveUserToSupabase(user);
+  public async updateUserProfile(id: string, updates: Partial<ServerUser>): Promise<boolean> {
+    const supabase = getSupabaseOrThrow();
+    const payload = mapUserToDBUser(updates);
+    const { error } = await (supabase.from('ilm_users') as any)
+      .update(payload)
+      .eq('id', id);
+    handleSupabaseError(error, 'updateUserProfile');
     return true;
   }
 
   // --- FORUM CONTROLLERS ---
-  public getThreads(): ServerThread[] {
-    // Sort newly created threads first
-    return [...this.data.threads].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+  public async getThreads(): Promise<ServerThread[]> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase.from('ilm_threads').select('*');
+    handleSupabaseError(error, 'getThreads');
+    return (data || [])
+      .map(mapDBThreadToThread)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
-  public findThreadById(id: string): ServerThread | undefined {
-    return this.data.threads.find(t => t.id === id);
+  public async findThreadById(id: string): Promise<ServerThread | undefined> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase
+      .from('ilm_threads')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    handleSupabaseError(error, 'findThreadById');
+    return data ? mapDBThreadToThread(data) : undefined;
   }
 
-  public addThread(thread: ServerThread): void {
-    this.data.threads.push(thread);
-    this.saveThreadToSupabase(thread);
+  public async addThread(thread: ServerThread): Promise<void> {
+    const supabase = getSupabaseOrThrow();
+    const payload = mapThreadToDBThread(thread);
+    const { error } = await (supabase.from('ilm_threads') as any).insert(payload);
+    handleSupabaseError(error, 'addThread');
   }
 
-  public deleteThread(id: string): boolean {
-    const lengthBefore = this.data.threads.length;
-    this.data.threads = this.data.threads.filter(t => t.id !== id);
-    if (this.data.threads.length !== lengthBefore) {
-      this.deleteThreadFromSupabase(id);
-      return true;
-    }
-    return false;
+  public async deleteThread(id: string): Promise<boolean> {
+    const supabase = getSupabaseOrThrow();
+    const { error } = await (supabase.from('ilm_threads') as any).delete().eq('id', id);
+    handleSupabaseError(error, 'deleteThread');
+    return true;
   }
 
-  public updateThread(id: string, updates: Partial<ServerThread>): boolean {
-    const thread = this.findThreadById(id);
-    if (!thread) return false;
-
-    Object.assign(thread, updates);
-    this.saveThreadToSupabase(thread);
+  public async updateThread(id: string, updates: Partial<ServerThread>): Promise<boolean> {
+    const supabase = getSupabaseOrThrow();
+    const payload = mapThreadToDBThread(updates);
+    const { error } = await (supabase.from('ilm_threads') as any).update(payload).eq('id', id);
+    handleSupabaseError(error, 'updateThread');
     return true;
   }
 
   // --- ISSUE CONTROLLERS ---
-  public getIssues(): ServerIssue[] {
-    return this.data.issues || [];
+  public async getIssues(): Promise<ServerIssue[]> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase.from('ilm_issues').select('*');
+    handleSupabaseError(error, 'getIssues');
+    return (data || [])
+      .map(mapDBIssueToIssue)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
-  public findIssueById(id: string): ServerIssue | undefined {
-    return (this.data.issues || []).find(i => i.id === id);
+  public async findIssueById(id: string): Promise<ServerIssue | undefined> {
+    const supabase = getSupabaseOrThrow();
+    const { data, error } = await supabase
+      .from('ilm_issues')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    handleSupabaseError(error, 'findIssueById');
+    return data ? mapDBIssueToIssue(data) : undefined;
   }
 
-  public addIssue(issue: ServerIssue): void {
-    if (!this.data.issues) {
-      this.data.issues = [];
-    }
-    this.data.issues.push(issue);
-    this.saveIssueToSupabase(issue);
+  public async addIssue(issue: ServerIssue): Promise<void> {
+    const supabase = getSupabaseOrThrow();
+    const payload = mapIssueToDBIssue(issue);
+    const { error } = await (supabase.from('ilm_issues') as any).insert(payload);
+    handleSupabaseError(error, 'addIssue');
   }
 
-  public deleteIssue(id: string): boolean {
-    if (!this.data.issues) return false;
-    const lengthBefore = this.data.issues.length;
-    this.data.issues = this.data.issues.filter(i => i.id !== id);
-    if (this.data.issues.length !== lengthBefore) {
-      this.deleteIssueFromSupabase(id);
-      return true;
-    }
-    return false;
+  public async deleteIssue(id: string): Promise<boolean> {
+    const supabase = getSupabaseOrThrow();
+    const { error } = await (supabase.from('ilm_issues') as any).delete().eq('id', id);
+    handleSupabaseError(error, 'deleteIssue');
+    return true;
   }
 
-  public updateIssue(id: string, updates: Partial<ServerIssue>): boolean {
-    const issue = this.findIssueById(id);
-    if (!issue) return false;
-
-    Object.assign(issue, updates);
-    this.saveIssueToSupabase(issue);
+  public async updateIssue(id: string, updates: Partial<ServerIssue>): Promise<boolean> {
+    const supabase = getSupabaseOrThrow();
+    const payload = mapIssueToDBIssue(updates);
+    const { error } = await (supabase.from('ilm_issues') as any).update(payload).eq('id', id);
+    handleSupabaseError(error, 'updateIssue');
     return true;
   }
 }
