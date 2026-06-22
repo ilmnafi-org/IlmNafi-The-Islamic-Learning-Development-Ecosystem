@@ -304,6 +304,20 @@ async function authenticateJWT(req: AuthenticatedRequest, res: express.Response,
 
 // --- SECURE AUTHENTICATION ENDPOINTS (HttpOnly Cookie & Bearer driven) ---
 
+// 0. Get database status
+app.get("/api/auth/status", (req, res) => {
+  const hasUrl = !!process.env.SUPABASE_URL;
+  const hasKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  res.json({
+    configured: hasUrl && hasKey,
+    mode: (hasUrl && hasKey) ? "Supabase Cloud Database" : "Sandbox Local Fallback",
+    details: {
+      supabaseUrl: hasUrl ? "Configured" : "Missing",
+      supabaseServiceKey: hasKey ? "Configured" : "Missing"
+    }
+  });
+});
+
 // 1. Get current active session
 app.get("/api/auth/session", async (req: AuthenticatedRequest, res) => {
   let token = req.cookies?.ilm_session;

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserCheck, Key, ShieldCheck, Mail, Sparkles, GraduationCap, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService } from '../lib/supabase';
@@ -19,6 +19,13 @@ export default function AuthModal({ onClose, onSuccess }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dbStatus, setDbStatus] = useState<{ configured: boolean; mode: string }>({ configured: false, mode: 'Checking...' });
+
+  useEffect(() => {
+    dbService.getDatabaseStatus().then(status => {
+      setDbStatus(status);
+    });
+  }, []);
   
   // Modals inside AuthModal to align with user's demand
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -80,7 +87,16 @@ export default function AuthModal({ onClose, onSuccess }: AuthModalProps) {
           </div>
           <div className="space-y-1">
             <h3 className="font-extrabold text-lg tracking-tight">Nafi Scholar Authorization</h3>
-            <p className="text-emerald-100/80 text-[11px] max-w-xs mx-auto">Unlock direct recitation records, progress logs, and translation suites</p>
+            <p className="text-emerald-100/80 text-[11px] max-w-xs mx-auto mb-2">Unlock direct recitation records, progress logs, and translation suites</p>
+            
+            <div className={`mx-auto inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border ${
+              dbStatus.configured 
+                ? 'bg-emerald-950/50 border-emerald-500/30 text-emerald-300' 
+                : 'bg-amber-950/50 border-amber-500/30 text-amber-305'
+            }`}>
+              <span className={`w-1 h-1 rounded-full ${dbStatus.configured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span>Engine: {dbStatus.mode}</span>
+            </div>
           </div>
         </div>
 
@@ -299,9 +315,15 @@ export default function AuthModal({ onClose, onSuccess }: AuthModalProps) {
                 <h4 className="text-base font-extrabold text-slate-950">
                   Authorization Interrupted
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed text-center break-words">
                   {errorMessage}
                 </p>
+                {errorMessage.includes("Supabase") && (
+                  <div className="mt-3 p-3 bg-amber-50 text-amber-900 border border-amber-200/50 rounded-xl text-[10px] text-left leading-normal font-sans space-y-1">
+                    <strong className="font-bold block text-slate-900">💡 Supabase Troubleshooting Tip:</strong>
+                    <span>If you configured your keys in AI Studio, ensure that you also executed the schema SQL script (found in <code className="font-mono bg-slate-100 p-0.5 px-1 rounded">supabase_schema.sql</code>) inside your Supabase SQL Editor to provision the tables!</span>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 flex flex-col gap-2">

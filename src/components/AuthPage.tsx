@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   UserCheck, 
   Mail, 
@@ -39,6 +39,13 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
   const [role, setRole] = useState<'student' | 'researcher' | 'teacher'>('student');
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [dbStatus, setDbStatus] = useState<{ configured: boolean; mode: string }>({ configured: false, mode: 'Checking...' });
+
+  useEffect(() => {
+    dbService.getDatabaseStatus().then(status => {
+      setDbStatus(status);
+    });
+  }, []);
 
   // Dedicated modal sequence states
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -282,12 +289,23 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
               transition={{ duration: 0.2 }}
               className="space-y-2"
             >
-              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none flex items-center gap-2">
-                <span className="p-1 px-1.5 rounded-lg bg-amber-500/10 text-amber-800">
-                  <Lock className="w-4 py-0.5 h-4 text-amber-700" />
-                </span>
-                {isLogin ? labels.signTitle : labels.regTitle}
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none flex items-center gap-2">
+                  <span className="p-1 px-1.5 rounded-lg bg-amber-500/10 text-amber-800">
+                    <Lock className="w-4 py-0.5 h-4 text-amber-700" />
+                  </span>
+                  {isLogin ? labels.signTitle : labels.regTitle}
+                </h2>
+                
+                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border max-w-fit self-start sm:self-auto ${
+                  dbStatus.configured 
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${dbStatus.configured ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                  <span>Engine: {dbStatus.mode}</span>
+                </div>
+              </div>
               <p className="text-slate-500 text-xs leading-relaxed">
                 {isLogin ? labels.signSubtitle : labels.regSubtitle}
               </p>
@@ -530,9 +548,21 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                 <h4 className="text-base font-extrabold text-slate-950">
                   {lang === 'en' ? "Authorization Interrupted" : "عائق في ترخيص الدخول"}
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed text-center break-words">
                   {errorMessage}
                 </p>
+                {errorMessage.includes("Supabase") && (
+                  <div className="mt-3 p-3 bg-amber-50 text-amber-905 border border-amber-200/50 rounded-xl text-[10px] text-left leading-normal font-sans space-y-1">
+                    <strong className="font-bold block text-slate-900">
+                      {lang === 'en' ? "💡 Supabase Troubleshooting Tip:" : "💡 إرشاد إصلاح اتصال سوبابيس:"}
+                    </strong>
+                    <span>
+                      {lang === 'en' 
+                        ? "If you configured your keys in AI Studio, ensure that you also executed the schema SQL script (found in supabase_schema.sql) inside your Supabase SQL Editor to provision the tables!"
+                        : "إذا قمت بضبط إعداد السجلات في AI Studio، يرجى التأكد من تشغيل ملف التهيئة (الموجود في supabase_schema.sql) في نافذة الاستعلامات لدى Supabase لإنشاء الجداول اللازمة!"}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 flex flex-col gap-2">

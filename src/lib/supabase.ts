@@ -53,6 +53,18 @@ function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<strin
 
 export const dbService = {
   // --- AUTH SERVICES ---
+  async getDatabaseStatus(): Promise<{ configured: boolean; mode: string }> {
+    try {
+      const response = await fetch('/api/auth/status');
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn("Could not fetch database status from server", e);
+    }
+    return { configured: false, mode: "Sandbox Local Fallback" };
+  },
+
   async signUp(email: string, password: string, name: string, role: 'student' | 'researcher' | 'teacher'): Promise<UserSession> {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
