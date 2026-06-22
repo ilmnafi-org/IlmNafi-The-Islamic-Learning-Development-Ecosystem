@@ -1153,29 +1153,29 @@ export default function App() {
       
       {/* FLOATING TOP NAVBAR */}
       <nav 
-        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all h-16 px-4 md:px-6 lg:px-8 flex items-center justify-between" 
+        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row items-center justify-between gap-1" 
         id="app-floating-navbar"
       >
         {/* Brand identity logo */}
         <button 
           onClick={() => { setActiveTab('home'); setShowMoreNav(false); }} 
-          className="font-extrabold text-[#004d3d] tracking-tight cursor-pointer py-1 text-left flex items-center gap-2 outline-none focus:outline-none shrink-0"
+          className="font-extrabold text-[#004d3d] tracking-tight cursor-pointer py-1 text-left flex items-center gap-1.5 md:gap-2 outline-none focus:outline-none shrink-0"
           id="brand-logo"
         >
-          <span className="w-8 h-8 rounded-xl bg-amber-700/10 flex items-center justify-center text-amber-800 font-extrabold border border-amber-850/15 shrink-0">
+          <span className="w-8 h-8 rounded-xl bg-amber-700/10 flex items-center justify-center text-amber-800 font-extrabold border border-amber-850/15 shrink-0 select-none">
             ع
           </span>
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-sm md:text-base font-extrabold">{labels.brand}</span>
-            <span className="text-[9px] text-amber-800 font-semibold mt-0.5">{labels.desc}</span>
+          <div className="flex flex-col items-start leading-none whitespace-nowrap">
+            <span className="text-xs sm:text-sm md:text-base font-extrabold">{labels.brand}</span>
+            <span className="text-[8px] sm:text-[9px] text-amber-800 font-semibold mt-0.5">{labels.desc}</span>
           </div>
         </button>
         
         {/* Centered Desktop Navigation Links */}
-        <div className="hidden lg:flex flex-1 items-center justify-center gap-1.5 xl:gap-2 font-medium text-[11.5px] xl:text-[12.5px] whitespace-nowrap py-1 px-4 border-l border-r border-slate-100/85 mx-4" id="desktop-nav-links-center">
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-2 font-medium text-[10.5px] xl:text-[12.5px] whitespace-nowrap py-1 px-1.5 xl:px-4 border-l border-r border-slate-100/90 mx-1.5 xl:mx-4" id="desktop-nav-links-center">
           <button 
             onClick={() => { setActiveTab('curriculum'); setShowMoreNav(false); }}
-            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
               activeTab === 'curriculum' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1186,7 +1186,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setActiveTab('coach'); setShowMoreNav(false); }}
-            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
               activeTab === 'coach' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1197,7 +1197,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setActiveTab('quran'); setShowMoreNav(false); }}
-            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
               activeTab === 'quran' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-550/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1208,7 +1208,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
-            className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
               activeTab === 'daily' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1226,7 +1226,7 @@ export default function App() {
           >
             <button
               onClick={() => setShowMoreNav(!showMoreNav)}
-              className={`px-3 py-2 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-1 border ${
+              className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-1 border ${
                 showMoreNav || ['scholarships', 'saved-scholarships', 'community', 'api-docs', 'notifications', 'settings'].includes(activeTab)
                   ? 'text-amber-900 bg-amber-50/90 border-amber-200/60 font-extrabold shadow-sm'
                   : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border-transparent'
@@ -1234,7 +1234,7 @@ export default function App() {
               id="nav-more-dropdown"
             >
               <span>{lang === 'en' ? "Platforms Hub" : "بوابات ومصادر"}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showMoreNav ? 'rotate-180 text-amber-700' : 'text-slate-400'}`} />
+              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showMoreNav ? 'rotate-180 text-amber-700' : 'text-slate-400'}`} />
             </button>
 
             <AnimatePresence>
@@ -1548,6 +1548,7 @@ export default function App() {
 
               <div className="grid grid-cols-2 gap-3 pb-6">
                 {[
+                  { id: 'curriculum', label: labels.curriculum, icon: GraduationCap, color: 'text-amber-800 bg-amber-500/10' },
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
