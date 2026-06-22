@@ -340,10 +340,15 @@ class ServerDB {
     if (!isSupabaseConfigured()) {
       return getFallbackDb().users;
     }
-    const supabase = getSupabaseAdmin()!;
-    const { data, error } = await supabase.from('ilm_users').select('*');
-    handleSupabaseError(error, 'getUsers');
-    return (data || []).map(mapDBUserToUser);
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await supabase.from('ilm_users').select('*');
+      handleSupabaseError(error, 'getUsers');
+      return (data || []).map(mapDBUserToUser);
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: getUsers failed, reverting to Local Sandbox:", err.message);
+      return getFallbackDb().users;
+    }
   }
 
   public async findUserByEmail(email: string): Promise<ServerUser | undefined> {
@@ -351,28 +356,38 @@ class ServerDB {
     if (!isSupabaseConfigured()) {
       return getFallbackDb().users.find(u => u.email.toLowerCase() === normEmail);
     }
-    const supabase = getSupabaseAdmin()!;
-    const { data, error } = await supabase
-      .from('ilm_users')
-      .select('*')
-      .eq('email', normEmail)
-      .maybeSingle();
-    handleSupabaseError(error, 'findUserByEmail');
-    return data ? mapDBUserToUser(data) : undefined;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await supabase
+        .from('ilm_users')
+        .select('*')
+        .eq('email', normEmail)
+        .maybeSingle();
+      handleSupabaseError(error, 'findUserByEmail');
+      return data ? mapDBUserToUser(data) : undefined;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: findUserByEmail failed, reverting to Local Sandbox:", err.message);
+      return getFallbackDb().users.find(u => u.email.toLowerCase() === normEmail);
+    }
   }
 
   public async findUserById(id: string): Promise<ServerUser | undefined> {
     if (!isSupabaseConfigured()) {
       return getFallbackDb().users.find(u => u.id === id);
     }
-    const supabase = getSupabaseAdmin()!;
-    const { data, error } = await supabase
-      .from('ilm_users')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-    handleSupabaseError(error, 'findUserById');
-    return data ? mapDBUserToUser(data) : undefined;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await supabase
+        .from('ilm_users')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      handleSupabaseError(error, 'findUserById');
+      return data ? mapDBUserToUser(data) : undefined;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: findUserById failed, reverting to Local Sandbox:", err.message);
+      return getFallbackDb().users.find(u => u.id === id);
+    }
   }
 
   public async createUser(user: ServerUser): Promise<void> {
@@ -382,10 +397,22 @@ class ServerDB {
       saveFallbackDb();
       return;
     }
-    const supabase = getSupabaseAdmin()!;
-    const payload = mapUserToDBUser(user);
-    const { error } = await (supabase.from('ilm_users') as any).insert(payload);
-    handleSupabaseError(error, 'createUser');
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const payload = mapUserToDBUser(user);
+      const { error } = await (supabase.from('ilm_users') as any).insert(payload);
+      handleSupabaseError(error, 'createUser');
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: createUser failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      const existingIdx = db.users.findIndex(u => u.id === user.id || u.email.toLowerCase() === user.email.toLowerCase());
+      if (existingIdx > -1) {
+        db.users[existingIdx] = user;
+      } else {
+        db.users.push(user);
+      }
+      saveFallbackDb();
+    }
   }
 
   public async updateUserProfile(id: string, updates: Partial<ServerUser>): Promise<boolean> {
@@ -399,13 +426,25 @@ class ServerDB {
       }
       return false;
     }
-    const supabase = getSupabaseAdmin()!;
-    const payload = mapUserToDBUser(updates);
-    const { error } = await (supabase.from('ilm_users') as any)
-      .update(payload)
-      .eq('id', id);
-    handleSupabaseError(error, 'updateUserProfile');
-    return true;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const payload = mapUserToDBUser(updates);
+      const { error } = await (supabase.from('ilm_users') as any)
+        .update(payload)
+        .eq('id', id);
+      handleSupabaseError(error, 'updateUserProfile');
+      return true;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: updateUserProfile failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      const idx = db.users.findIndex(u => u.id === id);
+      if (idx > -1) {
+        db.users[idx] = { ...db.users[idx], ...updates };
+        saveFallbackDb();
+        return true;
+      }
+      return false;
+    }
   }
 
   // --- FORUM CONTROLLERS ---
@@ -413,26 +452,36 @@ class ServerDB {
     if (!isSupabaseConfigured()) {
       return [...getFallbackDb().threads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
-    const supabase = getSupabaseAdmin()!;
-    const { data, error } = await supabase.from('ilm_threads').select('*');
-    handleSupabaseError(error, 'getThreads');
-    return (data || [])
-      .map(mapDBThreadToThread)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await supabase.from('ilm_threads').select('*');
+      handleSupabaseError(error, 'getThreads');
+      return (data || [])
+        .map(mapDBThreadToThread)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: getThreads failed, reverting to Local Sandbox:", err.message);
+      return [...getFallbackDb().threads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
   }
 
   public async findThreadById(id: string): Promise<ServerThread | undefined> {
     if (!isSupabaseConfigured()) {
       return getFallbackDb().threads.find(t => t.id === id);
     }
-    const supabase = getSupabaseAdmin()!;
-    const { data, error } = await supabase
-      .from('ilm_threads')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-    handleSupabaseError(error, 'findThreadById');
-    return data ? mapDBThreadToThread(data) : undefined;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await supabase
+        .from('ilm_threads')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      handleSupabaseError(error, 'findThreadById');
+      return data ? mapDBThreadToThread(data) : undefined;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: findThreadById failed, reverting to Local Sandbox:", err.message);
+      return getFallbackDb().threads.find(t => t.id === id);
+    }
   }
 
   public async addThread(thread: ServerThread): Promise<void> {
@@ -442,10 +491,17 @@ class ServerDB {
       saveFallbackDb();
       return;
     }
-    const supabase = getSupabaseAdmin()!;
-    const payload = mapThreadToDBThread(thread);
-    const { error } = await (supabase.from('ilm_threads') as any).insert(payload);
-    handleSupabaseError(error, 'addThread');
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const payload = mapThreadToDBThread(thread);
+      const { error } = await (supabase.from('ilm_threads') as any).insert(payload);
+      handleSupabaseError(error, 'addThread');
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: addThread failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      db.threads.push(thread);
+      saveFallbackDb();
+    }
   }
 
   public async deleteThread(id: string): Promise<boolean> {
@@ -456,10 +512,19 @@ class ServerDB {
       saveFallbackDb();
       return db.threads.length < lengthBefore;
     }
-    const supabase = getSupabaseAdmin()!;
-    const { error } = await (supabase.from('ilm_threads') as any).delete().eq('id', id);
-    handleSupabaseError(error, 'deleteThread');
-    return true;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { error } = await (supabase.from('ilm_threads') as any).delete().eq('id', id);
+      handleSupabaseError(error, 'deleteThread');
+      return true;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: deleteThread failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      const lengthBefore = db.threads.length;
+      db.threads = db.threads.filter(t => t.id !== id);
+      saveFallbackDb();
+      return db.threads.length < lengthBefore;
+    }
   }
 
   public async updateThread(id: string, updates: Partial<ServerThread>): Promise<boolean> {
@@ -473,11 +538,23 @@ class ServerDB {
       }
       return false;
     }
-    const supabase = getSupabaseAdmin()!;
-    const payload = mapThreadToDBThread(updates);
-    const { error } = await (supabase.from('ilm_threads') as any).update(payload).eq('id', id);
-    handleSupabaseError(error, 'updateThread');
-    return true;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const payload = mapThreadToDBThread(updates);
+      const { error } = await (supabase.from('ilm_threads') as any).update(payload).eq('id', id);
+      handleSupabaseError(error, 'updateThread');
+      return true;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: updateThread failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      const idx = db.threads.findIndex(t => t.id === id);
+      if (idx > -1) {
+        db.threads[idx] = { ...db.threads[idx], ...updates };
+        saveFallbackDb();
+        return true;
+      }
+      return false;
+    }
   }
 
   // --- ISSUE CONTROLLERS ---
@@ -485,26 +562,36 @@ class ServerDB {
     if (!isSupabaseConfigured()) {
       return [...getFallbackDb().issues].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
-    const supabase = getSupabaseAdmin()!;
-    const { data, error } = await supabase.from('ilm_issues').select('*');
-    handleSupabaseError(error, 'getIssues');
-    return (data || [])
-      .map(mapDBIssueToIssue)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await supabase.from('ilm_issues').select('*');
+      handleSupabaseError(error, 'getIssues');
+      return (data || [])
+        .map(mapDBIssueToIssue)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: getIssues failed, reverting to Local Sandbox:", err.message);
+      return [...getFallbackDb().issues].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
   }
 
   public async findIssueById(id: string): Promise<ServerIssue | undefined> {
     if (!isSupabaseConfigured()) {
       return getFallbackDb().issues.find(i => i.id === id);
     }
-    const supabase = getSupabaseAdmin()!;
-    const { data, error } = await supabase
-      .from('ilm_issues')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-    handleSupabaseError(error, 'findIssueById');
-    return data ? mapDBIssueToIssue(data) : undefined;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await supabase
+        .from('ilm_issues')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      handleSupabaseError(error, 'findIssueById');
+      return data ? mapDBIssueToIssue(data) : undefined;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: findIssueById failed, reverting to Local Sandbox:", err.message);
+      return getFallbackDb().issues.find(i => i.id === id);
+    }
   }
 
   public async addIssue(issue: ServerIssue): Promise<void> {
@@ -514,10 +601,17 @@ class ServerDB {
       saveFallbackDb();
       return;
     }
-    const supabase = getSupabaseAdmin()!;
-    const payload = mapIssueToDBIssue(issue);
-    const { error } = await (supabase.from('ilm_issues') as any).insert(payload);
-    handleSupabaseError(error, 'addIssue');
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const payload = mapIssueToDBIssue(issue);
+      const { error } = await (supabase.from('ilm_issues') as any).insert(payload);
+      handleSupabaseError(error, 'addIssue');
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: addIssue failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      db.issues.push(issue);
+      saveFallbackDb();
+    }
   }
 
   public async deleteIssue(id: string): Promise<boolean> {
@@ -528,10 +622,19 @@ class ServerDB {
       saveFallbackDb();
       return db.issues.length < lengthBefore;
     }
-    const supabase = getSupabaseAdmin()!;
-    const { error } = await (supabase.from('ilm_issues') as any).delete().eq('id', id);
-    handleSupabaseError(error, 'deleteIssue');
-    return true;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { error } = await (supabase.from('ilm_issues') as any).delete().eq('id', id);
+      handleSupabaseError(error, 'deleteIssue');
+      return true;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: deleteIssue failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      const lengthBefore = db.issues.length;
+      db.issues = db.issues.filter(i => i.id !== id);
+      saveFallbackDb();
+      return db.issues.length < lengthBefore;
+    }
   }
 
   public async updateIssue(id: string, updates: Partial<ServerIssue>): Promise<boolean> {
@@ -545,11 +648,23 @@ class ServerDB {
       }
       return false;
     }
-    const supabase = getSupabaseAdmin()!;
-    const payload = mapIssueToDBIssue(updates);
-    const { error } = await (supabase.from('ilm_issues') as any).update(payload).eq('id', id);
-    handleSupabaseError(error, 'updateIssue');
-    return true;
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const payload = mapIssueToDBIssue(updates);
+      const { error } = await (supabase.from('ilm_issues') as any).update(payload).eq('id', id);
+      handleSupabaseError(error, 'updateIssue');
+      return true;
+    } catch (err: any) {
+      console.warn("[Database Fallback Engine]: updateIssue failed, reverting to Local Sandbox:", err.message);
+      const db = getFallbackDb();
+      const idx = db.issues.findIndex(i => i.id === id);
+      if (idx > -1) {
+        db.issues[idx] = { ...db.issues[idx], ...updates };
+        saveFallbackDb();
+        return true;
+      }
+      return false;
+    }
   }
 }
 

@@ -17,6 +17,7 @@ import https from "https";
 import { WebSocketServer, WebSocket } from "ws";
 import { analyzeTajweedText } from "./server/tajweedEngine.js";
 import { dbStore, ServerUser, ServerThread, ServerReply, ServerIssue } from "./server/db.js";
+import { getSupabaseAdmin } from "./server/supabase.js";
 
 dotenv.config();
 
@@ -305,15 +306,38 @@ async function authenticateJWT(req: AuthenticatedRequest, res: express.Response,
 // --- SECURE AUTHENTICATION ENDPOINTS (HttpOnly Cookie & Bearer driven) ---
 
 // 0. Get database status
-app.get("/api/auth/status", (req, res) => {
+app.get("/api/auth/status", async (req, res) => {
   const hasUrl = !!process.env.SUPABASE_URL;
   const hasKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  let operational = false;
+  let errorMsg = "";
+
+  if (hasUrl && hasKey) {
+    try {
+      const supabase = getSupabaseAdmin();
+      if (supabase) {
+        // Run a quick check on the primary user table
+        const { error } = await supabase.from('ilm_users').select('id').limit(1);
+        if (!error) {
+          operational = true;
+        } else {
+          errorMsg = error.message;
+        }
+      } else {
+        errorMsg = "Unable to instantiate Supabase client with given keys.";
+      }
+    } catch (e: any) {
+      errorMsg = e.message || "Unknown error occurred";
+    }
+  }
+
   res.json({
-    configured: hasUrl && hasKey,
-    mode: (hasUrl && hasKey) ? "Supabase Cloud Database" : "Sandbox Local Fallback",
+    configured: hasUrl && hasKey && operational,
+    mode: (hasUrl && hasKey && operational) ? "Supabase Cloud Database" : "Sandbox Local Fallback",
     details: {
       supabaseUrl: hasUrl ? "Configured" : "Missing",
-      supabaseServiceKey: hasKey ? "Configured" : "Missing"
+      supabaseServiceKey: hasKey ? "Configured" : "Missing",
+      tablesStatus: operational ? "Tables Exist & Operational" : (hasUrl && hasKey ? `Action Required: ${errorMsg}` : "Local Sandbox Storage Mode")
     }
   });
 });
