@@ -1184,7 +1184,7 @@ export default function App() {
       
       {/* FLOATING TOP NAVBAR */}
       <nav 
-        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-[9999] transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible" 
+        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-[80] transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible" 
         id="app-floating-navbar"
       >
         {/* Brand identity logo */}
@@ -1203,58 +1203,56 @@ export default function App() {
         </button>
 
         {/* Centered Desktop Navigation Links - hardened with overflow safety and compact sizing against large font zoom */}
-        <div className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 font-medium text-[10px] xl:text-[12px] whitespace-nowrap py-1 px-1.5 xl:px-3 border-l border-r border-slate-100/90 mx-1 xl:mx-2 overflow-x-auto scroller-hidden select-none flex-nowrap scroll-smooth" id="desktop-nav-links-center">
-          <button 
-            onClick={() => { setActiveTab('curriculum'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-              activeTab === 'curriculum' 
-                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-            }`}
-            id="nav-curriculum"
-          >
-            {labels.curriculum}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('coach'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-              activeTab === 'coach' 
-                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-            }`}
-            id="nav-coach"
-          >
-            {labels.coach}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('quran'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-              activeTab === 'quran' 
-                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-550/15' 
-                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-            }`}
-            id="nav-quran"
-          >
-            {labels.quran}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-              activeTab === 'daily' 
-                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-            }`}
-            id="nav-daily"
-          >
-            {labels.daily}
-          </button>
-        </div>
+        <div className="hidden lg:flex flex-1 items-center justify-center border-l border-r border-slate-100/90 mx-1 xl:mx-2">
+          <div className="flex items-center justify-center gap-1 xl:gap-1.5 font-medium text-[10px] xl:text-[12px] whitespace-nowrap py-1 px-1.5 xl:px-3 overflow-x-auto scroller-hidden select-none flex-nowrap scroll-smooth" id="desktop-nav-links-center">
+            <button 
+              onClick={() => { setActiveTab('curriculum'); setShowMoreNav(false); }}
+              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
+                activeTab === 'curriculum' 
+                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+              }`}
+              id="nav-curriculum"
+            >
+              {labels.curriculum}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('coach'); setShowMoreNav(false); }}
+              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
+                activeTab === 'coach' 
+                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+              }`}
+              id="nav-coach"
+            >
+              {labels.coach}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('quran'); setShowMoreNav(false); }}
+              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
+                activeTab === 'quran' 
+                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-550/15' 
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+              }`}
+              id="nav-quran"
+            >
+              {labels.quran}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
+              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
+                activeTab === 'daily' 
+                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+              }`}
+              id="nav-daily"
+            >
+              {labels.daily}
+            </button>
+          </div>
 
-        {/* Right Nav Box: Lang Toggle and Login profiles */}
-        <div className="flex items-center gap-3">
-          
-          {/* MORE DROPDOWN DESKTOP */}
-          <div className="relative hidden lg:flex items-center">
+          {/* MORE DROPDOWN DESKTOP - MOVED HERE */}
+          <div className="relative hidden lg:flex items-center ml-1 xl:ml-2">
             <button 
               onClick={(e) => { e.stopPropagation(); setShowMoreNav(!showMoreNav); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold text-slate-600 hover:text-amber-900 hover:bg-slate-50 relative border border-transparent"
@@ -1380,8 +1378,10 @@ export default function App() {
               )}
             </AnimatePresence>
           </div>
+        </div>
 
-          {/* Languange switcher toggle */}
+        {/* Right Nav Box: Lang Toggle and Login profiles */}
+        <div className="flex items-center gap-3">
           <div className="relative">
             <button
               onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
