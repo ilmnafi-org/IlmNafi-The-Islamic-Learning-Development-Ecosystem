@@ -11,12 +11,13 @@ interface DevotionalPlannerProps {
 
 export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: DevotionalPlannerProps) {
   const [setupMode, setSetupMode] = useState<boolean>(true);
+  const [setupStep, setSetupStep] = useState<number>(1);
   
   // Step 1: Planner Creation Flow State
-  const [quranGoal, setQuranGoal] = useState<string>('portions');
-  const [currentLevel, setCurrentLevel] = useState<string>('intermediate');
-  const [availableTime, setAvailableTime] = useState<string>('30m');
-  const [coreFocus, setCoreFocus] = useState<string>('quran');
+  const [quranGoal, setQuranGoal] = useState<string>('');
+  const [currentLevel, setCurrentLevel] = useState<string>('');
+  const [availableTime, setAvailableTime] = useState<string>('');
+  const [coreFocus, setCoreFocus] = useState<string>('');
   
   const [generating, setGenerating] = useState(false);
   const [aiPlan, setAiPlan] = useState<any>(null);
@@ -33,7 +34,7 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
     // Simulate generation for Devotional Plan Map based on Rule Engine
     setTimeout(() => {
       setAiPlan({
-        message: `Based on your ${availableTime} availability and focus on ${coreFocus}, here is your realistic daily map. I recommend breaking it into equal sessions post-Fajr and before sleep.`,
+        message: `Based on your ${availableTime || '30m'} availability and focus on ${coreFocus || 'quran'}, here is your realistic daily map. I recommend breaking it into equal sessions post-Fajr and before sleep.`,
         tasks: [
           { id: 'quran_task_1', title: 'Memorize 2 new lines', type: 'quran', time: '15m' },
           { id: 'quran_task_2', title: 'Review 1 page (Muraja\'ah)', type: 'revision', time: '15m' }
@@ -50,6 +51,20 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
       setWeeklyReview("You did great with Morning Adhkar (7/7), but missed your Muraja'ah twice. Try shifting Muraja'ah to the morning when your energy is higher.");
       setReviewing(false);
     }, 1500);
+  };
+
+  const nextStep = () => {
+    if (setupStep < 4) {
+      setSetupStep(setupStep + 1);
+    } else {
+      handleGeneratePlan();
+    }
+  };
+
+  const prevStep = () => {
+    if (setupStep > 1) {
+      setSetupStep(setupStep - 1);
+    }
   };
 
   if (ghostModeActive) {
@@ -110,66 +125,155 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
               <p className="text-[11px] text-slate-500">Provide your current benchmarks to configure a precise map.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Quran Goal</label>
-                <select 
-                  value={quranGoal} onChange={e => setQuranGoal(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 transition-colors"
-                >
-                  <option value="entire">Memorize entirely</option>
-                  <option value="portions">Memorize portions</option>
-                  <option value="reading">Daily Reading</option>
-                  <option value="murajaah">Only Muraja'ah</option>
-                </select>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4].map(step => (
+                  <div key={step} className={`h-1.5 rounded-full transition-all duration-300 ${setupStep >= step ? 'w-8 bg-emerald-600' : 'w-4 bg-slate-200'}`} />
+                ))}
               </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Current Level</label>
-                <select 
-                  value={currentLevel} onChange={e => setCurrentLevel(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 transition-colors"
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Available Time</label>
-                <select 
-                  value={availableTime} onChange={e => setAvailableTime(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 transition-colors"
-                >
-                  <option value="15m">15 Minutes</option>
-                  <option value="30m">30 Minutes</option>
-                  <option value="1h">1 Hour</option>
-                  <option value="2h">2+ Hours</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Core Focus (Current Month)</label>
-                <select 
-                  value={coreFocus} onChange={e => setCoreFocus(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 transition-colors"
-                >
-                  <option value="quran">Quran Memorization</option>
-                  <option value="studies">Exams/Studies</option>
-                  <option value="patience">Mental Health/Patience</option>
-                  <option value="tahajjud">Tahajjud & Night Prayers</option>
-                </select>
-              </div>
+              <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Step {setupStep} of 4</span>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <div className="py-4">
+              <AnimatePresence mode="wait">
+                {setupStep === 1 && (
+                  <motion.div
+                    key="step-1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                  >
+                    <label className="text-sm font-black text-slate-800 block text-center mb-6">What is your primary Quran goal right now?</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        { id: 'entire', title: 'Memorize Entirely', desc: 'Full Hifz journey' },
+                        { id: 'portions', title: 'Memorize Portions', desc: 'Selected Surahs only' },
+                        { id: 'reading', title: 'Daily Reading', desc: 'Consistent Khatam' },
+                        { id: 'murajaah', title: 'Only Muraja\'ah', desc: 'Retaining what I know' }
+                      ].map(opt => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setQuranGoal(opt.id)}
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${quranGoal === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
+                        >
+                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
+                          <p className="text-[10px] text-slate-500 mt-1">{opt.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {setupStep === 2 && (
+                  <motion.div
+                    key="step-2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                  >
+                    <label className="text-sm font-black text-slate-800 block text-center mb-6">What is your current proficiency level?</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {[
+                        { id: 'beginner', title: 'Beginner', desc: 'Starting fresh' },
+                        { id: 'intermediate', title: 'Intermediate', desc: 'Know rules, building habits' },
+                        { id: 'advanced', title: 'Advanced', desc: 'Solid foundation, deep refning' }
+                      ].map(opt => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setCurrentLevel(opt.id)}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${currentLevel === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
+                        >
+                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
+                          <p className="text-[10px] text-slate-500 mt-1">{opt.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {setupStep === 3 && (
+                  <motion.div
+                    key="step-3"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                  >
+                    <label className="text-sm font-black text-slate-800 block text-center mb-6">How much realistic time can you commit daily?</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { id: '15m', title: '15 Min' },
+                        { id: '30m', title: '30 Min' },
+                        { id: '1h', title: '1 Hour' },
+                        { id: '2h', title: '2+ Hours' }
+                      ].map(opt => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setAvailableTime(opt.id)}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${availableTime === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
+                        >
+                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {setupStep === 4 && (
+                  <motion.div
+                    key="step-4"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                  >
+                    <label className="text-sm font-black text-slate-800 block text-center mb-6">What is your core focus outside of Quran?</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        { id: 'quran', title: 'Quran Memorization Only', desc: 'Focus strictly on Hifz' },
+                        { id: 'studies', title: 'Exams/Studies', desc: 'Balancing school/university' },
+                        { id: 'patience', title: 'Mental Health/Patience', desc: 'Need spiritual grounding' },
+                        { id: 'tahajjud', title: 'Night Prayers', desc: 'Establishing Tahajjud' }
+                      ].map(opt => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setCoreFocus(opt.id)}
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${coreFocus === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
+                        >
+                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
+                          <p className="text-[10px] text-slate-500 mt-1">{opt.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
               <button
-                disabled={generating}
-                onClick={handleGeneratePlan}
-                className="bg-[#004d3d] hover:bg-[#00362b] text-white px-5 py-2.5 rounded-xl font-bold text-xs tracking-tight transition shadow-sm flex items-center gap-2"
+                onClick={prevStep}
+                disabled={setupStep === 1 || generating}
+                className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 disabled:opacity-50 transition cursor-pointer"
               >
-                {generating ? <span className="animate-pulse">Analyzing Routine...</span> : <>Generate Plan <Sparkles className="w-3.5 h-3.5"/></>}
+                Back
+              </button>
+              
+              <button
+                disabled={generating || 
+                  (setupStep === 1 && !quranGoal) || 
+                  (setupStep === 2 && !currentLevel) || 
+                  (setupStep === 3 && !availableTime) || 
+                  (setupStep === 4 && !coreFocus)
+                }
+                onClick={nextStep}
+                className="bg-[#004d3d] hover:bg-[#00362b] text-white px-6 py-2.5 rounded-xl font-bold text-xs tracking-tight transition shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {generating ? <span className="animate-pulse">Analyzing...</span> : (
+                  setupStep === 4 ? <>Generate Plan <Sparkles className="w-3.5 h-3.5"/></> : 'Continue'
+                )}
               </button>
             </div>
           </motion.div>
