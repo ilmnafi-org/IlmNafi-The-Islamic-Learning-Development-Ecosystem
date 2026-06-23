@@ -1184,7 +1184,7 @@ export default function App() {
       
       {/* FLOATING TOP NAVBAR */}
       <nav 
-        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible" 
+        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-[9999] transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible" 
         id="app-floating-navbar"
       >
         {/* Brand identity logo */}

@@ -7,10 +7,14 @@ import fs from "fs";
 config({ path: resolve(process.cwd(), ".env") });
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@ilm-naaafi.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 if (!RESEND_API_KEY) {
   console.error("❌ RESEND_API_KEY is not set in .env");
+  process.exit(1);
+}
+if (!ADMIN_EMAIL) {
+  console.error("❌ ADMIN_EMAIL is not set in .env");
   process.exit(1);
 }
 

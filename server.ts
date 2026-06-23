@@ -634,9 +634,10 @@ app.post("/api/auth/forgot-password", rateLimiter(5, 60 * 60 * 1000), async (req
     const resetUrl = `https://${req.headers.host || 'localhost:3000'}/?reset_token=${resetToken}`;
 
     const resend = getResend();
-    if (resend) {
-      const fromEmail = process.env.ADMIN_EMAIL || 'admin@ilm-naaafi.com';
-      await resend.emails.send({
+    const fromEmail = process.env.ADMIN_EMAIL;
+    
+    if (resend && fromEmail) {
+      const { data, error } = await resend.emails.send({
         from: `Ilm Naafi Academy <${fromEmail}>`, // MUST BE VERIFIED IN RESEND DASHBOARD
         to: user.email,
         subject: 'Reset your Ilm Naafi Academy Access PIN',
@@ -874,9 +875,13 @@ app.post("/api/auth/forgot-password", rateLimiter(5, 60 * 60 * 1000), async (req
         </html>
         `
       });
-      console.log(`[Email] Password reset sent to ${user.email}`);
+      if (error) {
+        console.error(`[Email Error] Failed to send password reset to ${user.email}:`, error);
+      } else {
+        console.log(`[Email] Password reset sent to ${user.email}, ID: ${data?.id}`);
+      }
     } else {
-      console.warn(`[Email] RESEND_API_KEY missing. Reset link for ${user.email} -> ${resetUrl}`);
+      console.warn(`[Email] RESEND_API_KEY or ADMIN_EMAIL missing. Reset link for ${user.email} -> ${resetUrl}`);
     }
 
     res.json({ success: true, message: "If your email is registered, a reset link has been dispatched." });
