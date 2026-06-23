@@ -205,65 +205,7 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-10" id="view-forum">
-      
-      {/* Premium Hub Header */}
-      <div className="text-center max-w-3xl mx-auto mb-10 space-y-3 font-sans">
-        <span className="bg-amber-100 text-amber-955 font-black text-[10px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm border border-amber-300/30">
-          {lang === 'en' ? "Student Forums" : "منتدى مجالس المذاكرة"}
-        </span>
-        <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-none animate-fadeIn">
-          {lang === 'en' ? "Class Forums" : "منتدى ومجالس المذاكرة"}
-        </h1>
-        <p className="text-xs md:text-sm text-slate-500 max-w-2xl mx-auto">
-          {lang === 'en' 
-            ? "A digital lounge where students discuss pronunciation rhythms, share curriculum notes, and collaborate on assignments in a supervised, respectful space."
-            : "ردهة حرة للمذاكرة لتبادل الآراء، شروح المتون، المناهج التجويدية والفقهية مع زملاء الغرس التخصصي."}
-        </p>
-      </div>
-
-      {/* Academy Platforms Hub Shortcuts */}
-      <div className="bg-[#FAF8F5] border border-slate-200 rounded-3xl p-6 mb-8 space-y-4 shadow-sm" id="forum-platforms-hub">
-        <div className="text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-          <h3 className="text-xs md:text-sm font-extrabold text-[#201002] flex items-center gap-1.5 uppercase tracking-wide" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-            <Sparkles className="w-4 h-4 text-purple-750" />
-            <span>{lang === 'en' ? "Academy Platforms & Systems Hub" : "بوابات ومنصات ديوان العلوم"}</span>
-          </h3>
-          <p className="text-[10px] text-slate-500 mt-0.5">
-            {lang === 'en' 
-              ? "Access other dedicated interactive micro-applications, developer references, and personal system preference suites."
-              : "الولوج السريع إلى المصادر التفاعلية، والأدوات، وتحليلات الأداء، وبلاغات الأعطال في ديوان الاستزادة المفتوح."}
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { id: 'community', titleEn: 'Open Community', titleAr: 'بوابة المطورين', descEn: 'Contribute resources', descAr: 'المساهمة المفتوحة', icon: Sparkles, color: 'text-purple-800 bg-purple-50 hover:bg-purple-100 border-purple-200/50' },
-            { id: 'api-docs', titleEn: 'Developer APIs', titleAr: 'مستندات الربط', descEn: 'API specifications', descAr: 'واجهات المبرمجين', icon: Terminal, color: 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200/50' },
-            { id: 'notifications', titleEn: 'System Alerts', titleAr: 'إشعارات النظام', descEn: 'Real-time actions', descAr: 'الإخطارات الفورية', icon: Bell, color: 'text-red-805 bg-red-50 hover:bg-red-100 border-red-200/50' },
-            { id: 'issue-tracker', titleEn: 'Issue Tracker', titleAr: 'بلاغات الأعطال', descEn: 'Report & audit bugs', descAr: 'التدقيق وبلاغات الدعم', icon: ShieldAlert, color: 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200/50' },
-            { id: 'settings', titleEn: 'User Settings', titleAr: 'خيارات الضبط', descEn: 'Profile preferences', descAr: 'التحكم العام بالملف', icon: Settings, color: 'text-slate-850 bg-slate-50 hover:bg-slate-100 border-slate-200/50' },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onNavigateToTab && onNavigateToTab(item.id)}
-                className={`flex flex-col text-left items-start p-3.5 rounded-2xl border transition-all cursor-pointer gap-2 ${item.color}`}
-                style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
-              >
-                <div className="p-1.5 rounded-xl bg-white/80 self-start">
-                  <Icon className="w-4 h-4 shrink-0" />
-                </div>
-                <div>
-                  <h4 className="text-[11px] font-extrabold leading-tight">{lang === 'en' ? item.titleEn : item.titleAr}</h4>
-                  <p className="text-[9px] opacity-75 mt-1 leading-tight">{lang === 'en' ? item.descEn : item.descAr}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+    <div className="w-full h-full pb-10" id="view-forum">
 
       {/* Tab Selector Bar */}
       <div className="flex border-b border-slate-200 overflow-x-auto scroller-hidden mb-8 gap-2 font-sans" style={{ justifyContent: lang === 'ar' ? 'flex-end' : 'flex-start' }}>
@@ -299,17 +241,6 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         {/* SECTION 1: Scholar Q&A Network */}
         {activeSubTab === 'qa' && (
           <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-scholar-qa">
-          <div className="mb-6 pb-4 border-b border-slate-100">
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
-              <BookOpen className="w-5 h-5 text-amber-800" />
-              <span>{lang === 'en' ? "Scholar Q&A Network" : "منبر السائل والمجيب الشرعي"}</span>
-            </h2>
-            <p className="text-xs text-slate-500 font-sans mt-1">
-              {lang === 'en' 
-                ? "Submit inquiries regarding theology, history, or classical sciences to live academic advisors." 
-                : "اطرح استفساراتك حول الفقه، العقيدة، وتاريخ العلوم واطلب الرصد من المجامع."}
-            </p>
-          </div>
           <ScholarNetworkQA lang={lang} currentUser={currentUser} onShowToast={showToastMsg} ensureAuth={ensureAuth} />
         </section>
         )}
@@ -317,17 +248,6 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         {/* SECTION 2: Sessions & Webinars */}
         {activeSubTab === 'webinars' && (
           <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-sessions-webinars">
-          <div className="mb-6 pb-4 border-b border-slate-100">
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
-              <Calendar className="w-5 h-5 text-emerald-800" />
-              <span>{lang === 'en' ? "Sessions & Webinars" : "الحلقات والندوات العلمية والسمينرات"}</span>
-            </h2>
-            <p className="text-xs text-slate-500 font-sans mt-1">
-              {lang === 'en' 
-                ? "Participate in streaming lectures, online panels, and certified scholar-led webinars." 
-                : "شارك في البث الحي للندوات، الماستر كلاس المتخصصة ومجالس السماع العلمية."}
-            </p>
-          </div>
           <ScholarWebinars lang={lang} currentUser={currentUser} onShowToast={showToastMsg} ensureAuth={ensureAuth} />
         </section>
         )}
@@ -335,17 +255,6 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         {/* SECTION 3: Scholar Communities */}
         {activeSubTab === 'communities' && (
           <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-scholar-communities">
-          <div className="mb-6 pb-4 border-b border-slate-100">
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
-              <Users className="w-5 h-5 text-indigo-805" />
-              <span>{lang === 'en' ? "Scholar Communities" : "مجتمعات طلاب المعرفة التخصصية"}</span>
-            </h2>
-            <p className="text-xs text-slate-500 font-sans mt-1">
-              {lang === 'en' 
-                ? "Access dedicated academic communities, field specific directories, and peer networks." 
-                : "مساحتنا المتخصصة بالمجالات العلمية والتفاعلية الدقيقة للطلاب والباحثين."}
-            </p>
-          </div>
           <ScholarCommunities lang={lang} currentUser={currentUser} onShowToast={showToastMsg} ensureAuth={ensureAuth} />
         </section>
         )}
@@ -353,32 +262,12 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
         {/* SECTION 4: Student Circle Lounge */}
         {activeSubTab === 'discuss' && (
           <section className="bg-white/95 p-6 md:p-8 rounded-3xl border border-slate-150/40 shadow-[0_10px_40px_rgba(0,0,0,0.04)] animate-fadeIn" id="section-student-lounge">
-          <div className="mb-6 pb-4 border-b border-slate-100">
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 font-sans">
-              <MessageSquare className="w-5 h-5 text-amber-850" />
-              <span>{lang === 'en' ? "Student Circle Lounge" : "ردهة ومجلس طلاب الاستزادة"}</span>
-            </h2>
-            <p className="text-xs text-slate-500 font-sans mt-1">
-              {lang === 'en' 
-                ? "Discuss with other students, collaborate on assignments, share materials, and revise." 
-                : "تبادل الآراء والمذاكرة مع زملاء العلم، صمم ونظم تجمعات المذاكرة الفعالة."}
-            </p>
-          </div>
           
           {/* Internal student lounge forum logic */}
           {activeThreadId === null ? (
             <div className="space-y-8">
               {/* Lobby header */}
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-slate-100 pb-5">
-                <div>
-                  <h2 className="text-lg font-extrabold text-[#201002] flex items-center gap-1.5">
-                    <MessageSquare className="w-5 h-5 text-amber-805" />
-                    <span>{lang === 'en' ? "Student Open Circle Lounge" : "منتدى الطلاب وتبادل المذاكرة"}</span>
-                  </h2>
-                  <p className="text-xs text-slate-500 font-sans mt-0.5">
-                    {lang === 'en' ? "Open discussion boards. Collaborate on exams, compare tajweed scores, and share Golden Age histories." : "مساحتكم الحرة كطلاب علم. تشاركوا التحضير للاختبارات، وقارنوا نقاط نطق التجويد للتنافس الشريف."}
-                  </p>
-                </div>
+              <div className="flex justify-end gap-6 border-b border-slate-100 pb-5">
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="px-5 py-3.5 rounded-xl bg-[#2a1b14] hover:bg-black text-white font-extrabold text-xs tracking-wide transition shadow flex items-center gap-2 cursor-pointer shrink-0"

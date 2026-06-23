@@ -1201,7 +1201,7 @@ export default function App() {
             <span className="text-[8px] sm:text-[9px] text-amber-800 font-semibold mt-0.5">{labels.desc}</span>
           </div>
         </button>
-        
+
         {/* Centered Desktop Navigation Links - hardened with overflow safety and compact sizing against large font zoom */}
         <div className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 font-medium text-[10px] xl:text-[12px] whitespace-nowrap py-1 px-1.5 xl:px-3 border-l border-r border-slate-100/90 mx-1 xl:mx-2 overflow-x-auto scroller-hidden select-none flex-nowrap scroll-smooth" id="desktop-nav-links-center">
           <button 
@@ -1248,158 +1248,7 @@ export default function App() {
           >
             {labels.daily}
           </button>
-          <button 
-            onClick={() => { setActiveTab('forum'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-              activeTab === 'forum' 
-                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-            }`}
-            id="nav-forum"
-          >
-            {lang === 'en' ? "Class Forums" : "منتدى المذاكرة"}
-          </button>
-
-          {/* More Academy Platforms Popover Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => setShowMoreNav(true)}
-            onMouseLeave={() => setShowMoreNav(false)}
-          >
-            <button
-              onClick={() => setShowMoreNav(!showMoreNav)}
-              className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold flex items-center gap-1 border ${
-                showMoreNav || ['scholarships', 'saved-scholarships', 'community', 'api-docs', 'notifications', 'settings'].includes(activeTab)
-                  ? 'text-amber-900 bg-amber-50/90 border-amber-200/60 font-extrabold shadow-sm'
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border-transparent'
-              }`}
-              id="nav-more-dropdown"
-            >
-              <span>{lang === 'en' ? "Platforms Hub" : "بوابات ومصادر"}</span>
-              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showMoreNav ? 'rotate-180 text-amber-700' : 'text-slate-400'}`} />
-            </button>
-
-            <AnimatePresence>
-              {showMoreNav && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className={`absolute ${lang === 'ar' ? 'left-auto right-0' : 'right-auto left-0'} mt-2 w-72 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl p-2.5 z-[100] gap-0.5 flex flex-col`}
-                  id="nav-more-dropdown-panel"
-                >
-                  <button 
-                    onClick={() => { setActiveTab('community'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'community' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-community"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-800 shrink-0">
-                      <Sparkles className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px]">{labels.openSource}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Contribute to resources" : "المساهمة البرمجية المفتوحة"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('api-docs'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'api-docs' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-api-docs"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-800 shrink-0">
-                      <Terminal className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px]">{labels.apiDocs}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Developer credentials" : "بوابات الربط البرمجي"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('notifications'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} relative ${
-                      activeTab === 'notifications' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-notifications"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-800 shrink-0">
-                      <Bell className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px] flex items-center gap-1.5">
-                        <span>{labels.notifications}</span>
-                        {progress.notifications && progress.notifications.filter(n => !n.isRead).length > 0 && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                        )}
-                      </span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "System alerts & cues" : "إشعارات المنصة الفورية"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('issue-tracker'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'issue-tracker' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-issue-tracker"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-amber-550/10 flex items-center justify-center text-amber-800 shrink-0">
-                      <ShieldAlert className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px]">{labels.issueTracker}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Verify & track issues" : "تقديم ومتابعة بلاغات الأعطال"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('settings'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'settings' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                    id="nav-settings"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center text-slate-800 shrink-0">
-                      <Settings className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[12px]">{labels.settings}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Preferences & configs" : "إعدادات الهوية والمنصة"}
-                      </span>
-                    </div>
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
-
-
 
         {/* Right Nav Box: Lang Toggle and Login profiles */}
         <div className="flex items-center gap-3">
@@ -1454,7 +1303,7 @@ export default function App() {
           {progress.username ? (
             <div className="relative">
               <button
-                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                onClick={(e) => { e.stopPropagation(); setShowProfileDropdown(!showProfileDropdown); }}
                 className="flex items-center gap-1.5 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl px-4 py-2 font-bold text-xs text-slate-800 transition shadow-sm outline-none"
                 id="btn-profile-dropdown"
               >
@@ -1594,12 +1443,6 @@ export default function App() {
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
-                  { id: 'forum', label: lang === 'en' ? "Class Forums" : "منتدى المذاكرة", icon: MessageSquare, color: 'text-amber-800 bg-amber-500/10' },
-                  { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
-                  { id: 'api-docs', label: labels.apiDocs, icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
-                  { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-amber-700 bg-amber-500/10' },
-                  { id: 'issue-tracker', label: labels.issueTracker, icon: ShieldAlert, color: 'text-red-700 bg-red-500/10' },
-                  { id: 'settings', label: labels.settings, icon: Settings, color: 'text-emerald-700 bg-emerald-500/10' },
                   ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Workspace Dashboard" : "لوحة المتعلم الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
                 ].map(item => {
                   const IconComponent = item.icon;
