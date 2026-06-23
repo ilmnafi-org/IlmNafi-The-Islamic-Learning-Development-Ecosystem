@@ -14,6 +14,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import http from "http";
 import https from "https";
+import { Resend } from "resend";
 import { WebSocketServer, WebSocket } from "ws";
 import { analyzeTajweedText } from "./server/tajweedEngine.js";
 import { dbStore, ServerUser, ServerThread, ServerReply, ServerIssue } from "./server/db.js";
@@ -601,6 +602,316 @@ app.post("/api/auth/sync-session", async (req, res) => {
     res.json({ success: true, user: updatedUser });
   } catch (err: any) {
     res.status(401).json({ error: "Session verification expired or failed: " + err.message });
+  }
+});
+
+
+// Provide a resend instance if key is available
+let resendClient: Resend | null = null;
+function getResend() {
+  if (!resendClient && process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
+
+// 7. Request Password Reset (Sends Email via Resend)
+app.post("/api/auth/forgot-password", rateLimiter(5, 60 * 60 * 1000), async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+
+  const normalizedEmail = email.trim().toLowerCase();
+  
+  try {
+    const user = await dbStore.findUserByEmail(normalizedEmail);
+    if (!user) {
+      // Return success anyway to prevent email enumeration attacks
+      return res.json({ success: true });
+    }
+
+    // Generate short-lived reset token (expires in 15 minutes)
+    const resetToken = jwt.sign({ id: user.id, email: user.email, purpose: 'reset-password' }, JWT_SECRET, { expiresIn: '15m' });
+    const resetUrl = `https://${req.headers.host || 'localhost:3000'}/?reset_token=${resetToken}`;
+
+    const resend = getResend();
+    if (resend) {
+      const fromEmail = process.env.ADMIN_EMAIL || 'admin@ilm-naaafi.com';
+      await resend.emails.send({
+        from: `Ilm Naafi Academy <${fromEmail}>`, // MUST BE VERIFIED IN RESEND DASHBOARD
+        to: user.email,
+        subject: 'Reset your Ilm Naafi Academy Access PIN',
+        html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * { margin: 0; padding: 0; }
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                    background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
+                    min-height: 100vh;
+                    padding: 20px;
+                }
+                .wrapper {
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+                .container {
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+                }
+                .header {
+                    background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
+                    color: white;
+                    padding: 50px 30px;
+                    text-align: center;
+                }
+                .header h1 {
+                    margin: 0;
+                    font-size: 32px;
+                    font-weight: 700;
+                    letter-spacing: -0.5px;
+                }
+                .header p {
+                    margin: 10px 0 0 0;
+                    font-size: 16px;
+                    opacity: 0.9;
+                    font-weight: 300;
+                }
+                .content {
+                    padding: 50px 40px;
+                    color: #333333;
+                }
+                .greeting {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #333333;
+                    margin-bottom: 20px;
+                }
+                .intro {
+                    font-size: 16px;
+                    line-height: 1.7;
+                    color: #555555;
+                    margin-bottom: 30px;
+                }
+                .cta-button {
+                    display: inline-block;
+                    padding: 16px 40px;
+                    background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 16px;
+                    margin: 30px 0;
+                    text-align: center;
+                    transition: transform 0.2s;
+                }
+                .cta-button:hover {
+                    transform: translateY(-2px);
+                }
+                .link-section {
+                    background-color: #f8f9fa;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin: 25px 0;
+                }
+                .link-label {
+                    font-size: 12px;
+                    color: #888888;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    margin-bottom: 10px;
+                    font-weight: 600;
+                }
+                .link-box {
+                    word-break: break-all;
+                    font-size: 12px;
+                    color: #666666;
+                    font-family: 'Monaco', 'Courier New', monospace;
+                    background-color: white;
+                    padding: 12px;
+                    border-radius: 4px;
+                    border: 1px solid #e0e0e0;
+                }
+                .warning-box {
+                    background-color: #fffbeb;
+                    border-left: 5px solid #f59e0b;
+                    padding: 20px;
+                    margin: 30px 0;
+                    border-radius: 6px;
+                }
+                .warning-box strong {
+                    color: #b45309;
+                    display: block;
+                    margin-bottom: 8px;
+                    font-size: 14px;
+                }
+                .warning-box p {
+                    color: #b45309;
+                    margin: 0;
+                    font-size: 14px;
+                    line-height: 1.6;
+                }
+                .info-section {
+                    background-color: #ecfdf5;
+                    border-left: 5px solid #10b981;
+                    padding: 20px;
+                    margin: 30px 0;
+                    border-radius: 6px;
+                }
+                .info-section h3 {
+                    color: #047857;
+                    font-size: 14px;
+                    margin: 0 0 10px 0;
+                    font-weight: 600;
+                }
+                .info-section ul {
+                    margin: 0;
+                    padding-left: 20px;
+                }
+                .info-section li {
+                    color: #065f46;
+                    margin-bottom: 8px;
+                    line-height: 1.6;
+                    font-size: 14px;
+                }
+                .footer {
+                    background-color: #f8f9fa;
+                    border-top: 1px solid #e0e0e0;
+                    padding: 40px;
+                    text-align: center;
+                    font-size: 13px;
+                    color: #888888;
+                }
+                .footer-links {
+                    margin-bottom: 15px;
+                }
+                .footer-links a {
+                    color: #047857;
+                    text-decoration: none;
+                    margin: 0 12px;
+                    font-weight: 500;
+                }
+                .footer-links a:hover {
+                    text-decoration: underline;
+                }
+                .copyright {
+                    font-size: 12px;
+                    margin-top: 15px;
+                    padding-top: 15px;
+                    border-top: 1px solid #e0e0e0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="wrapper">
+                <div class="container">
+                    <div class="header">
+                        <h1>🔑 Reset Your PIN</h1>
+                        <p>Secure Academy Access Recovery</p>
+                    </div>
+                    <div class="content">
+                        <div class="greeting">Assalamu Alaykum ${user.username},</div>
+                        
+                        <p class="intro">
+                            We received a request to reset your Ilm Naafi Academy access PIN. If you made this request, 
+                            click the button below to create a new secure PIN.
+                        </p>
+                        
+                        <center>
+                            <a href="${resetUrl}" class="cta-button">Reset My Access PIN</a>
+                        </center>
+                        
+                        <p style="color: #555555; text-align: center; margin: 20px 0;">
+                            Or copy and paste this link manually in your browser:
+                        </p>
+                        
+                        <div class="link-section">
+                            <div class="link-label">Secure Reset Link</div>
+                            <div class="link-box">${resetUrl}</div>
+                        </div>
+                        
+                        <div class="warning-box">
+                            <strong>⏱️ Time-Sensitive Link</strong>
+                            <p>
+                                This reset link expires in <strong>15 minutes</strong>. 
+                                If you don't reset your PIN within this time frame, you'll need to request a new link securely.
+                            </p>
+                        </div>
+                        
+                        <div class="info-section">
+                            <h3>🛡️ Didn't Request This?</h3>
+                            <ul>
+                                <li>If you didn't request a password reset, you can safely ignore this email.</li>
+                                <li>Your PIN remains strictly unchanged and secure.</li>
+                            </ul>
+                        </div>
+                        
+                        <p style="color: #555555; margin: 25px 0; line-height: 1.7;">
+                            <strong>Security Protocol:</strong> Academy administrators will never ask for your PIN via email. 
+                            Always reset your PIN directly on the portal.
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <div class="footer-links">
+                            <a href="#">Return to Sanctuary</a>
+                            <a href="#">Security Policy</a>
+                        </div>
+                        <div class="copyright">
+                            &copy; 2026 Ilm Naafi Academy. All rights reserved.<br>
+                            <span style="color: #aaaaaa;">Secured credentials from Ilm Naafi Identity Services.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        `
+      });
+      console.log(`[Email] Password reset sent to ${user.email}`);
+    } else {
+      console.warn(`[Email] RESEND_API_KEY missing. Reset link for ${user.email} -> ${resetUrl}`);
+    }
+
+    res.json({ success: true, message: "If your email is registered, a reset link has been dispatched." });
+  } catch (err: any) {
+    console.error("[Forgot Password Error]:", err);
+    res.status(500).json({ error: "Unable to process the request at this time." });
+  }
+});
+
+// 8. Confirm Password Reset 
+app.post("/api/auth/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) return res.status(400).json({ error: "Token and new password are required." });
+
+  if (newPassword.trim().length < 6) {
+    return res.status(400).json({ error: "Your access password PIN should be at least 6 characters." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; purpose: string };
+    if (decoded.purpose !== 'reset-password') {
+      return res.status(400).json({ error: "Invalid token type." });
+    }
+
+    const user = await dbStore.findUserById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ error: "Account no longer exists." });
+    }
+
+    const passwordHash = hashPassword(newPassword);
+    await dbStore.updateUserProfile(user.id, { passwordHash });
+
+    res.json({ success: true, message: "Your access PIN has been successfully reset. You may now log in." });
+  } catch (err: any) {
+    res.status(401).json({ error: "The reset link has expired or is invalid. Please request a new one." });
   }
 });
 
@@ -1461,6 +1772,200 @@ app.delete("/api/issues/:id", async (req, res) => {
     }
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to delete issue." });
+  }
+});
+
+// ==========================================
+// SCHOLAR COMPONENTS SYNC (Questions, Webinars, Announcements)
+// ==========================================
+
+// Helper functions for mapping camelCase (React) to snake_case (Supabase)
+function mapQuestionToDb(q: any) {
+  return {
+    id: q.id,
+    title_en: q.titleEn,
+    title_ar: q.titleAr,
+    body_en: q.bodyEn,
+    body_ar: q.bodyAr,
+    category: q.category,
+    student_name_en: q.studentNameEn,
+    student_name_ar: q.studentNameAr,
+    student_avatar: q.studentAvatar,
+    date: q.date,
+    likes_count: q.likesCount,
+    scholar_answers: q.scholarAnswers,
+    community_comments: q.communityComments
+  };
+}
+
+function mapDbToQuestion(row: any) {
+  return {
+    id: row.id,
+    titleEn: row.title_en,
+    titleAr: row.title_ar,
+    bodyEn: row.body_en,
+    bodyAr: row.body_ar,
+    category: row.category,
+    studentNameEn: row.student_name_en,
+    studentNameAr: row.student_name_ar,
+    studentAvatar: row.student_avatar,
+    date: row.date,
+    likesCount: row.likes_count,
+    scholarAnswers: row.scholar_answers,
+    communityComments: row.community_comments
+  };
+}
+
+function mapWebinarToDb(w: any) {
+  return {
+    id: w.id,
+    title_en: w.titleEn,
+    title_ar: w.titleAr,
+    topic_en: w.topicEn,
+    topic_ar: w.topicAr,
+    scholar_id: w.scholarId,
+    date_en: w.dateEn,
+    date_ar: w.dateAr,
+    time_en: w.timeEn,
+    time_ar: w.timeAr,
+    status: w.status,
+    description_en: w.descriptionEn,
+    description_ar: w.descriptionAr,
+    handouts: w.handouts,
+    is_registered: w.isRegistered
+  };
+}
+
+function mapDbToWebinar(row: any) {
+  return {
+    id: row.id,
+    titleEn: row.title_en,
+    titleAr: row.title_ar,
+    topicEn: row.topic_en,
+    topicAr: row.topic_ar,
+    scholarId: row.scholar_id,
+    dateEn: row.date_en,
+    dateAr: row.date_ar,
+    timeEn: row.time_en,
+    timeAr: row.time_ar,
+    status: row.status,
+    descriptionEn: row.description_en,
+    descriptionAr: row.description_ar,
+    handouts: row.handouts,
+    isRegistered: row.is_registered
+  };
+}
+
+function mapAnnouncementToDb(a: any) {
+  return {
+    id: a.id,
+    scholar_id: a.scholarId,
+    title_en: a.titleEn,
+    title_ar: a.titleAr,
+    body_en: a.bodyEn,
+    body_ar: a.bodyAr,
+    date: a.date,
+    likes: a.likes
+  };
+}
+
+function mapDbToAnnouncement(row: any) {
+  return {
+    id: row.id,
+    scholarId: row.scholar_id,
+    titleEn: row.title_en,
+    titleAr: row.title_ar,
+    bodyEn: row.body_en,
+    bodyAr: row.body_ar,
+    date: row.date,
+    likes: row.likes
+  };
+}
+
+app.get("/api/scholar/questions", express.json(), async (req, res) => {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.json([]);
+  try {
+    const { data } = await supabase.from('ilm_questions').select('*').order('created_at', { ascending: false });
+    res.json((data || []).map(mapDbToQuestion));
+  } catch (err: any) {
+    console.error("Error fetching scholar questions:", err);
+    res.json([]);
+  }
+});
+
+app.post("/api/scholar/questions/sync", express.json({ limit: '10mb' }), async (req, res) => {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.json({ success: false });
+  try {
+    const questions = Array.isArray(req.body) ? req.body : [];
+    if (questions.length === 0) return res.json({ success: true });
+    
+    const mapped = questions.map(mapQuestionToDb);
+    const { error } = await (supabase.from('ilm_questions') as any).upsert(mapped);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("Error syncing scholar questions:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/scholar/webinars", express.json(), async (req, res) => {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.json([]);
+  try {
+    const { data } = await supabase.from('ilm_webinars').select('*').order('created_at', { ascending: false });
+    res.json((data || []).map(mapDbToWebinar));
+  } catch (err: any) {
+    console.error("Error fetching scholar webinars:", err);
+    res.json([]);
+  }
+});
+
+app.post("/api/scholar/webinars/sync", express.json({ limit: '10mb' }), async (req, res) => {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.json({ success: false });
+  try {
+    const webinars = Array.isArray(req.body) ? req.body : [];
+    if (webinars.length === 0) return res.json({ success: true });
+    
+    const mapped = webinars.map(mapWebinarToDb);
+    const { error } = await (supabase.from('ilm_webinars') as any).upsert(mapped);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("Error syncing scholar webinars:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/scholar/announcements", express.json(), async (req, res) => {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.json([]);
+  try {
+    const { data } = await supabase.from('ilm_announcements').select('*').order('created_at', { ascending: false });
+    res.json((data || []).map(mapDbToAnnouncement));
+  } catch (err: any) {
+    console.error("Error fetching scholar announcements:", err);
+    res.json([]);
+  }
+});
+
+app.post("/api/scholar/announcements/sync", express.json({ limit: '10mb' }), async (req, res) => {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.json({ success: false });
+  try {
+    const announcements = Array.isArray(req.body) ? req.body : [];
+    if (announcements.length === 0) return res.json({ success: true });
+    
+    const mapped = announcements.map(mapAnnouncementToDb);
+    const { error } = await (supabase.from('ilm_announcements') as any).upsert(mapped);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("Error syncing scholar announcements:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 

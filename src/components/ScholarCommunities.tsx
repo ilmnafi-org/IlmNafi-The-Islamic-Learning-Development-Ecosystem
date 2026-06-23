@@ -9,7 +9,7 @@ import {
   ChevronRight, ArrowLeft, Bell, BookCheck, ClipboardList, Filter
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { VERIFIED_SCHOLARS, SEED_ANNOUNCEMENTS, SEED_WEBINARS, SEED_SCHOLAR_QUESTIONS, Scholar, ScholarAnnouncement } from '../data/scholarData';
+import { VERIFIED_SCHOLARS, Scholar, ScholarAnnouncement } from '../data/scholarData';
 
 interface ScholarCommunitiesProps {
   lang: 'en' | 'ar';
@@ -24,20 +24,41 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
   const [activeScholarId, setActiveScholarId] = useState<string | null>(null);
   const [nestedTab, setNestedTab] = useState<'announcements' | 'lectures' | 'faq' | 'books'>('announcements');
   const [announcements, setAnnouncements] = useState<ScholarAnnouncement[]>([]);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [webinars, setWebinars] = useState<any[]>([]);
   const [followedScholars, setFollowedScholars] = useState<string[]>([]);
 
   useEffect(() => {
-    // Load announcements
-    const savedAnn = localStorage.getItem('ilm_announcements');
-    if (savedAnn) {
-      try {
-        setAnnouncements(JSON.parse(savedAnn));
-      } catch (e) {
-        setAnnouncements(SEED_ANNOUNCEMENTS);
-      }
-    } else {
-      setAnnouncements(SEED_ANNOUNCEMENTS);
-    }
+    // Live Supabase Sync for Announcements
+    fetch('/api/scholar/announcements')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setAnnouncements(data);
+        } else {
+          setAnnouncements([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Live sync failed", err);
+        setAnnouncements([]);
+      });
+
+    // Live Supabase Sync for Questions
+    fetch('/api/scholar/questions')
+      .then(res => res.json())
+      .then(data => {
+        if (data) setQuestions(data);
+      })
+      .catch((err) => console.error("Questions live sync failed", err));
+
+    // Live Supabase Sync for Webinars
+    fetch('/api/scholar/webinars')
+      .then(res => res.json())
+      .then(data => {
+        if (data) setWebinars(data);
+      })
+      .catch((err) => console.error("Webinars live sync failed", err));
 
     // Load following status
     const savedFollowing = localStorage.getItem('ilm_followed_scholars');
@@ -74,7 +95,14 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
       return a;
     });
     setAnnouncements(updated);
-    localStorage.setItem('ilm_announcements', JSON.stringify(updated));
+    
+    // Sync to backend
+    fetch('/api/scholar/announcements/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
+    
     onShowToast(lang === 'en' ? "Supported announcement!" : "تم تسجيل إسناد ودعم هذا التحديث الإعلاني!");
   };
 
@@ -193,8 +221,8 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
 
             // Fetch filtered contents referencing this scholar
             const scholarAnnouncements = announcements.filter(a => a.scholarId === current.id);
-            const scholarWebinars = SEED_WEBINARS.filter(w => w.scholarId === current.id);
-            const scholarFaqs = SEED_SCHOLAR_QUESTIONS.filter(q => q.scholarAnswers.some(ans => ans.scholarId === current.id));
+            const scholarWebinars = webinars.filter(w => w.scholarId === current.id);
+            const scholarFaqs = questions.filter(q => q.scholarAnswers && q.scholarAnswers.some((ans: any) => ans.scholarId === current.id));
 
             return (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

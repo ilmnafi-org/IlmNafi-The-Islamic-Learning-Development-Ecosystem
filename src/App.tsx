@@ -1248,9 +1248,13 @@ export default function App() {
           >
             {labels.daily}
           </button>
+        </div>
+
+        {/* Right Nav Box: Lang Toggle and Login profiles */}
+        <div className="flex items-center gap-3">
           
           {/* MORE DROPDOWN DESKTOP */}
-          <div className="relative ml-1 hidden lg:flex items-center">
+          <div className="relative hidden lg:flex items-center">
             <button 
               onClick={(e) => { e.stopPropagation(); setShowMoreNav(!showMoreNav); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold text-slate-600 hover:text-amber-900 hover:bg-slate-50 relative border border-transparent"
@@ -1268,8 +1272,8 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className={`absolute top-full mt-2 w-64 premium-dropdown p-2.5 space-y-1 z-[999] max-h-[75vh] overflow-y-auto text-xs shadow-xl border border-slate-200/80 bg-white rounded-2xl ${
-                    lang === 'ar' ? '-left-2' : '-right-2'
+                  className={`absolute top-full mt-3 w-64 premium-dropdown p-2.5 space-y-1 z-[9999] max-h-[75vh] overflow-y-auto text-xs shadow-2xl border border-slate-200/80 bg-white rounded-2xl ${
+                    lang === 'ar' ? '-left-6' : '-right-6'
                   }`}
                   id="nav-more-dropdown"
                 >
@@ -1376,11 +1380,7 @@ export default function App() {
               )}
             </AnimatePresence>
           </div>
-        </div>
 
-        {/* Right Nav Box: Lang Toggle and Login profiles */}
-        <div className="flex items-center gap-3">
-          
           {/* Languange switcher toggle */}
           <div className="relative">
             <button

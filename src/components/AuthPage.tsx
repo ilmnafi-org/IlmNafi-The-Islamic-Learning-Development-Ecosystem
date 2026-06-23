@@ -33,18 +33,32 @@ interface AuthPageProps {
 
 export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetTokenActive, setResetTokenActive] = useState(false);
+  const [resetTokenStr, setResetTokenStr] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'student' | 'researcher' | 'teacher'>('student');
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<{ configured: boolean; mode: string }>({ configured: false, mode: 'Checking...' });
 
   useEffect(() => {
     dbService.getDatabaseStatus().then(status => {
       setDbStatus(status);
     });
+    
+    // Check for reset token in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('reset_token');
+    if (token) {
+      setResetTokenStr(token);
+      setResetTokenActive(true);
+      setIsForgotPassword(false);
+      setIsLogin(true);
+    }
   }, []);
 
   // Dedicated modal sequence states
@@ -58,11 +72,32 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
     e.preventDefault();
     setLoading(true);
     setAuthError(null);
+    setLocalMessage(null);
 
     // Give a small delay so they can appreciate the clean, reduced 3-dot loading indicator
     const minWait = new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
+      if (resetTokenActive) {
+        const msg = await dbService.resetPassword(resetTokenStr, password.trim());
+        await minWait;
+        setLocalMessage(msg);
+        setResetTokenActive(false);
+        setPassword('');
+        // clean url
+        window.history.replaceState({}, document.title, "/");
+        setLoading(false);
+        return;
+      }
+
+      if (isForgotPassword) {
+        const msg = await dbService.requestPasswordReset(email.trim());
+        await minWait;
+        setLocalMessage(msg);
+        setLoading(false);
+        return;
+      }
+
       if (isLogin) {
         const session = await dbService.login(email.trim(), password.trim());
         await minWait;
@@ -347,11 +382,23 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
               )}
             </AnimatePresence>
 
+            <AnimatePresence>
+              {localMessage && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-lg text-xs font-semibold mb-4 flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{localMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Auth Forms */}
             <form onSubmit={handleSubmit} className="space-y-4">
               
               <AnimatePresence initial={false} mode="popLayout">
-                {!isLogin && (
+                {(!isLogin && !isForgotPassword && !resetTokenActive) && (
                   <motion.div
                     key="name-field"
                     initial={{ opacity: 0, height: 0, scale: 0.96 }}
@@ -366,7 +413,7 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                     <div className="relative w-full">
                       <input 
                         type="text"
-                        required={!isLogin}
+                        required={!isLogin && !isForgotPassword && !resetTokenActive}
                         placeholder={lang === 'en' ? "e.g. Salim Al-Hassan" : "مثال: سالم بن عبد الله"}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -379,45 +426,55 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                 )}
               </AnimatePresence>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  {labels.emailLabel}
-                </label>
-                <div className="relative">
-                  <input 
-                    type="email"
-                    required
-                    placeholder="student@ilm-naafi.edu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-50/60 text-slate-800 border border-slate-200 focus:border-amber-500 rounded-xl p-3 text-xs outline-none focus:bg-white transition-all pl-10"
-                    id="auth-input-email"
-                  />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              {!resetTokenActive && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    {labels.emailLabel}
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="email"
+                      required
+                      placeholder="student@ilm-naafi.edu"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-slate-50/60 text-slate-800 border border-slate-200 focus:border-amber-500 rounded-xl p-3 text-xs outline-none focus:bg-white transition-all pl-10"
+                      id="auth-input-email"
+                    />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  {labels.passLabel}
-                </label>
-                <div className="relative">
-                  <input 
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-slate-50/60 text-slate-800 border border-slate-200 focus:border-amber-500 rounded-xl p-3 text-xs outline-none focus:bg-white transition-all pl-10"
-                    id="auth-input-password"
-                  />
-                  <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              {(!isForgotPassword || resetTokenActive) && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    {resetTokenActive ? "New Access PIN / Password" : labels.passLabel}
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-slate-50/60 text-slate-800 border border-slate-200 focus:border-amber-500 rounded-xl p-3 text-xs outline-none focus:bg-white transition-all pl-10"
+                      id="auth-input-password"
+                    />
+                    <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {isLogin && (
+              {isLogin && !isForgotPassword && !resetTokenActive && (
                 <div className="text-right">
-                  <a href="#" className="text-[11px] text-amber-800 hover:underline font-bold">{labels.forgotPin}</a>
+                  <button 
+                    type="button"
+                    onClick={() => { setIsForgotPassword(true); setLocalMessage(null); setAuthError(null); }}
+                    className="text-[11px] text-amber-800 hover:underline font-bold"
+                  >
+                    {labels.forgotPin}
+                  </button>
                 </div>
               )}
 
@@ -429,15 +486,32 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                   id="auth-btn-submit"
                 >
                   <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                  <span>{isLogin ? labels.btnSign : labels.btnReg}</span>
+                  <span>
+                    {resetTokenActive 
+                      ? "Set New PIN" 
+                      : isForgotPassword 
+                        ? "Request Recovery Email" 
+                        : isLogin ? labels.btnSign : labels.btnReg}
+                  </span>
                 </button>
                 
                 <button
                   type="button"
-                  onClick={onCancel}
-                  className="w-full border border-slate-200 hover:bg-slate-50 text-slate-600 text-center py-2.5 rounded-xl text-xs font-bold transition-colors"
+                  onClick={() => {
+                    if (isForgotPassword || resetTokenActive) {
+                      setIsForgotPassword(false);
+                      setResetTokenActive(false);
+                      setLocalMessage(null);
+                      setAuthError(null);
+                      // clear url
+                      window.history.replaceState({}, document.title, "/");
+                    } else {
+                      onCancel();
+                    }
+                  }}
+                  className="w-full border border-slate-200 hover:bg-slate-50 text-slate-600 text-center py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
-                  {labels.backHome}
+                  {(isForgotPassword || resetTokenActive) ? "Cancel & Return to Login" : labels.backHome}
                 </button>
               </div>
 

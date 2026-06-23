@@ -10,7 +10,7 @@ import {
   ExternalLink, User, Check, Library, Star, Filter, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { VERIFIED_SCHOLARS, SEED_SCHOLAR_QUESTIONS, ScholarQuestion, ScholarAnswer } from '../data/scholarData';
+import { VERIFIED_SCHOLARS, ScholarQuestion, ScholarAnswer } from '../data/scholarData';
 
 interface ScholarNetworkQAProps {
   lang: 'en' | 'ar';
@@ -57,21 +57,30 @@ export const ScholarNetworkQA: React.FC<ScholarNetworkQAProps> = ({
   const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('ilm_scholar_questions');
-    if (saved) {
-      try {
-        setQuestions(JSON.parse(saved));
-      } catch (e) {
-        setQuestions(SEED_SCHOLAR_QUESTIONS);
-      }
-    } else {
-      setQuestions(SEED_SCHOLAR_QUESTIONS);
-    }
+    // Live Supabase Sync for Questions
+    fetch('/api/scholar/questions')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setQuestions(data);
+        } else {
+          setQuestions([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Live sync failed", err);
+        setQuestions([]);
+      });
   }, []);
 
   const saveQuestions = (updated: ScholarQuestion[]) => {
     setQuestions(updated);
-    localStorage.setItem('ilm_scholar_questions', JSON.stringify(updated));
+    // Sync array to backend
+    fetch('/api/scholar/questions/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
   };
 
   const handleAskQuestion = () => {

@@ -9,7 +9,7 @@ import {
   ArrowLeft, Users, MessageSquare, Send, Bell, ChevronLeft, ChevronRight, Volume2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { VERIFIED_SCHOLARS, SEED_WEBINARS, Webinar } from '../data/scholarData';
+import { VERIFIED_SCHOLARS, Webinar } from '../data/scholarData';
 
 interface ScholarWebinarsProps {
   lang: 'en' | 'ar';
@@ -41,21 +41,30 @@ export const ScholarWebinars: React.FC<ScholarWebinarsProps> = ({
   const [myQuestion, setMyQuestion] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('ilm_webinars');
-    if (saved) {
-      try {
-        setWebinars(JSON.parse(saved));
-      } catch (e) {
-        setWebinars(SEED_WEBINARS);
-      }
-    } else {
-      setWebinars(SEED_WEBINARS);
-    }
+    // Live Supabase Sync for Webinars
+    fetch('/api/scholar/webinars')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setWebinars(data);
+        } else {
+          setWebinars([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Live sync failed", err);
+        setWebinars([]);
+      });
   }, []);
 
   const saveWebinars = (updated: Webinar[]) => {
     setWebinars(updated);
-    localStorage.setItem('ilm_webinars', JSON.stringify(updated));
+    // Sync array to backend
+    fetch('/api/scholar/webinars/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
   };
 
   const handleRegister = (id: string, e: React.MouseEvent) => {

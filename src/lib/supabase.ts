@@ -136,6 +136,36 @@ export const dbService = {
     await this.logout();
   },
 
+  async requestPasswordReset(email: string): Promise<string> {
+    const response = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim() })
+    });
+    
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to process request.");
+    }
+    const data = await response.json();
+    return data.message;
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<string> {
+    const response = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword: newPassword.trim() })
+    });
+    
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to reset password.");
+    }
+    const data = await response.json();
+    return data.message;
+  },
+
   async getCurrentSession(): Promise<UserSession | null> {
     // Check if the user session has been active for more than 24 hours to automatically logout
     const loginTime = localStorage.getItem('ilm_token_time');
