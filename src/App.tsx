@@ -1121,7 +1121,7 @@ export default function App() {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.02 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 bg-gradient-to-br from-[#06241c] to-[#0c1412] text-white flex flex-col items-center justify-center z-[9999] p-6 select-none"
+            className="fixed inset-0 bg-gradient-to-br from-[#06241c] to-[#0c1412] text-white flex flex-col items-center justify-center z-[99999] p-6 select-none"
             id="loading-presence-wrapper"
           >
             {/* Ambient glowing particles/halos */}
@@ -1252,10 +1252,14 @@ export default function App() {
           </div>
 
           {/* MORE DROPDOWN DESKTOP - MOVED HERE */}
-          <div className="relative hidden lg:flex items-center ml-1 xl:ml-2">
+          <div className="relative hidden lg:flex items-center ml-1 xl:ml-2 text-[10px] xl:text-[12px]">
             <button 
               onClick={(e) => { e.stopPropagation(); setShowMoreNav(!showMoreNav); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold text-slate-600 hover:text-amber-900 hover:bg-slate-50 relative border border-transparent"
+              className={`flex items-center gap-1 xl:gap-1.5 px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 relative ${
+                ['community', 'dashboard', 'settings', 'issue-tracker', 'privacy', 'terms', 'academic'].includes(activeTab)
+                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15'
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+              }`}
               id="nav-more-systems"
             >
               <span>{lang === 'en' ? "Hub" : "المنصات"}</span>
