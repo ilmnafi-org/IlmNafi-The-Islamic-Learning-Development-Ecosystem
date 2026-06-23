@@ -41,7 +41,7 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
   {
     id: "ev_00_kursi",
     category: "evening",
-    arabic: "اللَّهُمَّ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءِ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+    arabic: "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءِ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ",
     transliteration: "Allahu la ilaha illa Huwal-Hayyul-Qayyum, la ta'khudhuhu sinatun wa la nawm, lahu ma fis-samawati wa ma fil-ard. Man dhal-ladhi yashfa'u 'indahu illa bi-idhnihi, ya'lamu ma bayna aydeehim wa ma khalfahum, wa la yuheetuna bi-shay'im-min 'ilmihi illa bima sha'a. Wasi'a kursiyyuhus-samawati wal-arda, wa la ya'uduhu hifdhuhuma wa Huwal-'Aliyyul-'Adheem.",
     translationEn: "Allah! There is no deity except Him, the Ever-Living, the Sustainer of all existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth. Who is it that can intercede with Him except by His permission? He knows what is [presently] before them and what will be after them, and they encompass not a thing of His knowledge except for what He wills. His Kursi extends over the heavens and the earth, and their preservation tires Him not. And He is the Most High, the Most Great.",
     translationAr: "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ... آية الكرسي، أعظم آية في كتاب الله تبارك وتعالى، تقرأ مرة في المساء للحفظ من الشياطين والجن طوال ليلته.",
@@ -66,21 +66,6 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
     source: "Hisnul Muslim 92 / Ibn Majah 925",
     virtueEn: "Recited after Fajr prayer to align one's daily goals with seeking beneficial knowledge, clean sustenance, and accepted deeds.",
     virtueAr: "دعاء نبوي مبارك يقفل به بعد صلاة الفجر للاستعانة ببداية اليوم الأكاديمي والعملي والعبادي.",
-    grade: "Sahih"
-  },
-  {
-    id: "ev_18_baqarah",
-    category: "evening",
-    arabic: "آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ لَا نُفَرِّقُ بَيْنَ أَحَدٍ مِّن رُّسُلِهِ وَقَالُوا سَمِعْنَا وَأَطَعْنَا غُفْرَانَكَ رَبَّنَا وَإِليك مَصِيرُ ★ لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ رَبَّنَا لَا تُؤَاخِذْنَا إِن نَّسِينَا أَوْ أَخْطَأْنَا رَبَّنَا وَلا تَحْمِلْ عَلَيْنَا إِصْرًا كَمَا حَمَلْتَهُ عَلَى الَّذِينَ مِن قَبْلِنَا رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِ وَاعْفُ عَنَّا وَاغْفِرْ لَنَا وَارْحَمْنَا أَنتَ مَوْلَانَا فَانصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ",
-    transliteration: "Amanar-Rasulu bima unzila ilayhi mir-Rabbihi wal-mu'minun. Kullun amana billahi wa mala'ikatihi wa kutubihi wa rusulihi, la nufarriqu bayna ahadim-mir-rusulih. Wa qalu sami'na wa ata'na, ghufranaka Rabbana wa-ilaykal-maseer. La yukallifullahu nafsan illa wus'aha, laha ma kasabat wa 'alayha maktasabat. Rabbana la tu'akhidhna in-naseena aw akhta'na. Rabbana wa la tahmil 'alayna isran kama hamaltahu 'alal-ladheena min qablina. Rabbana wa la tuhammilna ma la taqata lana bih, wa'fu 'anna waghfir lana warhamna, Anta mawlana fansurna 'alal-qawmil-kafireen.",
-    translationEn: "The Messenger has believed in what was revealed to him from his Lord, and so have the believers... Our Lord, do not impose upon us that which we have no strength to bear. And pardon us; and forgive us; and have mercy upon us. You are our protector, so give us victory over the disbelieving people.",
-    translationAr: "آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ كُلٌّ آمَنَ بِاللَّهِ... خواتيم سورة البقرة، تقرأ في الليل كفاية وحفظًا.",
-    translationUr: "رسول اس پر ایمان لائے جو ان کے رب کی طرف سے ان پر اتارا گیا۔ آخر سورہ بقرہ کی یہ دو آیتیں رات کو پڑھنے سے کفایت کرتی ہیں۔",
-    translationHa: "Karanta karshen Suratul Baqarah domin samun kariya isasshiya da daddare.",
-    targetCount: 1,
-    source: "Bukhari 5009 / Muslim 808",
-    virtueEn: "Whoever recites the last two verses of Surah Al-Baqarah at night, they will be sufficient for him (against all harm, evil, and worries).",
-    virtueAr: "من قرأهما في ليلة كفتاه (أي كفتاه من شرور شياطين الإنس والجن، أو قامتا مقام قيام الليل).",
     grade: "Sahih"
   },
   // --- EXISTING DAILY LIFE ADHKAR ---
@@ -538,21 +523,6 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
   },
 
   // --- COMPREHENSIVE EVENING ADHKARS ---
-  {
-    id: "ev_01",
-    category: "evening",
-    arabic: "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ",
-    transliteration: "Amsayna wa-amsal-mulku lillah, wal-hamdu lillah, la ilaha illallahu wahdahu la sharika lah, lahul-mulku walahul-hamdu, wa-huwa 'ala kulli shay'in qadir. Rabbi as'aluka khayra ma fee hadhihil-laylati wa-khayra ma ba'daha, wa-a'udhu bika min sharri ma fee hadhihil-laylati...",
-    translationEn: "We enter the evening and the kingdom belongs to Allah. Lord, I ask You for the good of this night and seek refuge from its evil.",
-    translationAr: "أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له... رب أعوذ بك من الكسل وسوء الكبر.",
-    translationUr: "ہم نے شام کی اور اللہ کے سارے ملک نے شام کی، سب تعریف اللہ ہی کے لیے ہے، اللہ کے سوا کوئی معبود نہیں...",
-    translationHa: "Mun shiga yamma kuma mulki ya wayi gari na Allah ne, Ubangiji ina rokon Ka alherin wannan daren.",
-    targetCount: 1,
-    source: "Hisnul Muslim 75 / Muslim 2723",
-    virtueEn: "Secures your night from any physical, worldly, or spiritual harm.",
-    virtueAr: "الاستفتاح المسائي بتوحيد الخالق المالك لطلب خير الليلة والتحصين من الشر والكسل.",
-    grade: "Sahih"
-  },
   {
     id: "ev_02",
     category: "evening",

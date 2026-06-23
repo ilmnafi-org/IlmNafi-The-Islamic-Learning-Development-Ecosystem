@@ -67,6 +67,7 @@ import SettingsView from './components/SettingsView';
 import LegalDocsView from './components/LegalDocsView';
 import ApiDocsView from './components/ApiDocsView';
 import IssueTrackerView from './components/IssueTrackerView';
+import { ForumView } from './components/ForumView';
 import { dbService } from './lib/supabase';
 
 import { UserProgress } from './types';
@@ -320,6 +321,36 @@ export default function App() {
       (window as any).__nafiAudioUpdate = undefined;
       clearInterval(interval);
     };
+  }, [activeTab]);
+
+  // URL Path synchronization logic (PushState / Popstate)
+  useEffect(() => {
+    // Synchronize initial URL path on mount
+    const path = window.location.pathname.substring(1);
+    const validTabs: any[] = ['home', 'curriculum', 'coach', 'quran', 'daily', 'auth', 'community', 'dashboard', 'settings', 'notifications', 'privacy', 'terms', 'academic', 'issue-tracker', 'forum'];
+    if (path && validTabs.includes(path)) {
+      setActiveTab(path as any);
+    }
+
+    // Popstate backward/forward navigation handler
+    const handlePopState = () => {
+      const uPath = window.location.pathname.substring(1);
+      const targetTab = uPath || 'home';
+      if (validTabs.includes(targetTab)) {
+        setActiveTab(targetTab as any);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Update URL history path when state changes (without full reload)
+  useEffect(() => {
+    const currentPath = window.location.pathname.substring(1);
+    if (currentPath !== activeTab) {
+      const designPath = activeTab === 'home' ? '/' : `/${activeTab}`;
+      window.history.pushState(null, '', designPath);
+    }
   }, [activeTab]);
 
   const handleMiniNext = () => {
@@ -1153,7 +1184,7 @@ export default function App() {
       
       {/* FLOATING TOP NAVBAR */}
       <nav 
-        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row items-center justify-between gap-1" 
+        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-hidden" 
         id="app-floating-navbar"
       >
         {/* Brand identity logo */}
@@ -1166,16 +1197,16 @@ export default function App() {
             ع
           </span>
           <div className="flex flex-col items-start leading-none whitespace-nowrap">
-            <span className="text-xs sm:text-sm md:text-base font-extrabold">{labels.brand}</span>
+            <span className="text-xs sm:text-sm font-extrabold">{labels.brand}</span>
             <span className="text-[8px] sm:text-[9px] text-amber-800 font-semibold mt-0.5">{labels.desc}</span>
           </div>
         </button>
         
-        {/* Centered Desktop Navigation Links */}
-        <div className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-2 font-medium text-[10.5px] xl:text-[12.5px] whitespace-nowrap py-1 px-1.5 xl:px-4 border-l border-r border-slate-100/90 mx-1.5 xl:mx-4" id="desktop-nav-links-center">
+        {/* Centered Desktop Navigation Links - hardened with overflow safety and compact sizing against large font zoom */}
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-1 xl:gap-1.5 font-medium text-[10px] xl:text-[12px] whitespace-nowrap py-1 px-1.5 xl:px-3 border-l border-r border-slate-100/90 mx-1 xl:mx-2 overflow-x-auto scroller-hidden select-none flex-nowrap scroll-smooth" id="desktop-nav-links-center">
           <button 
             onClick={() => { setActiveTab('curriculum'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
               activeTab === 'curriculum' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1186,7 +1217,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setActiveTab('coach'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
               activeTab === 'coach' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1197,7 +1228,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setActiveTab('quran'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
               activeTab === 'quran' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-550/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1208,7 +1239,7 @@ export default function App() {
           </button>
           <button 
             onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
-            className={`px-2 xl:px-3 py-1.5 xl:py-2 rounded-xl transition-all cursor-pointer font-bold ${
+            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
               activeTab === 'daily' 
                 ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
                 : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
@@ -1216,6 +1247,17 @@ export default function App() {
             id="nav-daily"
           >
             {labels.daily}
+          </button>
+          <button 
+            onClick={() => { setActiveTab('forum'); setShowMoreNav(false); }}
+            className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
+              activeTab === 'forum' 
+                ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+            }`}
+            id="nav-forum"
+          >
+            {lang === 'en' ? "Class Forums" : "منتدى المذاكرة"}
           </button>
 
           {/* More Academy Platforms Popover Dropdown */}
@@ -1552,6 +1594,7 @@ export default function App() {
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
+                  { id: 'forum', label: lang === 'en' ? "Class Forums" : "منتدى المذاكرة", icon: MessageSquare, color: 'text-amber-800 bg-amber-500/10' },
                   { id: 'community', label: labels.openSource, icon: Sparkles, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'api-docs', label: labels.apiDocs, icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-amber-700 bg-amber-500/10' },
@@ -2232,6 +2275,28 @@ export default function App() {
             transition={{ duration: 0.25 }}
           >
             <IssueTrackerView lang={lang} />
+          </motion.div>
+        )}
+
+        {/* CLASS FORUMS SCREEN */}
+        {activeTab === 'forum' && (
+          <motion.div
+            key="forum"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+          >
+            <ForumView 
+              lang={lang}
+              currentUser={progress.username ? { username: progress.username, email: progress.email } : null}
+              onAuthSuccess={(username, email) => {
+                setProgress(prev => ({ ...prev, username, email }));
+              }}
+              onNavigateToTab={(tab) => {
+                setActiveTab(tab as any);
+              }}
+            />
           </motion.div>
         )}
 

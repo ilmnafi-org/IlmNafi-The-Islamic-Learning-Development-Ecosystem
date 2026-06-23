@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, ThumbsUp, Search, PlusCircle, ArrowLeft, Send, Sparkles, 
   AlertCircle, BookOpen, User, ChevronRight, Filter, Check, Share2, Trash2, 
-  Lock, AlertTriangle, GraduationCap, Calendar, Users
+  Lock, AlertTriangle, GraduationCap, Calendar, Users, Terminal, Bell, ShieldAlert, Settings, School
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthModal from './AuthModal';
@@ -20,6 +20,7 @@ interface ForumViewProps {
   lang: 'en' | 'ar';
   currentUser: { username: string; email: string; id?: string } | null;
   onAuthSuccess: (username: string, email: string) => void;
+  onNavigateToTab?: (tab: string) => void;
 }
 
 interface ForumThread {
@@ -44,7 +45,7 @@ interface ForumThread {
   isLikedByUser?: boolean;
 }
 
-export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthSuccess }) => {
+export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthSuccess, onNavigateToTab }) => {
   // Navigation active sub-tab (defaulting to discuss lounge)
   const [activeSubTab, setActiveSubTab] = useState<'qa' | 'webinars' | 'communities' | 'discuss'>('discuss');
 
@@ -208,7 +209,7 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
       
       {/* Premium Hub Header */}
       <div className="text-center max-w-3xl mx-auto mb-10 space-y-3 font-sans">
-        <span className="bg-amber-100 text-amber-950 font-black text-[10px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm border border-amber-300/30">
+        <span className="bg-amber-100 text-amber-955 font-black text-[10px] px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm border border-amber-300/30">
           {lang === 'en' ? "Student Forums" : "منتدى مجالس المذاكرة"}
         </span>
         <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-none animate-fadeIn">
@@ -219,6 +220,77 @@ export const ForumView: React.FC<ForumViewProps> = ({ lang, currentUser, onAuthS
             ? "A digital lounge where students discuss pronunciation rhythms, share curriculum notes, and collaborate on assignments in a supervised, respectful space."
             : "ردهة حرة للمذاكرة لتبادل الآراء، شروح المتون، المناهج التجويدية والفقهية مع زملاء الغرس التخصصي."}
         </p>
+      </div>
+
+      {/* Academy Platforms Hub Shortcuts */}
+      <div className="bg-[#FAF8F5] border border-slate-200 rounded-3xl p-6 mb-8 space-y-4 shadow-sm" id="forum-platforms-hub">
+        <div className="text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+          <h3 className="text-xs md:text-sm font-extrabold text-[#201002] flex items-center gap-1.5 uppercase tracking-wide" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+            <Sparkles className="w-4 h-4 text-purple-750" />
+            <span>{lang === 'en' ? "Academy Platforms & Systems Hub" : "بوابات ومنصات ديوان العلوم"}</span>
+          </h3>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            {lang === 'en' 
+              ? "Access other dedicated interactive micro-applications, developer references, and personal system preference suites."
+              : "الولوج السريع إلى المصادر التفاعلية، والأدوات، وتحليلات الأداء، وبلاغات الأعطال في ديوان الاستزادة المفتوح."}
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { id: 'community', titleEn: 'Open Community', titleAr: 'بوابة المطورين', descEn: 'Contribute resources', descAr: 'المساهمة المفتوحة', icon: Sparkles, color: 'text-purple-800 bg-purple-50 hover:bg-purple-100 border-purple-200/50' },
+            { id: 'api-docs', titleEn: 'Developer APIs', titleAr: 'مستندات الربط', descEn: 'API specifications', descAr: 'واجهات المبرمجين', icon: Terminal, color: 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200/50' },
+            { id: 'notifications', titleEn: 'System Alerts', titleAr: 'إشعارات النظام', descEn: 'Real-time actions', descAr: 'الإخطارات الفورية', icon: Bell, color: 'text-red-805 bg-red-50 hover:bg-red-100 border-red-200/50' },
+            { id: 'issue-tracker', titleEn: 'Issue Tracker', titleAr: 'بلاغات الأعطال', descEn: 'Report & audit bugs', descAr: 'التدقيق وبلاغات الدعم', icon: ShieldAlert, color: 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200/50' },
+            { id: 'settings', titleEn: 'User Settings', titleAr: 'خيارات الضبط', descEn: 'Profile preferences', descAr: 'التحكم العام بالملف', icon: Settings, color: 'text-slate-850 bg-slate-50 hover:bg-slate-100 border-slate-200/50' },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onNavigateToTab && onNavigateToTab(item.id)}
+                className={`flex flex-col text-left items-start p-3.5 rounded-2xl border transition-all cursor-pointer gap-2 ${item.color}`}
+                style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}
+              >
+                <div className="p-1.5 rounded-xl bg-white/80 self-start">
+                  <Icon className="w-4 h-4 shrink-0" />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-extrabold leading-tight">{lang === 'en' ? item.titleEn : item.titleAr}</h4>
+                  <p className="text-[9px] opacity-75 mt-1 leading-tight">{lang === 'en' ? item.descEn : item.descAr}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Tab Selector Bar */}
+      <div className="flex border-b border-slate-200 overflow-x-auto scroller-hidden mb-8 gap-2 font-sans" style={{ justifyContent: lang === 'ar' ? 'flex-end' : 'flex-start' }}>
+        {[
+          { id: 'discuss', labelEn: 'Student Open Lounge', labelAr: 'مذاكرة الطلاب', icon: MessageSquare },
+          { id: 'qa', labelEn: 'Scholar Q&A Net', labelAr: 'السؤال والجواب الشرعي', icon: BookOpen },
+          { id: 'webinars', labelEn: 'Scholarly Lectures', labelAr: 'ندوات ومحاضرات', icon: Calendar },
+          { id: 'communities', labelEn: 'Scholar Faculties', labelAr: 'مجالس العلماء والأكاديمية', icon: Users },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeSubTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveSubTab(tab.id as any)}
+              className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer outline-none ${
+                isActive
+                  ? 'border-amber-700 text-amber-900 font-extrabold bg-amber-500/5'
+                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50/50'
+              }`}
+              style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
+            >
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-amber-805' : 'text-slate-400'}`} />
+              <span>{lang === 'en' ? tab.labelEn : tab.labelAr}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Sub-tab viewports sequentially stacked */}

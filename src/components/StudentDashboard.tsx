@@ -77,6 +77,19 @@ export default function StudentDashboard({
 
   const [submittingJoin, setSubmittingJoin] = useState<string | null>(null);
 
+  // AI Devotional Plan states
+  const [aiTopic, setAiTopic] = useState<'studies' | 'focus' | 'tahajjud' | 'patience' | 'memorization' | 'custom'>('studies');
+  const [aiCustomInput, setAiCustomInput] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiPlanResult, setAiPlanResult] = useState<{
+    topic: string;
+    arabicText: string;
+    transliteration: string;
+    translation: string;
+    context: string;
+  } | null>(null);
+  const [showAiConfig, setShowAiConfig] = useState(true);
+
   const handleJoinLeaveForum = async (category: string, isCurrentlyJoined: boolean) => {
     if (!progress.email) {
       alert(lang === 'en' 
@@ -584,6 +597,146 @@ export default function StudentDashboard({
                 className="space-y-6"
               >
                 
+                {/* AI DEVOTIONAL ARCHITECT CARD */}
+                <div className="bg-gradient-to-br from-amber-900 to-emerald-950 rounded-3xl p-6 md:p-8 text-white space-y-4 shadow-xl border border-amber-500/30">
+                  <div className="flex items-start justify-between gap-4" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                    <div style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                      <span className="bg-amber-400/20 text-amber-300 font-black text-[9px] px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-400/30">
+                        {lang === 'en' ? "AI Propelled Planner" : "مخطط الأوراد الذكي بالذكاء الاصطناعي"}
+                      </span>
+                      <h3 className="text-lg md:text-xl font-black mt-2 text-amber-100 font-sans">
+                        {lang === 'en' ? "Let AI Set Your Devotional Worship & Supplication Plan" : "دع الذكاء الاصطناعي يوجه خطتك التعبدية الذاتية"}
+                      </h3>
+                      <p className="text-[11px] text-slate-300 font-light mt-1 animate-fadeIn">
+                        {lang === 'en'
+                          ? "Select a core intention focus and let our Gemini-guided architect generate a customized, comprehensive devotional plan + authentic supplicant prayer map."
+                          : "اختر مبحث نيتك وسيقوم خبير المنارة باستخلاص ورد يومي وتوجيه معنوي مخصص لظروفك الدراسية والروحية."}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-white/10 rounded-2xl shrink-0">
+                      <Sparkles className="w-6 h-6 text-amber-300 animate-pulse" />
+                    </div>
+                  </div>
+
+                  {showAiConfig ? (
+                    <div className="space-y-4 pt-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                          <label className="text-[10px] font-black tracking-wider text-amber-200 uppercase">{lang === 'en' ? "Intent Focus" : "تركيز نية الورد الحالية"}</label>
+                          <select
+                            value={aiTopic}
+                            onChange={(e) => setAiTopic(e.target.value as any)}
+                            className="w-full bg-slate-900/60 border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-bold transition-colors"
+                            style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
+                          >
+                            <option value="studies" className="text-slate-900 font-bold">{lang === 'en' ? "Academic & Quran Memorization Balance" : "موازنة التحصيل العلمي وحفظ القرآن"}</option>
+                            <option value="focus" className="text-slate-900 font-bold">{lang === 'en' ? "Deep Scholarly Focus & Concentration" : "التركيز والعمق الفكري واستحضار الذهن"}</option>
+                            <option value="tahajjud" className="text-slate-900 font-bold">{lang === 'en' ? "Establishing Tahajjud (Night Prayers) Habit" : "تثبيت قيام الليل والتهجد"}</option>
+                            <option value="patience" className="text-slate-900 font-bold">{lang === 'en' ? "Patience, Resilience & Consistency" : "الصبر، الثبات، والاستمرارية"}</option>
+                            <option value="custom" className="text-slate-900 font-bold">{lang === 'en' ? "Custom spiritual Intention Focus..." : "نية تعبدية مخصصة..."}</option>
+                          </select>
+                        </div>
+
+                        {aiTopic === 'custom' && (
+                          <div className="space-y-1.5 text-left animate-fadeIn" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                            <label className="text-[10px] font-black tracking-wider text-amber-200 uppercase">{lang === 'en' ? "Specify Intention" : "اكتب نيتك المخصصة بالتفصيل"}</label>
+                            <input
+                              type="text"
+                              value={aiCustomInput}
+                              onChange={(e) => setAiCustomInput(e.target.value)}
+                              placeholder={lang === 'en' ? "e.g., Guidance to learn standard Arabic..." : "مثال: الاستخارة لغرض السفر للتحصيل التخصصي..."}
+                              className="w-full bg-slate-900/60 border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 transition-colors"
+                              dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-end pt-1">
+                        <button
+                          disabled={aiLoading}
+                          onClick={async () => {
+                            setAiLoading(true);
+                            try {
+                              const topicText = aiTopic === 'custom' ? aiCustomInput : aiTopic;
+                              const res = await fetch('/api/dua-planner', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ topic: topicText || 'studies' })
+                              });
+                              if (res.ok) {
+                                const data = await res.json();
+                                setAiPlanResult(data);
+                                setShowAiConfig(false);
+                              }
+                            } catch (e) {
+                              console.error(e);
+                            } finally {
+                              setAiLoading(false);
+                            }
+                          }}
+                          className="bg-amber-400 hover:bg-amber-500 text-[#002b21] px-5 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          {aiLoading ? (
+                            <>
+                              <span className="w-3 h-3 border-2 border-[#002b21] border-t-transparent rounded-full animate-spin"></span>
+                              <span>{lang === 'en' ? "Architecting..." : "جاري صياغة الورد..."}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4" />
+                              <span>{lang === 'en' ? "Architect Personal Worship Plan" : "صياغة ورد النية المخصص"}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    aiPlanResult && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 space-y-4 animate-fadeIn"
+                        style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
+                      >
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                          <span className="text-[10px] font-black text-amber-300 tracking-wide font-mono uppercase">
+                            ✦ {aiPlanResult.topic}
+                          </span>
+                          <button
+                            onClick={() => setShowAiConfig(true)}
+                            className="bg-white/10 hover:bg-white/20 border border-white/15 text-[10px] px-3 py-1.5 rounded-lg font-bold cursor-pointer transition select-none"
+                          >
+                            {lang === 'en' ? "Plan Options" : "مخطط جديد"}
+                          </button>
+                        </div>
+
+                        <div className="space-y-2.5 text-center">
+                          <p className="text-xl md:text-2xl font-black text-amber-100 font-serif leading-relaxed px-2 select-all" dir="rtl">
+                            {aiPlanResult.arabicText}
+                          </p>
+                          <p className="text-[10px] text-slate-300 italic font-mono px-4 select-all leading-normal">
+                            "{aiPlanResult.transliteration}"
+                          </p>
+                          <p className="text-xs text-amber-100 px-4 font-sans select-all leading-relaxed pt-1 max-w-2xl mx-auto border-t border-white/5">
+                            {aiPlanResult.translation}
+                          </p>
+                        </div>
+
+                        <div className="bg-amber-500/10 border border-amber-300/15 rounded-xl p-3.5 mt-2 text-left" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                          <p className="text-[10.5px] text-amber-100 font-extrabold flex items-center gap-1 mb-1.5" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                            <BookOpen className="w-3.5 h-3.5 text-amber-405 shrink-0" />
+                            <span>{lang === 'en' ? "Spiritual Counsel & Routine Integration" : "التوجيه الروحي والورد التكميلي"}</span>
+                          </p>
+                          <p className="text-[10px] text-slate-200 font-light leading-relaxed select-all">
+                            {aiPlanResult.context}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )
+                  )}
+                </div>
+
                 {/* SPIRITUAL & ACADEMIC PLANNER DAILY HABITS */}
                 <div className="bg-white rounded-3xl border border-slate-200/85 p-6 md:p-8 space-y-6 shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
