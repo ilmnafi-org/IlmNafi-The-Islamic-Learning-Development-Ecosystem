@@ -1184,7 +1184,7 @@ export default function App() {
       
       {/* FLOATING TOP NAVBAR */}
       <nav 
-        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-hidden" 
+        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-50 transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible" 
         id="app-floating-navbar"
       >
         {/* Brand identity logo */}
@@ -1268,7 +1268,7 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className={`absolute top-full mt-2 w-64 premium-dropdown p-2.5 space-y-1 z-[60] text-xs shadow-xl border border-slate-200/80 bg-white rounded-2xl ${
+                  className={`absolute top-full mt-2 w-64 premium-dropdown p-2.5 space-y-1 z-[999] max-h-[75vh] overflow-y-auto text-xs shadow-xl border border-slate-200/80 bg-white rounded-2xl ${
                     lang === 'ar' ? '-left-2' : '-right-2'
                   }`}
                   id="nav-more-dropdown"
@@ -1442,7 +1442,7 @@ export default function App() {
               
               {showProfileDropdown && (
                 <div 
-                  className={`absolute mt-2 w-64 premium-dropdown p-4 space-y-4 z-50 text-xs animate-fadeIn ${
+                  className={`absolute mt-2 w-64 premium-dropdown p-4 space-y-4 z-[999] text-xs animate-fadeIn bg-white border border-slate-200/80 rounded-2xl shadow-xl max-h-[75vh] overflow-y-auto ${
                     lang === 'ar' ? 'left-0' : 'right-0'
                   }`} 
                   id="profile-dropdown-card"
