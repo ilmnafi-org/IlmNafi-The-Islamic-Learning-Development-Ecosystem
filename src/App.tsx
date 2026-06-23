@@ -1248,6 +1248,134 @@ export default function App() {
           >
             {labels.daily}
           </button>
+          
+          {/* MORE DROPDOWN DESKTOP */}
+          <div className="relative ml-1 hidden lg:flex items-center">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowMoreNav(!showMoreNav); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold text-slate-600 hover:text-amber-900 hover:bg-slate-50 relative border border-transparent"
+              id="nav-more-systems"
+            >
+              <span>{lang === 'en' ? "Hub" : "المنصات"}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showMoreNav ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Desktop More Nav Dropdown Panel */}
+            <AnimatePresence>
+              {showMoreNav && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className={`absolute top-full mt-2 w-64 premium-dropdown p-2.5 space-y-1 z-[60] text-xs shadow-xl border border-slate-200/80 bg-white rounded-2xl ${
+                    lang === 'ar' ? '-left-2' : '-right-2'
+                  }`}
+                  id="nav-more-dropdown"
+                >
+                  <button 
+                    onClick={() => { setActiveTab('community'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'community' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-800 shrink-0">
+                      <Users className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0 pointer-events-none">
+                      <span className="text-[12px]">{lang === 'en' ? "Open Source Connect" : "بوابة المطورين والمجتمع"}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Contribute resources" : "المساهمة المفتوحة"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('api-docs'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'api-docs' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-800 shrink-0 pointer-events-none">
+                      <Terminal className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0 pointer-events-none">
+                      <span className="text-[12px]">{lang === 'en' ? "Developer APIs" : "مستندات الربط"}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "API specifications" : "واجهات المبرمجين"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('notifications'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} relative ${
+                      activeTab === 'notifications' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-800 shrink-0 pointer-events-none">
+                      <Bell className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0 pointer-events-none">
+                      <span className="text-[12px] flex items-center gap-1.5">
+                        <span>{labels.notifications}</span>
+                        {progress.notifications && progress.notifications.filter(n => !n.isRead).length > 0 && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                        )}
+                      </span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "System alerts & cues" : "إشعارات المنصة الفورية"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('issue-tracker'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'issue-tracker' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-amber-550/10 flex items-center justify-center text-amber-800 shrink-0 pointer-events-none">
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0 pointer-events-none">
+                      <span className="text-[12px]">{labels.issueTracker}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "Report & audit bugs" : "تقديم ومتابعة بلاغات الأعطال"}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('settings'); setShowMoreNav(false); }}
+                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
+                      activeTab === 'settings' 
+                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
+                        : 'hover:bg-slate-50 text-slate-700 font-bold'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center text-slate-800 shrink-0 pointer-events-none">
+                      <Settings className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0 pointer-events-none">
+                      <span className="text-[12px]">{labels.settings}</span>
+                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
+                        {lang === 'en' ? "User Preferences" : "إعدادات الهوية والمنصة"}
+                      </span>
+                    </div>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Right Nav Box: Lang Toggle and Login profiles */}
@@ -1443,6 +1571,11 @@ export default function App() {
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
+                  { id: 'community', label: lang === 'en' ? 'Open Source Connect' : 'المساهمة المفتوحة', icon: Users, color: 'text-indigo-800 bg-indigo-500/10' },
+                  { id: 'api-docs', label: lang === 'en' ? 'Developer APIs' : 'واجهات المبرمجين', icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
+                  { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-red-800 bg-red-500/10' },
+                  { id: 'issue-tracker', label: labels.issueTracker, icon: ShieldAlert, color: 'text-amber-800 bg-amber-550/10' },
+                  { id: 'settings', label: labels.settings, icon: Settings, color: 'text-slate-800 bg-slate-500/10' },
                   ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Workspace Dashboard" : "لوحة المتعلم الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
                 ].map(item => {
                   const IconComponent = item.icon;
