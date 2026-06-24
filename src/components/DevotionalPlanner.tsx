@@ -36,6 +36,9 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
   // Ghost Mode
   const [ghostModeActive, setGhostModeActive] = useState(false);
   const [ghostTask, setGhostTask] = useState<string>('');
+  const [engineState, setEngineState] = useState<'intro' | 'listening' | 'correction' | 'report'>('intro');
+  const [engineMessage, setEngineMessage] = useState<string>('');
+  const [sessionStats, setSessionStats] = useState({ mistakes: 0, hesitations: 0 });
 
   const calculatePlan = () => {
     setGenerating(true);
@@ -107,22 +110,151 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
     }
   };
 
+  const handleTeacherCorrection = (msg: string, type: 'mistake' | 'hesitation') => {
+    setEngineState('correction');
+    setEngineMessage(msg);
+    if (type === 'mistake') setSessionStats(prev => ({ ...prev, mistakes: prev.mistakes + 1 }));
+    if (type === 'hesitation') setSessionStats(prev => ({ ...prev, hesitations: prev.hesitations + 1 }));
+    
+    // Speak the correction in Arabic
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Cancel any ongoing speech
+      const utterance = new SpeechSynthesisUtterance(msg);
+      utterance.lang = 'ar-SA'; // Arabic (Saudi Arabia)
+      utterance.rate = 0.85; // Slightly slower for clarity
+      utterance.pitch = 1;
+      
+      // Try to find a good Arabic voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const arabicVoice = voices.find(voice => voice.lang.startsWith('ar'));
+      if (arabicVoice) {
+        utterance.voice = arabicVoice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
+    
+    // Auto resume after 3 seconds
+    setTimeout(() => {
+      setEngineState('listening');
+    }, 3000);
+  };
+
+  const endSession = () => {
+    setGhostModeActive(false);
+    setEngineState('intro');
+    setSessionStats({ mistakes: 0, hesitations: 0 });
+  };
+
   if (ghostModeActive) {
     return (
-      <div className="fixed inset-0 bg-[#0a0a0a] z-[99999] flex flex-col items-center justify-center text-emerald-100 p-8">
-        <button 
-          onClick={() => setGhostModeActive(false)}
-          className="absolute top-8 left-8 text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-widest border border-slate-700 px-4 py-2 rounded-xl transition-colors cursor-pointer"
-        >
-          End Session
-        </button>
-        <div className="max-w-2xl text-center space-y-8 animate-fadeIn">
-          <BookOpen className="w-16 h-16 mx-auto text-emerald-500/50" />
-          <h2 className="text-3xl md:text-5xl font-black tracking-widest text-emerald-50">{ghostTask}</h2>
-          <p className="text-emerald-400/80 font-mono text-sm uppercase tracking-widest">Muraja'ah Engine Active • Deep Focus</p>
-          <div className="w-full max-w-sm mx-auto h-2 bg-slate-800 rounded-full mt-10 overflow-hidden">
-             <div className="h-full bg-emerald-500 w-[15%] animate-pulse"></div>
-          </div>
+      <div className="fixed inset-0 bg-[#061410] z-[99999] flex flex-col items-center justify-center text-emerald-100 p-8">
+        {engineState !== 'report' && (
+          <button 
+            onClick={endSession}
+            className="absolute top-8 left-8 text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-widest border border-slate-700 px-4 py-2 rounded-xl transition-colors cursor-pointer"
+          >
+            End Session
+          </button>
+        )}
+        
+        <div className="max-w-2xl w-full text-center space-y-8 animate-fadeIn">
+          {engineState === 'intro' && (
+            <div className="space-y-8">
+              <BookOpen className="w-16 h-16 mx-auto text-emerald-500/50" />
+              <h2 className="text-3xl md:text-5xl font-black tracking-widest text-emerald-50">{ghostTask}</h2>
+              <p className="text-emerald-400/80 font-mono text-sm uppercase tracking-widest">Muraja'ah Engine • Today's Assignment</p>
+              
+              <div className="pt-8">
+                <button 
+                  onClick={() => setEngineState('listening')}
+                  className="px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-lg shadow-[0_0_40px_rgba(5,150,105,0.3)] transition-all hover:scale-105 cursor-pointer"
+                >
+                  Start Reciting
+                </button>
+              </div>
+            </div>
+          )}
+
+          {engineState === 'listening' && (
+            <div className="space-y-12">
+              <div className="relative">
+                <div className="w-32 h-32 mx-auto border-4 border-emerald-500 rounded-full flex items-center justify-center relative">
+                  <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping"></div>
+                  <Activity className="w-12 h-12 text-emerald-400 animate-pulse" />
+                </div>
+                <p className="mt-8 text-emerald-400 font-mono text-lg uppercase tracking-widest animate-pulse">Virtual Teacher Listening...</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                <button 
+                  onClick={() => handleTeacherCorrection('أكمل', 'hesitation')}
+                  className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-xl font-bold text-sm transition-colors border border-amber-900/50"
+                >
+                  Simulate Hesitation
+                </button>
+                <button 
+                  onClick={() => handleTeacherCorrection('لا، أعد الآية', 'mistake')}
+                  className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-red-400 rounded-xl font-bold text-sm transition-colors border border-red-900/50"
+                >
+                  Simulate Mistake
+                </button>
+              </div>
+
+              <div className="pt-8">
+                <button 
+                  onClick={() => setEngineState('report')}
+                  className="px-8 py-3 bg-emerald-900/50 hover:bg-emerald-800 text-emerald-100 rounded-xl font-bold text-sm transition-colors border border-emerald-700"
+                >
+                  Finish Assignment
+                </button>
+              </div>
+            </div>
+          )}
+
+          {engineState === 'correction' && (
+            <div className="space-y-8 animate-fadeIn">
+              <div className="w-32 h-32 mx-auto bg-amber-500/10 rounded-full flex items-center justify-center border border-amber-500/30">
+                <span className="text-4xl">🗣️</span>
+              </div>
+              <h2 className="text-5xl md:text-7xl font-black text-amber-400 font-arabic">{engineMessage}</h2>
+              <p className="text-amber-200/80 font-mono text-sm uppercase tracking-widest">Virtual Teacher Correction</p>
+            </div>
+          )}
+
+          {engineState === 'report' && (
+            <div className="space-y-8 text-left bg-slate-900 border border-slate-800 p-8 md:p-12 rounded-3xl">
+              <div className="text-center mb-10">
+                <ShieldCheck className="w-16 h-16 mx-auto text-emerald-500 mb-4" />
+                <h2 className="text-3xl font-black text-white tracking-tight">Session Complete</h2>
+                <p className="text-emerald-400 font-mono text-sm mt-2">{ghostTask}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                  <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Mistakes</span>
+                  <p className="text-4xl font-black text-red-400 mt-2">{sessionStats.mistakes}</p>
+                </div>
+                <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                  <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Hesitations</span>
+                  <p className="text-4xl font-black text-amber-400 mt-2">{sessionStats.hesitations}</p>
+                </div>
+              </div>
+
+              <div className="bg-emerald-950/30 p-6 rounded-2xl border border-emerald-900/50 mt-6 text-center">
+                <p className="text-emerald-300 font-medium">Next week's schedule will automatically adapt to provide more exposure to areas with mistakes.</p>
+              </div>
+
+              <div className="pt-8 text-center">
+                <button 
+                  onClick={endSession}
+                  className="px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-lg shadow-[0_0_40px_rgba(5,150,105,0.3)] transition-all hover:scale-105 cursor-pointer"
+                >
+                  Continue to Planner
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
