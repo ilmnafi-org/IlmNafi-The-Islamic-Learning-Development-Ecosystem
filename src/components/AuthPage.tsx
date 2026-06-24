@@ -39,6 +39,7 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'student' | 'researcher' | 'teacher'>('student');
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -79,11 +80,17 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
 
     try {
       if (resetTokenActive) {
+        if (password.trim() !== confirmPassword.trim()) {
+          setAuthError("Passwords do not match.");
+          setLoading(false);
+          return;
+        }
         const msg = await dbService.resetPassword(resetTokenStr, password.trim());
         await minWait;
         setLocalMessage(msg);
         setResetTokenActive(false);
         setPassword('');
+        setConfirmPassword('');
         // clean url
         window.history.replaceState({}, document.title, "/");
         setLoading(false);
@@ -460,6 +467,26 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-slate-50/60 text-slate-800 border border-slate-200 focus:border-amber-500 rounded-xl p-3 text-xs outline-none focus:bg-white transition-all pl-10"
                       id="auth-input-password"
+                    />
+                    <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  </div>
+                </div>
+              )}
+
+              {resetTokenActive && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Confirm New Access PIN / Password
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full bg-slate-50/60 text-slate-800 border border-slate-200 focus:border-amber-500 rounded-xl p-3 text-xs outline-none focus:bg-white transition-all pl-10"
+                      id="auth-input-confirm-password"
                     />
                     <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   </div>

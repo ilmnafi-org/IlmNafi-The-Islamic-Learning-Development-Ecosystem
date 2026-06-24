@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Activity, Clock, FileWarning, PlayCircle, BarChart, CheckCircle2, Circle } from 'lucide-react';
+import { Activity, BookOpen, Clock, Settings2, PlayCircle, ShieldCheck } from 'lucide-react';
 import { UserProgress } from '../types';
 
 interface DevotionalPlannerProps {
@@ -13,51 +13,91 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
   const [setupMode, setSetupMode] = useState<boolean>(true);
   const [setupStep, setSetupStep] = useState<number>(1);
   
-  // Step 1: Planner Creation Flow State
-  const [quranGoal, setQuranGoal] = useState<string>('');
-  const [currentLevel, setCurrentLevel] = useState<string>('');
-  const [availableTime, setAvailableTime] = useState<string>('');
-  const [coreFocus, setCoreFocus] = useState<string>('');
+  // Step 1: Inventory
+  const [memorizedAmount, setMemorizedAmount] = useState<string>('');
+  const [customAmount, setCustomAmount] = useState<string>('');
+  const [memorizedPortions, setMemorizedPortions] = useState<string>('');
+  const [strength, setStrength] = useState<string>('');
   
+  // Step 2: Frequency
+  const [daysPerWeek, setDaysPerWeek] = useState<number>(5);
+  const [timePerDay, setTimePerDay] = useState<string>('');
+  
+  // Step 3: Target
+  const [completionGoal, setCompletionGoal] = useState<string>('');
+  
+  // Step 4: Time
+  const [preferredTime, setPreferredTime] = useState<string>('');
+  
+  // Final Plan
   const [generating, setGenerating] = useState(false);
-  const [aiPlan, setAiPlan] = useState<any>(null);
-
-  // Step 3 & 4: Ghost Murāja'ah Mode
-  const [ghostModeActive, setGhostModeActive] = useState(false);
+  const [generatedPlan, setGeneratedPlan] = useState<any>(null);
   
-  // View 8: Weekly Review
-  const [reviewing, setReviewing] = useState(false);
-  const [weeklyReview, setWeeklyReview] = useState<string>('');
+  // Ghost Mode
+  const [ghostModeActive, setGhostModeActive] = useState(false);
+  const [ghostTask, setGhostTask] = useState<string>('');
 
-  const handleGeneratePlan = async () => {
+  const calculatePlan = () => {
     setGenerating(true);
-    // Simulate generation for Devotional Plan Map based on Rule Engine
+    
     setTimeout(() => {
-      setAiPlan({
-        message: `Based on your ${availableTime || '30m'} availability and focus on ${coreFocus || 'quran'}, here is your realistic daily map. I recommend breaking it into equal sessions post-Fajr and before sleep.`,
-        tasks: [
-          { id: 'quran_task_1', title: 'Memorize 2 new lines', type: 'quran', time: '15m' },
-          { id: 'quran_task_2', title: 'Review 1 page (Muraja\'ah)', type: 'revision', time: '15m' }
-        ]
+      let totalJuz = 0;
+      if (memorizedAmount === 'Juz Amma' || memorizedAmount === '1 Juz') totalJuz = 1;
+      else if (memorizedAmount === '5 Juz') totalJuz = 5;
+      else if (memorizedAmount === '10 Juz') totalJuz = 10;
+      else if (memorizedAmount === 'Half Quran') totalJuz = 15;
+      else if (memorizedAmount === '20 Juz') totalJuz = 20;
+      else if (memorizedAmount === 'Full Quran') totalJuz = 30;
+      else if (memorizedAmount === 'Custom') totalJuz = parseFloat(customAmount) || 1;
+      
+      let weeksToComplete = 1;
+      if (completionGoal === 'Complete every 2 weeks') weeksToComplete = 2;
+      else if (completionGoal === 'Complete monthly') weeksToComplete = 4;
+      
+      const totalRevisionDays = daysPerWeek * weeksToComplete;
+      const juzPerDay = totalJuz / totalRevisionDays;
+      
+      const formatAmount = (amount: number) => {
+        if (amount < 0.1) return 'Less than 1/4 Juz';
+        if (amount <= 0.25) return '1/4 Juz (Rub\')';
+        if (amount <= 0.5) return '1/2 Juz (Nisf)';
+        if (amount <= 0.75) return '3/4 Juz';
+        if (amount === 1) return '1 Juz';
+        return `${amount.toFixed(1)} Juz`;
+      };
+
+      const dailyLoad = formatAmount(juzPerDay);
+      
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].slice(0, daysPerWeek);
+      
+      const schedule = days.map((day, i) => {
+        return {
+          day,
+          task: `Revise ${dailyLoad}`
+        };
       });
+
+      setGeneratedPlan({
+        totalJuz,
+        juzPerDay,
+        dailyLoad,
+        schedule,
+        timePerDay,
+        preferredTime,
+        portions: memorizedPortions || memorizedAmount,
+        strength
+      });
+      
       setGenerating(false);
       setSetupMode(false);
-    }, 1500);
-  };
-
-  const handleGenerateReview = () => {
-    setReviewing(true);
-    setTimeout(() => {
-      setWeeklyReview("You did great with Morning Adhkar (7/7), but missed your Muraja'ah twice. Try shifting Muraja'ah to the morning when your energy is higher.");
-      setReviewing(false);
-    }, 1500);
+    }, 800);
   };
 
   const nextStep = () => {
     if (setupStep < 4) {
       setSetupStep(setupStep + 1);
     } else {
-      handleGeneratePlan();
+      calculatePlan();
     }
   };
 
@@ -69,19 +109,19 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
 
   if (ghostModeActive) {
     return (
-      <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col items-center justify-center text-emerald-100 p-8">
+      <div className="fixed inset-0 bg-[#0a0a0a] z-[99999] flex flex-col items-center justify-center text-emerald-100 p-8">
         <button 
           onClick={() => setGhostModeActive(false)}
-          className="absolute top-8 left-8 text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-widest border border-slate-700 px-4 py-2 rounded-xl"
+          className="absolute top-8 left-8 text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-widest border border-slate-700 px-4 py-2 rounded-xl transition-colors cursor-pointer"
         >
-          Exit Ghost Mode
+          End Session
         </button>
         <div className="max-w-2xl text-center space-y-8 animate-fadeIn">
-          <BookOpenIcon />
-          <h2 className="text-3xl font-black tracking-widest">Surah Al-Mulk</h2>
-          <p className="text-emerald-400/80 font-mono text-sm uppercase tracking-widest">Deep Focus Active • No Distractions</p>
+          <BookOpen className="w-16 h-16 mx-auto text-emerald-500/50" />
+          <h2 className="text-3xl md:text-5xl font-black tracking-widest text-emerald-50">{ghostTask}</h2>
+          <p className="text-emerald-400/80 font-mono text-sm uppercase tracking-widest">Muraja'ah Engine Active • Deep Focus</p>
           <div className="w-full max-w-sm mx-auto h-2 bg-slate-800 rounded-full mt-10 overflow-hidden">
-             <div className="h-full bg-emerald-500 w-[10%] animate-pulse"></div>
+             <div className="h-full bg-emerald-500 w-[15%] animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -90,23 +130,21 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
 
   return (
     <div className="space-y-6">
-      
-      {/* Header Info */}
       <div className="bg-gradient-to-br from-slate-900 to-[#002f24] rounded-3xl p-6 md:p-8 text-white space-y-4 shadow-xl border border-emerald-900/50">
         <div className="flex items-start justify-between gap-4">
           <div>
             <span className="bg-emerald-500/20 text-emerald-300 font-extrabold text-[9px] px-2.5 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30">
-              Personal Productivity System
+              Personal Hifz Supervisor
             </span>
             <h3 className="text-xl md:text-2xl font-black mt-3 text-emerald-50 font-sans tracking-tight">
-              Islamic Devotional Planner
+              Devotional Planner
             </h3>
             <p className="text-xs text-slate-300 font-medium mt-1.5 max-w-xl leading-relaxed">
-              Consistently achieve your Quran, Murāja'ah, Adhkar, Salah, and Knowledge goals through dynamic tracking and personalized AI scheduling.
+              A deterministic Muraja'ah engine that calculates precise daily revision targets based on your exact memorization inventory.
             </p>
           </div>
           <div className="p-3 bg-white/10 rounded-2xl shrink-0">
-            <Activity className="w-6 h-6 text-emerald-400" />
+            <Settings2 className="w-6 h-6 text-emerald-400" />
           </div>
         </div>
       </div>
@@ -120,11 +158,6 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
             exit={{ opacity: 0, y: -10 }}
             className="bg-white rounded-3xl border border-slate-200/90 p-6 md:p-8 space-y-6 shadow-sm"
           >
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-slate-900">Create Devotional Plan</h4>
-              <p className="text-[11px] text-slate-500">Provide your current benchmarks to configure a precise map.</p>
-            </div>
-
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex gap-1.5">
                 {[1, 2, 3, 4].map(step => (
@@ -134,266 +167,209 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
               <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Step {setupStep} of 4</span>
             </div>
 
-            <div className="py-4">
+            <div className="py-2">
               <AnimatePresence mode="wait">
                 {setupStep === 1 && (
-                  <motion.div
-                    key="step-1"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
-                  >
-                    <label className="text-sm font-black text-slate-800 block text-center mb-6">What is your primary Quran goal right now?</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {[
-                        { id: 'entire', title: 'Memorize Entirely', desc: 'Full Hifz journey' },
-                        { id: 'portions', title: 'Memorize Portions', desc: 'Selected Surahs only' },
-                        { id: 'reading', title: 'Daily Reading', desc: 'Consistent Khatam' },
-                        { id: 'murajaah', title: 'Only Muraja\'ah', desc: 'Retaining what I know' }
-                      ].map(opt => (
-                        <button
-                          key={opt.id}
-                          onClick={() => setQuranGoal(opt.id)}
-                          className={`p-4 rounded-xl border-2 text-left transition-all ${quranGoal === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
-                        >
-                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
-                          <p className="text-[10px] text-slate-500 mt-1">{opt.desc}</p>
-                        </button>
-                      ))}
+                  <motion.div key="step-1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div>
+                      <label className="text-sm font-black text-slate-800 block mb-3">How much Quran have you memorized?</label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {['Juz Amma', '1 Juz', '5 Juz', '10 Juz', 'Half Quran', '20 Juz', 'Full Quran', 'Custom'].map(opt => (
+                          <button
+                            key={opt}
+                            onClick={() => setMemorizedAmount(opt)}
+                            className={`p-3 rounded-xl border-2 text-center text-xs font-bold transition-all ${memorizedAmount === opt ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-100 bg-white text-slate-600 hover:border-emerald-200'}`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                      {memorizedAmount === 'Custom' && (
+                        <div className="mt-3">
+                          <input type="number" placeholder="Enter number of Juz" value={customAmount} onChange={e => setCustomAmount(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-500" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-black text-slate-800 block mb-3">What specific portions? <span className="text-slate-400 font-normal text-xs">(Optional)</span></label>
+                      <input type="text" placeholder="e.g. Surah Al-Baqarah 1-141, Juz 29" value={memorizedPortions} onChange={e => setMemorizedPortions(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-500" />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-black text-slate-800 block mb-3">How strong is your memorization?</label>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                        {['Very Strong', 'Strong', 'Average', 'Weak', 'Needs Rebuilding'].map(opt => (
+                          <button
+                            key={opt}
+                            onClick={() => setStrength(opt)}
+                            className={`p-3 rounded-xl border-2 text-center text-xs font-bold transition-all ${strength === opt ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-slate-100 bg-white text-slate-600 hover:border-amber-200'}`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </motion.div>
                 )}
 
                 {setupStep === 2 && (
-                  <motion.div
-                    key="step-2"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
-                  >
-                    <label className="text-sm font-black text-slate-800 block text-center mb-6">What is your current proficiency level?</label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {[
-                        { id: 'beginner', title: 'Beginner', desc: 'Starting fresh' },
-                        { id: 'intermediate', title: 'Intermediate', desc: 'Know rules, building habits' },
-                        { id: 'advanced', title: 'Advanced', desc: 'Solid foundation, deep refning' }
-                      ].map(opt => (
-                        <button
-                          key={opt.id}
-                          onClick={() => setCurrentLevel(opt.id)}
-                          className={`p-4 rounded-xl border-2 text-center transition-all ${currentLevel === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
-                        >
-                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
-                          <p className="text-[10px] text-slate-500 mt-1">{opt.desc}</p>
-                        </button>
-                      ))}
+                  <motion.div key="step-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div>
+                      <label className="text-sm font-black text-slate-800 block mb-3">How many days per week do you revise?</label>
+                      <div className="grid grid-cols-7 gap-2">
+                        {[1, 2, 3, 4, 5, 6, 7].map(num => (
+                          <button
+                            key={num}
+                            onClick={() => setDaysPerWeek(num)}
+                            className={`p-3 rounded-xl border-2 text-center text-sm font-bold transition-all ${daysPerWeek === num ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-100 bg-white text-slate-600 hover:border-emerald-200'}`}
+                          >
+                            {num}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-black text-slate-800 block mb-3">How much time per day?</label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {['30 Minutes', '1 Hour', '2 Hours', '3 Hours'].map(opt => (
+                          <button
+                            key={opt}
+                            onClick={() => setTimePerDay(opt)}
+                            className={`p-3 rounded-xl border-2 text-center text-xs font-bold transition-all ${timePerDay === opt ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-slate-100 bg-white text-slate-600 hover:border-amber-200'}`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </motion.div>
                 )}
 
                 {setupStep === 3 && (
-                  <motion.div
-                    key="step-3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
-                  >
-                    <label className="text-sm font-black text-slate-800 block text-center mb-6">How much realistic time can you commit daily?</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        { id: '15m', title: '15 Min' },
-                        { id: '30m', title: '30 Min' },
-                        { id: '1h', title: '1 Hour' },
-                        { id: '2h', title: '2+ Hours' }
-                      ].map(opt => (
-                        <button
-                          key={opt.id}
-                          onClick={() => setAvailableTime(opt.id)}
-                          className={`p-4 rounded-xl border-2 text-center transition-all ${availableTime === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
-                        >
-                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
-                        </button>
-                      ))}
+                  <motion.div key="step-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div>
+                      <label className="text-sm font-black text-slate-800 block mb-3">What is your revision target?</label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {[
+                          { id: 'Complete all memorized portions weekly', label: 'Finish Weekly' },
+                          { id: 'Complete every 2 weeks', label: 'Finish Every 2 Weeks' },
+                          { id: 'Complete monthly', label: 'Finish Monthly' }
+                        ].map(opt => (
+                          <button
+                            key={opt.id}
+                            onClick={() => setCompletionGoal(opt.id)}
+                            className={`p-4 rounded-xl border-2 text-left transition-all ${completionGoal === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
+                          >
+                            <h5 className="font-bold text-slate-800 text-sm">{opt.label}</h5>
+                            <p className="text-[10px] text-slate-500 mt-1">{opt.id}</p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </motion.div>
                 )}
 
                 {setupStep === 4 && (
-                  <motion.div
-                    key="step-4"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
-                  >
-                    <label className="text-sm font-black text-slate-800 block text-center mb-6">What is your core focus outside of Quran?</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {[
-                        { id: 'quran', title: 'Quran Memorization Only', desc: 'Focus strictly on Hifz' },
-                        { id: 'studies', title: 'Exams/Studies', desc: 'Balancing school/university' },
-                        { id: 'patience', title: 'Mental Health/Patience', desc: 'Need spiritual grounding' },
-                        { id: 'tahajjud', title: 'Night Prayers', desc: 'Establishing Tahajjud' }
-                      ].map(opt => (
-                        <button
-                          key={opt.id}
-                          onClick={() => setCoreFocus(opt.id)}
-                          className={`p-4 rounded-xl border-2 text-left transition-all ${coreFocus === opt.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-emerald-200'}`}
-                        >
-                          <h5 className="font-bold text-slate-800 text-sm">{opt.title}</h5>
-                          <p className="text-[10px] text-slate-500 mt-1">{opt.desc}</p>
-                        </button>
-                      ))}
+                  <motion.div key="step-4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div>
+                      <label className="text-sm font-black text-slate-800 block mb-3">When do you revise?</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {['After Fajr', 'Morning', 'After Dhuhr', 'After Asr', 'After Maghrib', 'After Isha'].map(opt => (
+                          <button
+                            key={opt}
+                            onClick={() => setPreferredTime(opt)}
+                            className={`p-3 rounded-xl border-2 text-center text-xs font-bold transition-all ${preferredTime === opt ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-100 bg-white text-slate-600 hover:border-emerald-200'}`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-              <button
-                onClick={prevStep}
-                disabled={setupStep === 1 || generating}
-                className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 disabled:opacity-50 transition cursor-pointer"
-              >
-                Back
-              </button>
+            <div className="flex justify-between pt-4 border-t border-slate-100">
+              {setupStep > 1 ? (
+                <button onClick={prevStep} className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors cursor-pointer">
+                  Back
+                </button>
+              ) : <div></div>}
               
-              <button
-                disabled={generating || 
-                  (setupStep === 1 && !quranGoal) || 
-                  (setupStep === 2 && !currentLevel) || 
-                  (setupStep === 3 && !availableTime) || 
-                  (setupStep === 4 && !coreFocus)
-                }
+              <button 
                 onClick={nextStep}
-                className="bg-[#004d3d] hover:bg-[#00362b] text-white px-6 py-2.5 rounded-xl font-bold text-xs tracking-tight transition shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                disabled={generating || (setupStep === 1 && (!memorizedAmount || !strength)) || (setupStep === 2 && !timePerDay) || (setupStep === 3 && !completionGoal) || (setupStep === 4 && !preferredTime)}
+                className="px-6 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-sm"
               >
-                {generating ? <span className="animate-pulse">Analyzing...</span> : (
-                  setupStep === 4 ? <>Generate Plan <Sparkles className="w-3.5 h-3.5"/></> : 'Continue'
-                )}
+                {generating ? 'Calculating...' : setupStep === 4 ? 'Build The Plan' : 'Continue'}
               </button>
             </div>
           </motion.div>
-        ) : (
+        ) : generatedPlan && (
           <motion.div
-            key="dashboard-mode"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            key="generated-plan"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
             className="space-y-6"
           >
-            {/* AI Generated Strategy Concept */}
-            {aiPlan && (
-              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 md:p-6 text-emerald-950 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-full -translate-y-10 translate-x-10 pointer-events-none" />
-                <h4 className="text-xs font-black uppercase tracking-widest text-emerald-800 mb-2">Architected Strategy</h4>
-                <p className="text-[12px] font-medium leading-relaxed max-w-2xl relative z-10">{aiPlan.message}</p>
-                <button onClick={() => setSetupMode(true)} className="text-[9px] font-bold text-emerald-700 mt-4 underline underline-offset-2">Reconfigure Parameters</button>
+            {/* Today's Mission Panel */}
+            <div className="bg-white border border-emerald-100 rounded-3xl p-6 md:p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-lg">Today's Muraja'ah</h4>
+                  <p className="text-xs text-slate-500 mt-1 font-medium flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5" />
+                    Scheduled for {generatedPlan.preferredTime} • Estimated: {generatedPlan.timePerDay}
+                  </p>
+                </div>
+                <div className="p-3 bg-emerald-50 rounded-2xl">
+                  <BookOpen className="w-6 h-6 text-emerald-600" />
+                </div>
               </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Daily Timeline */}
-              <div className="lg:col-span-2 space-y-4">
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 md:p-6 shadow-sm">
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4">Daily Timeline</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-4 p-3 rounded-xl border border-slate-100 bg-slate-50">
-                       <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                       <div className="flex-1">
-                         <h5 className="text-xs font-bold text-slate-800">Morning Adhkar</h5>
-                         <p className="text-[10px] text-slate-500">Post-Fajr • 10m</p>
-                       </div>
-                    </div>
-                    {aiPlan?.tasks.map((task: any) => (
-                      <div key={task.id} className="flex items-center gap-4 p-3 rounded-xl border border-slate-200 bg-white shadow-sm">
-                         <Circle className="w-5 h-5 text-slate-300" />
-                         <div className="flex-1">
-                           <h5 className="text-xs font-bold text-slate-800">{task.title}</h5>
-                           <p className="text-[10px] text-slate-500">{task.time}</p>
-                         </div>
-                         {task.type === 'revision' && (
-                           <button 
-                             onClick={() => setGhostModeActive(true)}
-                             className="text-[9px] font-black bg-slate-900 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5"
-                           >
-                             <PlayCircle className="w-3.5 h-3.5" />
-                             Ghost Murāja'ah
-                           </button>
-                         )}
-                      </div>
-                    ))}
-                    <div className="flex items-center gap-4 p-3 rounded-xl border border-slate-100 bg-slate-50">
-                       <Circle className="w-5 h-5 text-slate-300" />
-                       <div className="flex-1">
-                         <h5 className="text-xs font-bold text-slate-800">Evening Adhkar</h5>
-                         <p className="text-[10px] text-slate-500">After Asr/Maghrib • 10m</p>
-                       </div>
-                    </div>
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Target Load</span>
+                  <p className="text-2xl font-black text-slate-800 mt-1">{generatedPlan.dailyLoad}</p>
+                  <p className="text-xs text-slate-500 mt-1">From: {generatedPlan.portions}</p>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    setGhostTask(generatedPlan.dailyLoad);
+                    setGhostModeActive(true);
+                  }}
+                  className="w-full md:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md transition-transform hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <PlayCircle className="w-5 h-5" />
+                  Start Session
+                </button>
+              </div>
+            </div>
+
+            {/* Weekly Schedule Overview */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm">
+              <h4 className="font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                Weekly Protocol
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {generatedPlan.schedule.map((day: any, i: number) => (
+                  <div key={i} className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col justify-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{day.day}</span>
+                    <span className="text-sm font-bold text-slate-800">{day.task}</span>
                   </div>
-                </div>
-
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 md:p-6 shadow-sm">
-                   <div className="flex items-center justify-between mb-4">
-                     <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">Muhasabah Engine</h4>
-                     <button 
-                       onClick={handleGenerateReview}
-                       disabled={reviewing}
-                       className="text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-lg"
-                     >
-                       {reviewing ? 'Analyzing...' : 'Generate Weekly Review'}
-                     </button>
-                   </div>
-                   {weeklyReview ? (
-                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                       <p className="text-xs font-medium text-slate-700 leading-relaxed">{weeklyReview}</p>
-                     </div>
-                   ) : (
-                     <p className="text-[10px] text-slate-400 italic text-center py-6">Run analysis at the end of the week to adapt your schedule.</p>
-                   )}
-                </div>
+                ))}
               </div>
-
-              {/* Rings & Heatmap */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 md:p-6 shadow-sm text-center">
-                   <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-6">Wird Completion Rings</h4>
-                   <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
-                     {/* Outer Ring */}
-                     <svg className="w-full h-full transform -rotate-90">
-                       <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" />
-                       <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-emerald-500" strokeDasharray="351.85" strokeDashoffset="100" />
-                     </svg>
-                     {/* Inner Ring */}
-                     <svg className="w-24 h-24 absolute transform -rotate-90">
-                       <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-slate-100" />
-                       <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-amber-500" strokeDasharray="251.2" strokeDashoffset="150" />
-                     </svg>
-                     <div className="absolute text-center flex flex-col items-center">
-                       <Activity className="w-5 h-5 text-slate-400 mb-0.5" />
-                       <span className="text-[10px] font-black">74%</span>
-                     </div>
-                   </div>
-                   <div className="mt-5 space-y-2 text-[10px] font-bold text-slate-600 flex flex-col items-center">
-                     <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Standard Adhkar</span>
-                     <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Custom Wird Tracker</span>
-                   </div>
-                </div>
-
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 md:p-6 shadow-sm">
-                   <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4">Consistency Matrix</h4>
-                   <div className="grid grid-cols-7 gap-1">
-                     {Array.from({ length: 28 }).map((_, i) => (
-                       <div key={i} className={`aspect-square rounded-sm ${Math.random() > 0.4 ? 'bg-emerald-500/80' : 'bg-slate-100'}`} />
-                     ))}
-                   </div>
-                   <p className="text-[9px] text-slate-400 text-center mt-3 font-mono">Last 28 Days Activity</p>
-                </div>
-              </div>
-
+            </div>
+            
+            <div className="flex justify-center">
+               <button onClick={() => setSetupMode(true)} className="text-xs font-bold text-slate-400 hover:text-slate-600 underline">
+                 Reconfigure Plan
+               </button>
             </div>
           </motion.div>
         )}
@@ -401,8 +377,3 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
     </div>
   );
 }
-
-function BookOpenIcon() {
-  return <BookOpen className="w-12 h-12 text-emerald-500 mx-auto animate-pulse" />;
-}
-import { BookOpen } from 'lucide-react';
