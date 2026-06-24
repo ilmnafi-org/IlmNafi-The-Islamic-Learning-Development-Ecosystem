@@ -648,165 +648,135 @@ app.post("/api/auth/forgot-password", rateLimiter(5, 60 * 60 * 1000), async (req
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                * { margin: 0; padding: 0; }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
                 body {
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                    background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
-                    min-height: 100vh;
-                    padding: 20px;
+                    background-color: #f3f4f6;
+                    padding: 40px 20px;
+                    line-height: 1.6;
                 }
                 .wrapper {
-                    max-width: 600px;
+                    max-width: 580px;
                     margin: 0 auto;
                 }
                 .container {
                     background-color: #ffffff;
-                    border-radius: 12px;
+                    border-radius: 16px;
                     overflow: hidden;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                    border: 1px solid #e5e7eb;
                 }
                 .header {
-                    background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
+                    background-color: #064e3b;
+                    background-image: linear-gradient(135deg, #022c22 0%, #064e3b 100%);
                     color: white;
-                    padding: 50px 30px;
+                    padding: 40px 30px;
                     text-align: center;
+                    border-bottom: 4px solid #d97706;
                 }
                 .header h1 {
                     margin: 0;
-                    font-size: 32px;
-                    font-weight: 700;
-                    letter-spacing: -0.5px;
+                    font-size: 28px;
+                    font-weight: 800;
+                    letter-spacing: -0.025em;
+                    color: #ffffff;
                 }
                 .header p {
-                    margin: 10px 0 0 0;
-                    font-size: 16px;
-                    opacity: 0.9;
-                    font-weight: 300;
+                    margin: 12px 0 0 0;
+                    font-size: 15px;
+                    color: #d1fae5;
+                    font-weight: 400;
                 }
                 .content {
-                    padding: 50px 40px;
-                    color: #333333;
+                    padding: 40px 30px;
+                    color: #374151;
                 }
                 .greeting {
-                    font-size: 18px;
-                    font-weight: 600;
-                    color: #333333;
-                    margin-bottom: 20px;
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #111827;
+                    margin-bottom: 24px;
                 }
                 .intro {
                     font-size: 16px;
-                    line-height: 1.7;
-                    color: #555555;
-                    margin-bottom: 30px;
+                    color: #4b5563;
+                    margin-bottom: 32px;
+                }
+                .cta-wrapper {
+                    text-align: center;
+                    margin: 40px 0;
                 }
                 .cta-button {
                     display: inline-block;
-                    padding: 16px 40px;
-                    background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
-                    color: white;
+                    padding: 16px 36px;
+                    background-color: #d97706;
+                    color: #ffffff !important;
                     text-decoration: none;
-                    border-radius: 8px;
-                    font-weight: 700;
+                    border-radius: 12px;
+                    font-weight: 600;
                     font-size: 16px;
-                    margin: 30px 0;
-                    text-align: center;
-                    transition: transform 0.2s;
+                    box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.2);
+                    transition: all 0.2s ease;
                 }
                 .cta-button:hover {
-                    transform: translateY(-2px);
+                    background-color: #b45309;
+                }
+                .divider {
+                    height: 1px;
+                    background-color: #e5e7eb;
+                    margin: 32px 0;
                 }
                 .link-section {
-                    background-color: #f8f9fa;
-                    border: 1px solid #e0e0e0;
-                    border-radius: 8px;
-                    padding: 20px;
-                    margin: 25px 0;
+                    margin-top: 32px;
                 }
                 .link-label {
-                    font-size: 12px;
-                    color: #888888;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    margin-bottom: 10px;
+                    font-size: 13px;
+                    color: #6b7280;
                     font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    margin-bottom: 12px;
                 }
                 .link-box {
                     word-break: break-all;
-                    font-size: 12px;
-                    color: #666666;
-                    font-family: 'Monaco', 'Courier New', monospace;
-                    background-color: white;
-                    padding: 12px;
-                    border-radius: 4px;
-                    border: 1px solid #e0e0e0;
+                    font-size: 13px;
+                    color: #4b5563;
+                    background-color: #f9fafb;
+                    padding: 16px;
+                    border-radius: 8px;
+                    border: 1px dashed #d1d5db;
+                    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
                 }
-                .warning-box {
-                    background-color: #fffbeb;
-                    border-left: 5px solid #f59e0b;
-                    padding: 20px;
-                    margin: 30px 0;
-                    border-radius: 6px;
+                .notice-box {
+                    background-color: #fef3c7;
+                    border-radius: 8px;
+                    padding: 16px;
+                    margin-top: 32px;
+                    border-left: 4px solid #f59e0b;
                 }
-                .warning-box strong {
-                    color: #b45309;
-                    display: block;
-                    margin-bottom: 8px;
-                    font-size: 14px;
-                }
-                .warning-box p {
-                    color: #b45309;
+                .notice-box p {
                     margin: 0;
                     font-size: 14px;
-                    line-height: 1.6;
+                    color: #92400e;
                 }
-                .info-section {
-                    background-color: #ecfdf5;
-                    border-left: 5px solid #10b981;
-                    padding: 20px;
-                    margin: 30px 0;
-                    border-radius: 6px;
-                }
-                .info-section h3 {
-                    color: #047857;
-                    font-size: 14px;
-                    margin: 0 0 10px 0;
-                    font-weight: 600;
-                }
-                .info-section ul {
-                    margin: 0;
-                    padding-left: 20px;
-                }
-                .info-section li {
-                    color: #065f46;
-                    margin-bottom: 8px;
-                    line-height: 1.6;
-                    font-size: 14px;
+                .notice-box strong {
+                    color: #b45309;
                 }
                 .footer {
-                    background-color: #f8f9fa;
-                    border-top: 1px solid #e0e0e0;
-                    padding: 40px;
+                    background-color: #f9fafb;
+                    border-top: 1px solid #e5e7eb;
+                    padding: 32px 30px;
                     text-align: center;
+                }
+                .footer p {
                     font-size: 13px;
-                    color: #888888;
+                    color: #6b7280;
+                    margin: 0 0 8px 0;
                 }
-                .footer-links {
-                    margin-bottom: 15px;
-                }
-                .footer-links a {
-                    color: #047857;
-                    text-decoration: none;
-                    margin: 0 12px;
-                    font-weight: 500;
-                }
-                .footer-links a:hover {
-                    text-decoration: underline;
-                }
-                .copyright {
+                .footer p.security-note {
+                    color: #9ca3af;
                     font-size: 12px;
-                    margin-top: 15px;
-                    padding-top: 15px;
-                    border-top: 1px solid #e0e0e0;
+                    margin-top: 16px;
                 }
             </style>
         </head>
@@ -814,60 +784,38 @@ app.post("/api/auth/forgot-password", rateLimiter(5, 60 * 60 * 1000), async (req
             <div class="wrapper">
                 <div class="container">
                     <div class="header">
-                        <h1>🔑 Reset Your PIN</h1>
-                        <p>Secure Academy Access Recovery</p>
+                        <h1>Ilm Naafi Academy</h1>
+                        <p>Secure PIN Recovery</p>
                     </div>
                     <div class="content">
                         <div class="greeting">Assalamu Alaykum ${user.username},</div>
                         
                         <p class="intro">
-                            We received a request to reset your Ilm Naafi Academy access PIN. If you made this request, 
-                            click the button below to create a new secure PIN.
+                            We received a request to reset your access PIN for Ilm Naafi Academy. If you initiated this request, please click the button below to securely create a new PIN.
                         </p>
                         
-                        <center>
-                            <a href="${resetUrl}" class="cta-button">Reset My Access PIN</a>
-                        </center>
+                        <div class="cta-wrapper">
+                            <a href="${resetUrl}" class="cta-button">Reset My PIN</a>
+                        </div>
                         
-                        <p style="color: #555555; text-align: center; margin: 20px 0;">
-                            Or copy and paste this link manually in your browser:
-                        </p>
+                        <div class="notice-box">
+                            <p><strong>⏱️ Time-Sensitive:</strong> This link is valid for exactly <strong>15 minutes</strong>. If it expires, you will need to request a new one.</p>
+                        </div>
+                        
+                        <div class="divider"></div>
+                        
+                        <p style="font-size: 14px; color: #4b5563; margin-bottom: 12px;"><strong>Didn't request this?</strong></p>
+                        <p style="font-size: 14px; color: #6b7280;">If you didn't request a PIN reset, you can safely ignore this email. Your account remains fully secure and your current PIN is unchanged.</p>
                         
                         <div class="link-section">
-                            <div class="link-label">Secure Reset Link</div>
+                            <div class="link-label">Alternative Action Link</div>
                             <div class="link-box">${resetUrl}</div>
                         </div>
-                        
-                        <div class="warning-box">
-                            <strong>⏱️ Time-Sensitive Link</strong>
-                            <p>
-                                This reset link expires in <strong>15 minutes</strong>. 
-                                If you don't reset your PIN within this time frame, you'll need to request a new link securely.
-                            </p>
-                        </div>
-                        
-                        <div class="info-section">
-                            <h3>🛡️ Didn't Request This?</h3>
-                            <ul>
-                                <li>If you didn't request a password reset, you can safely ignore this email.</li>
-                                <li>Your PIN remains strictly unchanged and secure.</li>
-                            </ul>
-                        </div>
-                        
-                        <p style="color: #555555; margin: 25px 0; line-height: 1.7;">
-                            <strong>Security Protocol:</strong> Academy administrators will never ask for your PIN via email. 
-                            Always reset your PIN directly on the portal.
-                        </p>
                     </div>
                     <div class="footer">
-                        <div class="footer-links">
-                            <a href="#">Return to Sanctuary</a>
-                            <a href="#">Security Policy</a>
-                        </div>
-                        <div class="copyright">
-                            &copy; 2026 Ilm Naafi Academy. All rights reserved.<br>
-                            <span style="color: #aaaaaa;">Secured credentials from Ilm Naafi Identity Services.</span>
-                        </div>
+                        <p>May Allah bless your path of knowledge.</p>
+                        <p><strong>Ilm Naafi Academy Support Team</strong></p>
+                        <p class="security-note">Security Protocol: Academy administrators will never ask for your PIN via email. Always reset your PIN directly through the official portal.</p>
                     </div>
                 </div>
             </div>

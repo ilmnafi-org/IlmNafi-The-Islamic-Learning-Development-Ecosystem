@@ -328,7 +328,12 @@ export default function App() {
     // Synchronize initial URL path on mount
     const path = window.location.pathname.substring(1);
     const validTabs: any[] = ['home', 'curriculum', 'coach', 'quran', 'daily', 'auth', 'community', 'dashboard', 'settings', 'notifications', 'privacy', 'terms', 'academic', 'issue-tracker', 'forum'];
-    if (path && validTabs.includes(path)) {
+    
+    // Check for reset_token
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reset_token')) {
+      setActiveTab('auth');
+    } else if (path && validTabs.includes(path)) {
       setActiveTab(path as any);
     }
 
