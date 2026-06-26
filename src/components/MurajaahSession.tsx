@@ -39,7 +39,7 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
     );
   }
 
-  const isListeningOrMatching = state === 'listening' || state === 'matching';
+  const isListeningOrMatching = state === 'listening' || state === 'matching' || state === 'go_back_test';
   const isTeacherPrompt = state === 'teacher_prompt' || state === 'waiting_retry' || state === 'correction_playback';
 
   return (
@@ -84,11 +84,11 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
             {/* Progression UI */}
             <div className="flex flex-col items-center gap-2 mb-12">
               <span className="text-xs font-mono text-emerald-500/80 uppercase tracking-widest">
-                Ayah {currentIndex + 1} of {ayahs.length}
+                {state === 'go_back_test' ? 'Recall Test: Ayah' : 'Ayah'} {currentIndex + 1} of {ayahs.length}
               </span>
               <div className="w-64 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-emerald-500 transition-all duration-500"
+                  className={`h-full transition-all duration-500 ${state === 'go_back_test' ? 'bg-amber-500' : 'bg-emerald-500'}`}
                   style={{ width: `${(currentIndex / ayahs.length) * 100}%` }}
                 />
               </div>
@@ -104,12 +104,12 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
                     exit={{ opacity: 0, scale: 1.1 }}
                     className="absolute inset-0 flex flex-col items-center justify-center"
                   >
-                    <div className={`w-24 h-24 border-4 rounded-full flex items-center justify-center relative transition-colors ${state === 'matching' ? 'border-amber-500' : 'border-emerald-500'}`}>
-                      <div className={`absolute inset-0 rounded-full animate-ping ${state === 'matching' ? 'bg-amber-500/20' : 'bg-emerald-500/20'}`}></div>
-                      <Activity className={`w-10 h-10 animate-pulse ${state === 'matching' ? 'text-amber-400' : 'text-emerald-400'}`} />
+                    <div className={`w-24 h-24 border-4 rounded-full flex items-center justify-center relative transition-colors ${state === 'matching' ? 'border-amber-500' : state === 'go_back_test' ? 'border-purple-500' : 'border-emerald-500'}`}>
+                      <div className={`absolute inset-0 rounded-full animate-ping ${state === 'matching' ? 'bg-amber-500/20' : state === 'go_back_test' ? 'bg-purple-500/20' : 'bg-emerald-500/20'}`}></div>
+                      <Activity className={`w-10 h-10 animate-pulse ${state === 'matching' ? 'text-amber-400' : state === 'go_back_test' ? 'text-purple-400' : 'text-emerald-400'}`} />
                     </div>
-                    <p className="mt-6 text-emerald-400 font-mono text-sm uppercase tracking-widest animate-pulse">
-                      {state === 'matching' ? 'Matching...' : 'Listening...'}
+                    <p className="mt-6 font-mono text-sm uppercase tracking-widest animate-pulse text-emerald-400">
+                      {state === 'matching' ? 'Matching...' : state === 'go_back_test' ? 'Testing Recall...' : 'Listening...'}
                     </p>
                     {transcript && (
                       <p className="mt-4 text-emerald-100/50 font-arabic text-lg max-w-md truncate">
@@ -126,15 +126,20 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
                     className="absolute inset-0 flex flex-col items-center justify-center"
                   >
                     <div className={`w-24 h-24 rounded-full flex items-center justify-center border ${
-                      lastCorrection?.type === 'mistake' ? 'bg-red-500/10 border-red-500/30' : lastCorrection?.type === 'encouragement' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'
+                      lastCorrection?.type === 'mistake' ? 'bg-red-500/10 border-red-500/30' : lastCorrection?.type === 'encouragement' ? 'bg-emerald-500/10 border-emerald-500/30' : lastCorrection?.type === 'go_back' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-amber-500/10 border-amber-500/30'
                     }`}>
-                      <span className="text-3xl">{lastCorrection?.type === 'encouragement' ? '🌟' : '🗣️'}</span>
+                      <span className="text-3xl">{lastCorrection?.type === 'encouragement' ? '🌟' : lastCorrection?.type === 'go_back' ? '↩️' : '🗣️'}</span>
                     </div>
                     <h2 className={`text-4xl font-black mt-6 font-arabic ${
-                      lastCorrection?.type === 'mistake' ? 'text-red-400' : lastCorrection?.type === 'encouragement' ? 'text-emerald-400' : 'text-amber-400'
+                      lastCorrection?.type === 'mistake' ? 'text-red-400' : lastCorrection?.type === 'encouragement' ? 'text-emerald-400' : lastCorrection?.type === 'go_back' ? 'text-purple-400' : 'text-amber-400'
                     }`}>
                       {lastCorrection?.message}
                     </h2>
+                    {lastCorrection?.mistakeType && (
+                      <p className="mt-2 text-xs font-mono uppercase tracking-widest text-red-300/60">
+                        {lastCorrection.mistakeType}
+                      </p>
+                    )}
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -165,19 +170,29 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
               <p className="text-emerald-400 font-mono text-sm mt-2">{taskName}</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 col-span-2">
+                <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Accuracy</span>
+                <p className="text-4xl font-black text-white mt-2">{Math.round(stats.accuracy)}<span className="text-2xl text-slate-500">%</span></p>
+              </div>
+              <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 col-span-2">
+                <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Avg Confidence</span>
+                <p className="text-4xl font-black text-white mt-2">{Math.round(stats.averageConfidence * 100)}<span className="text-2xl text-slate-500">%</span></p>
+              </div>
+
               <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
                 <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Mistakes</span>
-                <p className="text-4xl font-black text-red-400 mt-2">{stats.mistakes}</p>
+                <p className="text-3xl font-black text-red-400 mt-2">{stats.mistakes}</p>
               </div>
               <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
                 <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Hesitations</span>
-                <p className="text-4xl font-black text-amber-400 mt-2">{stats.hesitations}</p>
+                <p className="text-3xl font-black text-amber-400 mt-2">{stats.hesitations}</p>
               </div>
-              <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 col-span-2">
+              
+              <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 col-span-2 flex flex-col justify-center">
                  <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Ayahs Completed</span>
+                    <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Completed</span>
                     <p className="text-2xl font-black text-emerald-400 mt-1">{stats.completedAyahs} / {ayahs.length}</p>
                   </div>
                   <div className="text-right">
