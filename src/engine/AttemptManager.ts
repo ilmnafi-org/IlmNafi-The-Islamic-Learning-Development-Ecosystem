@@ -1,17 +1,20 @@
 export class AttemptManager {
-  private attempts: number = 0;
-  private readonly maxAttempts: number = 3;
+  private ayahAttempts: Record<number, number> = {};
 
-  recordAttempt(): boolean {
-    this.attempts++;
-    return this.attempts >= this.maxAttempts;
+  recordAttempt(ayahNumber: number): number {
+    if (!this.ayahAttempts[ayahNumber]) {
+      this.ayahAttempts[ayahNumber] = 0;
+    }
+    this.ayahAttempts[ayahNumber]++;
+    return this.ayahAttempts[ayahNumber];
   }
 
-  reset() {
-    this.attempts = 0;
+  reset(ayahNumber: number) {
+    this.ayahAttempts[ayahNumber] = 0;
   }
   
-  getAttempts() {
-    return this.attempts;
+  getAttempts(ayahNumber: number) {
+    return this.ayahAttempts[ayahNumber] || 0;
   }
 }
+

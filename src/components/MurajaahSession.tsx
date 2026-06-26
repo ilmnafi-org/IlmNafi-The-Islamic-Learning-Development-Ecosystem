@@ -39,6 +39,9 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
     );
   }
 
+  const isListeningOrMatching = state === 'listening' || state === 'matching';
+  const isTeacherPrompt = state === 'teacher_prompt' || state === 'waiting_retry' || state === 'correction_playback';
+
   return (
     <div className="fixed inset-0 bg-[#061410] z-[99999] flex flex-col items-center justify-center text-emerald-100 p-8 overflow-hidden">
       {state !== 'report' && (
@@ -52,7 +55,7 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
 
       <div className="max-w-2xl w-full text-center space-y-8 animate-fadeIn">
         
-        {state === 'intro' && (
+        {state === 'preparing' && (
           <div className="space-y-8">
             <BookOpen className="w-16 h-16 mx-auto text-emerald-500/50" />
             <h2 className="text-3xl md:text-5xl font-black tracking-widest text-emerald-50">{taskName}</h2>
@@ -75,7 +78,7 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
           </div>
         )}
 
-        {(state === 'listening' || state === 'correction') && (
+        {(isListeningOrMatching || isTeacherPrompt || state === 'advance_ayah') && (
           <div className="space-y-12">
             
             {/* Progression UI */}
@@ -93,7 +96,7 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
 
             <div className="relative h-40">
               <AnimatePresence mode="wait">
-                {state === 'listening' ? (
+                {isListeningOrMatching ? (
                   <motion.div 
                     key="listening"
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -101,12 +104,12 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
                     exit={{ opacity: 0, scale: 1.1 }}
                     className="absolute inset-0 flex flex-col items-center justify-center"
                   >
-                    <div className="w-24 h-24 border-4 border-emerald-500 rounded-full flex items-center justify-center relative">
-                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping"></div>
-                      <Activity className="w-10 h-10 text-emerald-400 animate-pulse" />
+                    <div className={`w-24 h-24 border-4 rounded-full flex items-center justify-center relative transition-colors ${state === 'matching' ? 'border-amber-500' : 'border-emerald-500'}`}>
+                      <div className={`absolute inset-0 rounded-full animate-ping ${state === 'matching' ? 'bg-amber-500/20' : 'bg-emerald-500/20'}`}></div>
+                      <Activity className={`w-10 h-10 animate-pulse ${state === 'matching' ? 'text-amber-400' : 'text-emerald-400'}`} />
                     </div>
                     <p className="mt-6 text-emerald-400 font-mono text-sm uppercase tracking-widest animate-pulse">
-                      Listening...
+                      {state === 'matching' ? 'Matching...' : 'Listening...'}
                     </p>
                     {transcript && (
                       <p className="mt-4 text-emerald-100/50 font-arabic text-lg max-w-md truncate">
@@ -114,7 +117,7 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
                       </p>
                     )}
                   </motion.div>
-                ) : (
+                ) : isTeacherPrompt ? (
                   <motion.div 
                     key="correction"
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -123,17 +126,17 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
                     className="absolute inset-0 flex flex-col items-center justify-center"
                   >
                     <div className={`w-24 h-24 rounded-full flex items-center justify-center border ${
-                      lastCorrection?.type === 'mistake' ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'
+                      lastCorrection?.type === 'mistake' ? 'bg-red-500/10 border-red-500/30' : lastCorrection?.type === 'encouragement' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'
                     }`}>
-                      <span className="text-3xl">🗣️</span>
+                      <span className="text-3xl">{lastCorrection?.type === 'encouragement' ? '🌟' : '🗣️'}</span>
                     </div>
                     <h2 className={`text-4xl font-black mt-6 font-arabic ${
-                      lastCorrection?.type === 'mistake' ? 'text-red-400' : 'text-amber-400'
+                      lastCorrection?.type === 'mistake' ? 'text-red-400' : lastCorrection?.type === 'encouragement' ? 'text-emerald-400' : 'text-amber-400'
                     }`}>
                       {lastCorrection?.message}
                     </h2>
                   </motion.div>
-                )}
+                ) : null}
               </AnimatePresence>
             </div>
             
@@ -171,19 +174,35 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
                 <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Hesitations</span>
                 <p className="text-4xl font-black text-amber-400 mt-2">{stats.hesitations}</p>
               </div>
-              <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 col-span-2 flex justify-between items-center">
-                <div>
-                  <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Ayahs Completed</span>
-                  <p className="text-2xl font-black text-emerald-400 mt-1">{stats.completedAyahs} / {ayahs.length}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Duration</span>
-                  <p className="text-2xl font-black text-white mt-1">
-                    {Math.floor(stats.durationMs / 60000)}m {Math.floor((stats.durationMs % 60000) / 1000)}s
-                  </p>
-                </div>
+              <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 col-span-2">
+                 <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Ayahs Completed</span>
+                    <p className="text-2xl font-black text-emerald-400 mt-1">{stats.completedAyahs} / {ayahs.length}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">Duration</span>
+                    <p className="text-2xl font-black text-white mt-1">
+                      {Math.floor(stats.durationMs / 60000)}m {Math.floor((stats.durationMs % 60000) / 1000)}s
+                    </p>
+                  </div>
+                 </div>
               </div>
             </div>
+
+            {stats.weakAyahs.length > 0 && (
+              <div className="bg-red-950/20 p-6 rounded-2xl border border-red-900/30 mt-6">
+                 <h4 className="text-red-400 font-bold mb-2">Weak Ayahs Detected</h4>
+                 <p className="text-red-300/80 text-sm">Ayahs requiring more revision: {stats.weakAyahs.join(', ')}</p>
+              </div>
+            )}
+            
+            {stats.repeatedMistakes > 0 && (
+              <div className="bg-amber-950/20 p-6 rounded-2xl border border-amber-900/30 mt-6">
+                 <h4 className="text-amber-400 font-bold mb-2">Repeated Mistakes</h4>
+                 <p className="text-amber-300/80 text-sm">You struggled repeatedly on {stats.repeatedMistakes} ayah(s).</p>
+              </div>
+            )}
 
             <div className="bg-emerald-950/30 p-6 rounded-2xl border border-emerald-900/50 mt-6 text-center">
               <p className="text-emerald-300 font-medium text-sm">
@@ -206,3 +225,4 @@ export default function MurajaahSession({ juzTarget, taskName, onClose }: Muraja
     </div>
   );
 }
+

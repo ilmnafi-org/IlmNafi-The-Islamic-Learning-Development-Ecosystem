@@ -10,26 +10,20 @@ export class QuranAlignment {
       .trim();
   }
 
-  static calculateMatchScore(spoken: string, expected: string): number {
-    const normSpoken = this.normalizeArabic(spoken);
-    const normExpected = this.normalizeArabic(expected);
-
-    if (normSpoken === normExpected) return 1.0;
+  static getMatchedWordsCount(spoken: string, expected: string): number {
+    const spokenWords = this.normalizeArabic(spoken).split(/\s+/).filter(w => w);
+    const expectedWords = this.normalizeArabic(expected).split(/\s+/).filter(w => w);
     
-    // Very basic partial match check
-    if (normExpected.includes(normSpoken) && normSpoken.length > 3) {
-      return normSpoken.length / normExpected.length;
+    let matchCount = 0;
+    // Simple greedy match
+    let expectedIdx = 0;
+    for (let i = 0; i < spokenWords.length; i++) {
+      if (expectedIdx < expectedWords.length && spokenWords[i] === expectedWords[expectedIdx]) {
+        matchCount++;
+        expectedIdx++;
+      }
     }
-
-    return 0; // Not a good match
-  }
-
-  static isWordMatch(spokenWords: string[], expectedText: string): boolean {
-    const normExpected = this.normalizeArabic(expectedText);
-    const spokenPhrase = this.normalizeArabic(spokenWords.join(' '));
-    
-    // Check if the spoken phrase is contained within the expected text, 
-    // or if the expected text is contained within the spoken phrase (if they appended extra words)
-    return normExpected.includes(spokenPhrase) || spokenPhrase.includes(normExpected);
+    return matchCount;
   }
 }
+

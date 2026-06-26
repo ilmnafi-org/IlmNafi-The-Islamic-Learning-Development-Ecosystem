@@ -6,7 +6,7 @@ import { QuranService } from '../services/QuranService';
 export function useMurajaah() {
   const engineRef = useRef<MurajaahEngine | null>(null);
   
-  const [state, setState] = useState<EngineState>('intro');
+  const [state, setState] = useState<EngineState>('idle');
   const [ayahs, setAyahs] = useState<Ayah[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [stats, setStats] = useState<SessionStats | null>(null);
@@ -60,3 +60,4 @@ export function useMurajaah() {
     stop
   };
 }
+

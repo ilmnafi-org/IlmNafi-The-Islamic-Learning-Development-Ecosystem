@@ -7,16 +7,22 @@ import { TeacherEngine } from './TeacherEngine';
 
 export class MurajaahEngine {
   private ayahs: Ayah[] = [];
-  private currentIndex: number = 0;
+  public currentIndex: number = 0;
   
   private recognition: RecognitionEngine;
   private hesitationDetector: HesitationDetector;
   private attemptManager: AttemptManager;
   private teacher: TeacherEngine;
   
+  private currentState: EngineState = 'idle';
   private stats: SessionStats = {
     mistakes: 0,
     hesitations: 0,
+    repeatedMistakes: 0,
+    weakAyahs: [],
+    strongAyahs: [],
+    confusedPairs: [],
+    averageConfidence: 1.0,
     completedAyahs: 0,
     durationMs: 0
   };
@@ -43,7 +49,7 @@ export class MurajaahEngine {
       if (this.onTranscript) this.onTranscript(transcript);
       this.hesitationDetector.reset();
       
-      if (isFinal) {
+      if (isFinal && this.currentState === 'listening') {
         this.processRecitation(transcript);
       }
     };
@@ -52,7 +58,12 @@ export class MurajaahEngine {
   public loadSession(ayahs: Ayah[]) {
     this.ayahs = ayahs;
     this.currentIndex = 0;
-    this.stats = { mistakes: 0, hesitations: 0, completedAyahs: 0, durationMs: 0 };
+    this.stats = { 
+      mistakes: 0, hesitations: 0, repeatedMistakes: 0,
+      weakAyahs: [], strongAyahs: [], confusedPairs: [],
+      averageConfidence: 0.9, completedAyahs: 0, durationMs: 0 
+    };
+    this.setState('preparing');
     if (this.onAyahProgress) this.onAyahProgress(0, this.ayahs.length);
   }
 
@@ -84,13 +95,18 @@ export class MurajaahEngine {
 
   private processRecitation(transcript: string) {
     if (this.currentIndex >= this.ayahs.length) return;
+    this.setState('matching');
     
     const currentAyah = this.ayahs[this.currentIndex];
-    const words = transcript.split(' ');
+    const expectedText = currentAyah.text;
     
-    const isMatch = QuranAlignment.isWordMatch(words, currentAyah.text);
+    // We get a simple matched word count
+    const matchCount = QuranAlignment.getMatchedWordsCount(transcript, expectedText);
+    const expectedWordsCount = QuranAlignment.normalizeArabic(expectedText).split(/\s+/).filter(w => w).length;
     
-    if (isMatch) {
+    // A simplistic mock logic for demonstration: 
+    // If it matches a good portion of the expected ayah (or all of it), we pass
+    if (matchCount >= expectedWordsCount * 0.5) {
       this.handleCorrectRecitation();
     } else {
       this.handleMistake();
@@ -98,7 +114,12 @@ export class MurajaahEngine {
   }
 
   private handleCorrectRecitation() {
-    this.attemptManager.reset();
+    const ayahNum = this.ayahs[this.currentIndex]?.number;
+    if (this.attemptManager.getAttempts(ayahNum) === 0) {
+      if (!this.stats.strongAyahs.includes(ayahNum)) this.stats.strongAyahs.push(ayahNum);
+    }
+    this.attemptManager.reset(ayahNum);
+    
     this.stats.completedAyahs++;
     this.currentIndex++;
     
@@ -107,41 +128,55 @@ export class MurajaahEngine {
     }
 
     if (this.currentIndex >= this.ayahs.length) {
-      this.stop();
+      this.teacher.sayIntent('PROMPT_FINISH', '', () => {
+         this.stop();
+      });
     } else {
-      this.hesitationDetector.reset();
+      // Small chance teacher encourages
+      if (Math.random() > 0.8) {
+        this.pause();
+        this.setState('teacher_prompt');
+        this.emitCorrection('encouragement', 'أحسنت');
+        this.teacher.sayIntent('PROMPT_ENCOURAGE', '', () => this.resume());
+      } else {
+        this.setState('advance_ayah');
+        this.resume();
+      }
     }
   }
 
   private handleMistake() {
     this.stats.mistakes++;
-    this.pause();
+    const currentAyah = this.ayahs[this.currentIndex];
     
-    if (this.onCorrection) {
-      this.onCorrection({
-        type: 'mistake',
-        message: 'لا، أعد الآية',
-        timestamp: Date.now(),
-        ayahNumber: this.ayahs[this.currentIndex]?.number || 0
-      });
+    this.pause();
+    const attempts = this.attemptManager.recordAttempt(currentAyah.number);
+    
+    if (attempts > 1) {
+      this.stats.repeatedMistakes++;
+      if (!this.stats.weakAyahs.includes(currentAyah.number)) {
+        this.stats.weakAyahs.push(currentAyah.number);
+      }
     }
 
-    const maxReached = this.attemptManager.recordAttempt();
+    this.setState('waiting_retry');
     
-    this.setState('correction');
-    
-    if (maxReached) {
-      // Give the correction
-      const correctText = this.ayahs[this.currentIndex].text;
-      this.teacher.sayCorrection(correctText, () => {
-        this.attemptManager.reset();
-        this.resume();
-      });
+    if (attempts === 1) {
+      const msg = this.teacher.sayIntent('PROMPT_REPEAT', '', () => this.resume());
+      this.emitCorrection('mistake', msg);
+    } else if (attempts === 2) {
+      const msg = this.teacher.sayIntent('PROMPT_REPEAT_AGAIN', '', () => this.resume());
+      this.emitCorrection('mistake', msg);
+    } else if (attempts === 3) {
+      const msg = this.teacher.sayIntent('PROMPT_REPEAT_FROM_START', '', () => this.resume());
+      this.emitCorrection('mistake', msg);
     } else {
-      // Prompt to repeat
-      this.teacher.sayMistakePrompt(() => {
+      this.setState('correction_playback');
+      const msg = this.teacher.sayIntent('PROMPT_CORRECT', currentAyah.text, () => {
+        this.attemptManager.reset(currentAyah.number);
         this.resume();
       });
+      this.emitCorrection('correction', msg);
     }
   }
 
@@ -149,22 +184,25 @@ export class MurajaahEngine {
     this.stats.hesitations++;
     this.pause();
     
+    this.setState('teacher_prompt');
+    const msg = this.teacher.sayIntent('PROMPT_CONTINUE', '', () => this.resume());
+    this.emitCorrection('hesitation', msg);
+  }
+
+  private emitCorrection(type: CorrectionEvent['type'], message: string) {
     if (this.onCorrection) {
       this.onCorrection({
-        type: 'hesitation',
-        message: 'أكمل',
+        type,
+        message,
         timestamp: Date.now(),
         ayahNumber: this.ayahs[this.currentIndex]?.number || 0
       });
     }
-
-    this.setState('correction');
-    this.teacher.sayHesitationPrompt(() => {
-      this.resume();
-    });
   }
 
   private setState(state: EngineState) {
+    this.currentState = state;
     if (this.onStateChange) this.onStateChange(state);
   }
 }
+
