@@ -58,6 +58,7 @@ import QuranExplorer from './components/QuranExplorer';
 import CommunityHubView from './components/CommunityHubView';
 import { DailyView } from './components/DailyView';
 import AuthPage from './components/AuthPage';
+import { EncyclopediaView } from './components/EncyclopediaView';
 import { DeenSuite } from './components/DeenSuite';
 import StudentDashboard from './components/StudentDashboard';
 import ScholarshipsView from './components/ScholarshipsView';
@@ -255,7 +256,7 @@ function formatTo12Hour(timeStr: string): string {
 
 export default function App() {
   // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'auth' | 'community' | 'dashboard'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'daily' | 'auth' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'encyclopedia' | 'daily' | 'auth' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
   const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMoreNav, setShowMoreNav] = useState(false);
@@ -1244,6 +1245,17 @@ export default function App() {
               {labels.quran}
             </button>
             <button 
+              onClick={() => { setActiveTab('encyclopedia'); setShowMoreNav(false); }}
+              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
+                activeTab === 'encyclopedia' 
+                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
+                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
+              }`}
+              id="nav-encyclopedia"
+            >
+              {lang === 'en' ? 'Encyclopedia' : 'الموسوعة'}
+            </button>
+            <button 
               onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
               className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
                 activeTab === 'daily' 
@@ -1579,6 +1591,7 @@ export default function App() {
                   { id: 'curriculum', label: labels.curriculum, icon: GraduationCap, color: 'text-amber-800 bg-amber-500/10' },
                   { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
                   { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
+                  { id: 'encyclopedia', label: lang === 'en' ? 'Encyclopedia' : 'الموسوعة', icon: BookOpen, color: 'text-rose-800 bg-rose-500/10' },
                   { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
                   { id: 'community', label: lang === 'en' ? 'Open Source Connect' : 'المساهمة المفتوحة', icon: Users, color: 'text-indigo-800 bg-indigo-500/10' },
                   { id: 'api-docs', label: lang === 'en' ? 'Developer APIs' : 'واجهات المبرمجين', icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
@@ -2090,6 +2103,18 @@ export default function App() {
             />
           </motion.div>
         </div>
+
+        {/* ENCYCLOPEDIA VIEW */}
+        {activeTab === 'encyclopedia' && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.4 }}
+          >
+            <EncyclopediaView lang={lang} />
+          </motion.div>
+        )}
 
         {/* DAILY SPIRITUAL TOOLS */}
         {activeTab === 'daily' && (
