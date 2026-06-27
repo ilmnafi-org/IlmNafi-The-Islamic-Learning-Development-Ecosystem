@@ -152,24 +152,11 @@ export default function StudentDashboard({
     'sch-turkiye': { title: "Türkiye Bursları Scholarship Program", country: "Turkey", coverage: "Fully Funded" }
   };
 
-  // Pre-seed some default certificates if none exists in progress
-  const defaultCertificates = [
-    { title: lang === 'en' ? "Foundational Tajweed Hafs Decibel License" : "إجازة مخارج الحروف وأحكام التلاوة", grade: "94%", date: "2026-06-01", key: "CERT-HAFS-A9" },
-    { title: lang === 'en' ? "Golden Era Islamic Science Certificate" : "شهادة مباحث العقيدة والفقه المنهجي", grade: "89%", date: "2026-06-18", key: "CERT-ERAS-E1" }
-  ];
-
-  const certificatesList = progress.certificates || defaultCertificates;
-
-  // Pre-seed some mocked completed lessons for the curriculum roadmap view
-  const defaultLessonsMap = [
-    { id: "les-aqeedah-1", title: lang === 'en' ? "Unification of Divinity (Tawhid)" : "شهادة أن لا إله إلا الله ومقتضاها", cat: "Aqeedah" },
-    { id: "les-fiqh-1", title: lang === 'en' ? "Purification (Taharah) Essentials" : "كتاب الطهارة وشروط الصلاة المعتبرة", cat: "Fiqh" },
-    { id: "les-seerah-1", title: lang === 'en' ? "The Meccan Period Chronology" : "خلاصة العهد المكي والبعثة النبوية", cat: "Seerah" }
-  ];
+  const certificatesList = progress.certificates || [];
 
   const activeLessons = progress.lessonsCompleted && progress.lessonsCompleted.length > 0
     ? progress.lessonsCompleted.map(id => ({ id, title: id.toUpperCase().replace("-", " "), cat: "Sciences" }))
-    : defaultLessonsMap;
+    : [];
 
   const labels = {
     en: {
@@ -282,7 +269,7 @@ export default function StudentDashboard({
   // Average accuracy calculation from recitations
   const averageAccuracy = progress.recentRecitations.length > 0
     ? Math.round(progress.recentRecitations.reduce((acc, curr) => acc + curr.score, 0) / progress.recentRecitations.length)
-    : 85;
+    : 0;
 
   const tabsInfo = [
     { id: 'overview' as const, label: labels.tabOverview, icon: BarChart },
@@ -538,22 +525,28 @@ export default function StudentDashboard({
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {certificatesList.map((cert, index) => (
-                      <div key={index} className="border border-amber-250 bg-amber-50/10 p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[155px] shadow-sm">
-                        <div className="space-y-1">
-                          <span className="text-[8px] font-mono tracking-wider bg-amber-100 border border-amber-300 text-amber-955 px-2.5 py-0.5 rounded-full inline-block">
-                            {lang === 'en' ? `Grade: ${cert.grade}` : `درجة المطابقة: ${cert.grade}`}
-                          </span>
-                          <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug pt-1" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                            {cert.title}
-                          </h4>
-                        </div>
-                        <div className="pt-3 border-t border-slate-100 text-[9px] font-sans text-slate-400 flex justify-between items-center mt-2">
-                          <span>{cert.date}</span>
-                          <span className="font-mono text-[8px] text-emerald-800 font-bold">KEY: {cert.key}</span>
-                        </div>
+                    {certificatesList.length === 0 ? (
+                      <div className="col-span-1 md:col-span-2 p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs italic">
+                        {lang === 'en' ? "No certificates earned yet." : "لم يتم الحصول على شهادات بعد."}
                       </div>
-                    ))}
+                    ) : (
+                      certificatesList.map((cert, index) => (
+                        <div key={index} className="border border-amber-250 bg-amber-50/10 p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between h-[155px] shadow-sm">
+                          <div className="space-y-1">
+                            <span className="text-[8px] font-mono tracking-wider bg-amber-100 border border-amber-300 text-amber-955 px-2.5 py-0.5 rounded-full inline-block">
+                              {lang === 'en' ? `Grade: ${cert.grade}` : `درجة المطابقة: ${cert.grade}`}
+                            </span>
+                            <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug pt-1" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                              {cert.title}
+                            </h4>
+                          </div>
+                          <div className="pt-3 border-t border-slate-100 text-[9px] font-sans text-slate-400 flex justify-between items-center mt-2">
+                            <span>{cert.date}</span>
+                            <span className="font-mono text-[8px] text-emerald-800 font-bold">KEY: {cert.key}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
 
                   <div className="bg-slate-50 border border-slate-150 p-3.5 rounded-xl flex items-center justify-between text-[9px] text-slate-400/90 font-mono uppercase" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
@@ -574,15 +567,21 @@ export default function StudentDashboard({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {activeLessons.map((les) => (
-                      <div key={les.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                        <div className="space-y-0.5" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                          <span className="text-[8px] font-extrabold text-emerald-800 uppercase tracking-widest block">{les.cat}</span>
-                          <h4 className="text-xs font-bold text-slate-800">{les.title}</h4>
-                        </div>
-                        <span className="text-[10px] font-black text-emerald-850 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg shrink-0">100% PASS</span>
+                    {activeLessons.length === 0 ? (
+                      <div className="col-span-1 sm:col-span-2 p-8 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs italic">
+                        {lang === 'en' ? "No lessons completed yet." : "لم يتم الانتهاء من دروس بعد."}
                       </div>
-                    ))}
+                    ) : (
+                      activeLessons.map((les) => (
+                        <div key={les.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
+                          <div className="space-y-0.5" style={{ textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                            <span className="text-[8px] font-extrabold text-emerald-800 uppercase tracking-widest block">{les.cat}</span>
+                            <h4 className="text-xs font-bold text-slate-800">{les.title}</h4>
+                          </div>
+                          <span className="text-[10px] font-black text-emerald-850 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg shrink-0">100% PASS</span>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
 

@@ -1,12 +1,20 @@
 export class GoBackEngine {
-  private lastGoBackTime: number = 0;
+  private perfectStreak: number = 0;
   
-  shouldGoBack(currentIndex: number, currentTime: number): boolean {
+  recordPerfectAyah() {
+    this.perfectStreak++;
+  }
+  
+  recordMistake() {
+    this.perfectStreak = 0;
+  }
+
+  shouldGoBack(currentIndex: number): boolean {
     if (currentIndex < 3) return false; // Need some context to go back
     
-    // E.g., once every 3 minutes, or random 10% chance if last time was > 3 mins ago
-    if (currentTime - this.lastGoBackTime > 180000 && Math.random() > 0.8) {
-      this.lastGoBackTime = currentTime;
+    // Deterministic rule: Go back every 7 perfect ayahs
+    if (this.perfectStreak >= 7) {
+      this.perfectStreak = 0; // reset after triggering
       return true;
     }
     
@@ -14,7 +22,7 @@ export class GoBackEngine {
   }
   
   getTargetAyah(currentIndex: number): number {
-    // Jump back 1 to 3 ayahs
-    return Math.max(0, currentIndex - Math.floor(Math.random() * 3 + 1));
+    // Jump back 3 ayahs for recall testing
+    return Math.max(0, currentIndex - 3);
   }
 }
