@@ -85,6 +85,12 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
           setLoading(false);
           return;
         }
+        const pass = password.trim();
+        if (pass.length < 6 || !/[a-zA-Z]/.test(pass) || !/[0-9]/.test(pass)) {
+          setAuthError("Password does not meet the complexity requirements.");
+          setLoading(false);
+          return;
+        }
         const msg = await dbService.resetPassword(resetTokenStr, password.trim());
         await minWait;
         setLocalMessage(msg);
@@ -113,6 +119,12 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
         setSuccessEmail(session.email);
         setIsSuccessModalOpen(true);
       } else {
+        const pass = password.trim();
+        if (pass.length < 6 || !/[a-zA-Z]/.test(pass) || !/[0-9]/.test(pass)) {
+          setAuthError("Password does not meet the complexity requirements.");
+          setLoading(false);
+          return;
+        }
         const finalName = name.trim() || email.split('@')[0];
         const session = await dbService.signUp(email.trim(), password.trim(), finalName, role);
         await minWait;
@@ -470,6 +482,29 @@ export default function AuthPage({ lang, onSuccess, onCancel }: AuthPageProps) {
                     />
                     <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   </div>
+                  
+                  {/* Real-time Password Strength and Criteria Tracker */}
+                  {((!isLogin && !isForgotPassword) || resetTokenActive) && password.length > 0 && (
+                    <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 mt-1.5 space-y-1.5">
+                      <p className="text-[10px] font-extrabold uppercase text-slate-400/90 tracking-wider font-mono">
+                        Password Requirements
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-[10px] font-bold">
+                        <div className={`flex items-center gap-1.5 ${password.length >= 6 ? 'text-emerald-700' : 'text-slate-400'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${password.length >= 6 ? 'bg-emerald-600' : 'bg-slate-350'}`} />
+                          <span>At least 6 chars</span>
+                        </div>
+                        <div className={`flex items-center gap-1.5 ${/[a-zA-Z]/.test(password) ? 'text-emerald-700' : 'text-slate-400'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${/[a-zA-Z]/.test(password) ? 'bg-emerald-600' : 'bg-slate-350'}`} />
+                          <span>At least 1 letter</span>
+                        </div>
+                        <div className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? 'text-emerald-700' : 'text-slate-400'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(password) ? 'bg-emerald-600' : 'bg-slate-350'}`} />
+                          <span>At least 1 number</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

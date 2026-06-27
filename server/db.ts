@@ -666,6 +666,55 @@ class ServerDB {
       return false;
     }
   }
+
+  public async getDevotionalPlan(userId: string): Promise<any | null> {
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      const user = db.users.find(u => u.id === userId);
+      return user ? (user as any).devotionalPlan || null : null;
+    }
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await (supabase.from('ilm_naafi_store') as any)
+        .select('value')
+        .eq('key', `devotional_plan_${userId}`)
+        .maybeSingle();
+      if (error) {
+        console.warn("Failed to getDevotionalPlan from Supabase:", error);
+        return null;
+      }
+      return data ? data.value : null;
+    } catch (e: any) {
+      console.warn("Error in getDevotionalPlan:", e);
+      return null;
+    }
+  }
+
+  public async saveDevotionalPlan(userId: string, plan: any): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      const idx = db.users.findIndex(u => u.id === userId);
+      if (idx > -1) {
+        (db.users[idx] as any).devotionalPlan = plan;
+        saveFallbackDb();
+      }
+      return;
+    }
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { error } = await (supabase.from('ilm_naafi_store') as any)
+        .upsert({
+          key: `devotional_plan_${userId}`,
+          value: plan,
+          updated_at: new Date().toISOString()
+        });
+      if (error) {
+        console.warn("Failed to saveDevotionalPlan to Supabase:", error);
+      }
+    } catch (e: any) {
+      console.warn("Error in saveDevotionalPlan:", e);
+    }
+  }
 }
 
 export const dbStore = new ServerDB();

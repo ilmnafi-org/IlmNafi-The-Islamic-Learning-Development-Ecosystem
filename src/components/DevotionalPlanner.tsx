@@ -11,7 +11,7 @@ interface DevotionalPlannerProps {
 }
 
 export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: DevotionalPlannerProps) {
-  const [setupMode, setSetupMode] = useState<boolean>(true);
+  const [setupMode, setSetupMode] = useState<boolean>(!progress.devotionalPlan);
   const [setupStep, setSetupStep] = useState<number>(1);
   
   // Step 1: Inventory
@@ -32,11 +32,18 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
   
   // Final Plan
   const [generating, setGenerating] = useState(false);
-  const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+  const [generatedPlan, setGeneratedPlan] = useState<any>(progress.devotionalPlan || null);
   
   // Ghost Mode
   const [ghostModeActive, setGhostModeActive] = useState(false);
   const [ghostTask, setGhostTask] = useState<string>('');
+
+  React.useEffect(() => {
+    if (progress.devotionalPlan) {
+      setGeneratedPlan(progress.devotionalPlan);
+      setSetupMode(false);
+    }
+  }, [progress.devotionalPlan]);
 
   const calculatePlan = () => {
     setGenerating(true);
@@ -78,7 +85,7 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
         };
       });
 
-      setGeneratedPlan({
+      const newPlan = {
         totalJuz,
         juzPerDay,
         dailyLoad,
@@ -86,9 +93,28 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
         timePerDay,
         preferredTime,
         portions: memorizedPortions || memorizedAmount,
-        strength
+        strength,
+        createdAt: new Date().toISOString()
+      };
+
+      setGeneratedPlan(newPlan);
+      
+      // Notify backend via callback
+      onUpdateProgress({
+        ...progress,
+        devotionalPlan: newPlan
       });
       
+      // Trigger a direct fetch to the backend API endpoint to notify email
+      fetch('/api/devotional/created', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('ilm_token')}`
+        },
+        body: JSON.stringify({ plan: newPlan })
+      }).catch(err => console.error("Email notification dispatch error:", err));
+
       setGenerating(false);
       setSetupMode(false);
     }, 800);

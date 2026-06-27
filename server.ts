@@ -380,7 +380,8 @@ app.get("/api/auth/session", async (req: AuthenticatedRequest, res) => {
         recentRecitations: user.recentRecitations,
         certificates: user.certificates,
         joinedForums: user.joinedForums || [],
-        notifications: user.notifications || []
+        notifications: user.notifications || [],
+        devotionalPlan: await dbStore.getDevotionalPlan(user.id)
       }
     });
   } catch (err) {
@@ -409,9 +410,10 @@ app.post("/api/auth/signup", rateLimiter(15, 15 * 60 * 1000), async (req, res) =
     return res.status(400).json({ error: "Please enter your full academic name (minimum 2 characters)." });
   }
 
-  // Password length validation
-  if (password.trim().length < 6) {
-    return res.status(400).json({ error: "Your access password PIN should be at least 6 characters in length to safeguard your study history." });
+  // Password complexity validation
+  const pass = password.trim();
+  if (pass.length < 6 || !/[a-zA-Z]/.test(pass) || !/[0-9]/.test(pass)) {
+    return res.status(400).json({ error: "Your password must be at least 6 characters long and contain both letters and numbers." });
   }
 
   try {
@@ -505,7 +507,8 @@ app.post("/api/auth/login", rateLimiter(30, 15 * 60 * 1000), async (req, res) =>
         recentRecitations: user.recentRecitations,
         certificates: user.certificates,
         joinedForums: user.joinedForums || [],
-        notifications: user.notifications || []
+        notifications: user.notifications || [],
+        devotionalPlan: await dbStore.getDevotionalPlan(user.id)
       }
     });
   } catch (err: any) {
@@ -540,6 +543,10 @@ app.post("/api/auth/update-session", authenticateJWT, async (req: AuthenticatedR
       joinedForums: progress.joinedForums ?? user.joinedForums,
       notifications: progress.notifications ?? user.notifications
     });
+
+    if (progress.devotionalPlan !== undefined) {
+      await dbStore.saveDevotionalPlan(user.id, progress.devotionalPlan);
+    }
 
     res.json({ success: true });
   } catch (err: any) {
@@ -598,8 +605,28 @@ app.post("/api/auth/sync-session", async (req, res) => {
       });
     }
 
+    if (user.devotionalPlan) {
+      await dbStore.saveDevotionalPlan(user.id, user.devotionalPlan);
+    }
+
     const updatedUser = await dbStore.findUserById(user.id);
-    res.json({ success: true, user: updatedUser });
+    res.json({ 
+      success: true, 
+      user: updatedUser ? {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        weeklyMinutes: updatedUser.weeklyMinutes,
+        lessonsCompleted: updatedUser.lessonsCompleted,
+        savedScholarships: updatedUser.savedScholarships,
+        recentRecitations: updatedUser.recentRecitations,
+        certificates: updatedUser.certificates,
+        joinedForums: updatedUser.joinedForums || [],
+        notifications: updatedUser.notifications || [],
+        devotionalPlan: await dbStore.getDevotionalPlan(user.id)
+      } : null 
+    });
   } catch (err: any) {
     res.status(401).json({ error: "Session verification expired or failed: " + err.message });
   }
@@ -844,8 +871,9 @@ app.post("/api/auth/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
   if (!token || !newPassword) return res.status(400).json({ error: "Token and new password are required." });
 
-  if (newPassword.trim().length < 6) {
-    return res.status(400).json({ error: "Your access password PIN should be at least 6 characters." });
+  const pass = newPassword.trim();
+  if (pass.length < 6 || !/[a-zA-Z]/.test(pass) || !/[0-9]/.test(pass)) {
+    return res.status(400).json({ error: "Your password must be at least 6 characters long and contain both letters and numbers." });
   }
 
   try {
@@ -2133,6 +2161,195 @@ app.get("/api/audio-proxy", async (req, res) => {
     return res.redirect(audioUrl);
   }
 });
+
+// Devotional Plan - Sync and Email Notification Handlers
+app.post("/api/devotional/created", authenticateJWT, async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+  const { plan } = req.body;
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const resend = getResend();
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@ilm-naafi.edu";
+    const subject = "Sulayman From Ilm-Naafi: Your Devotional Murāja'ah Plan is Created!";
+    
+    const emailHtml = `
+      <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+        <h2 style="color: #065f46; border-bottom: 2px solid #065f46; padding-bottom: 8px;">Assalamu Alaikum ${user.username},</h2>
+        <p>A new <b>Devotional Murāja'ah Plan</b> has been successfully initialized for your learning journey at Ilm-Naafi Academy!</p>
+        
+        <div style="background-color: #f8fafc; border-left: 4px solid #065f46; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+          <p style="margin: 0 0 8px 0;"><b>Plan Details:</b></p>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li><b>Memorized Portions:</b> ${plan?.portions || 'Quranic Surahs'}</li>
+            <li><b>Preferred Time:</b> ${plan?.preferredTime || 'After Fajr'}</li>
+            <li><b>Daily Revision Load:</b> ${plan?.dailyLoad || '1 Juz'}</li>
+            <li><b>Revision Cycle:</b> ${plan?.strength || 'Moderate'}</li>
+          </ul>
+        </div>
+        
+        <p>We will remind you daily at your scheduled time. Consistency is key to preserving the Sacred Text in your heart!</p>
+        <p style="font-size: 11px; color: #64748b; margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+          Barakallahu Feekum,<br>
+          <b>Sulayman From Ilm-Naafi Academy</b>
+        </p>
+      </div>
+    `;
+
+    if (resend) {
+      await resend.emails.send({
+        from: "Sulayman From Ilm-Naafi <onboarding@resend.dev>",
+        to: [user.email, adminEmail],
+        subject: subject,
+        html: emailHtml
+      });
+      console.log(`[Email Sent] Devotional plan creation email successfully sent to ${user.email} and admin`);
+    } else {
+      console.log(`[Email Logging Fallback] (Resend is not configured yet)\nSender: Sulayman From Ilm-Naafi\nTo: ${user.email}\nSubject: ${subject}\nBody:\n${emailHtml}`);
+    }
+
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("[Devotional Created Endpoint Error]:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/devotional/start-session", authenticateJWT, async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    await dbStore.saveDevotionalPlan(user.id + "_last_start", { date: todayStr });
+    res.json({ success: true, date: todayStr });
+  } catch (e: any) {
+    console.error("[Start Session Endpoint Error]:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+async function runDevotionalScheduler() {
+  try {
+    const users = await dbStore.getUsers();
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const todayStr = now.toISOString().split('T')[0];
+
+    const preferredTimeHours: Record<string, number> = {
+      "After Fajr": 5,
+      "Morning": 9,
+      "After Dhuhr": 13,
+      "After Asr": 16,
+      "After Maghrib": 19,
+      "After Isha": 20
+    };
+
+    for (const user of users) {
+      const plan = await dbStore.getDevotionalPlan(user.id);
+      if (!plan || !plan.preferredTime) continue;
+
+      const schedHour = preferredTimeHours[plan.preferredTime] || 8;
+      const schedMinute = 30; // 30 mins past the hour
+
+      // 1. Scheduled Reminders
+      if (currentHour === schedHour && currentMinute === schedMinute) {
+        const resend = getResend();
+        const adminEmail = process.env.ADMIN_EMAIL || "admin@ilm-naafi.edu";
+        const subject = "Sulayman From Ilm-Naafi: It is time for your scheduled Murāja'ah!";
+        
+        const emailHtml = `
+          <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+            <h2 style="color: #065f46; border-bottom: 2px solid #065f46; padding-bottom: 8px;">Assalamu Alaikum ${user.username},</h2>
+            <p>This is your daily Murāja'ah session reminder. It is now time for your scheduled revision!</p>
+            
+            <p style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 8px; color: #166534; font-weight: bold;">
+              Today's Goal: ${plan.dailyLoad || '1 Juz'}
+            </p>
+            
+            <p>Log in to the Academy website or app right now, and your session will automatically begin!</p>
+            <p style="font-size: 11px; color: #64748b; margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+              Barakallahu Feekum,<br>
+              <b>Sulayman From Ilm-Naafi Academy</b>
+            </p>
+          </div>
+        `;
+
+        const lastSentKey = `reminder_sent_${user.id}_${todayStr}`;
+        const alreadySent = await dbStore.getDevotionalPlan(lastSentKey);
+        if (!alreadySent) {
+          if (resend) {
+            await resend.emails.send({
+              from: "Sulayman From Ilm-Naafi <onboarding@resend.dev>",
+              to: [user.email, adminEmail],
+              subject: subject,
+              html: emailHtml
+            });
+          } else {
+            console.log(`[Email Logging Fallback] (Resend is not configured yet)\nSender: Sulayman From Ilm-Naafi\nTo: ${user.email}\nSubject: ${subject}\nBody:\n${emailHtml}`);
+          }
+          await dbStore.saveDevotionalPlan(lastSentKey, { sent: true });
+          console.log(`[Daily Reminder Sent] Dispatched scheduled reminder to ${user.email} for preferredTime ${plan.preferredTime}`);
+        }
+      }
+
+      // 2. Overdue Warning (30 minutes past preferred time)
+      const missHour = schedMinute >= 30 ? (schedHour + 1) % 24 : schedHour;
+      const missMinute = (schedMinute + 30) % 60;
+
+      if (currentHour === missHour && currentMinute === missMinute) {
+        const lastStart = await dbStore.getDevotionalPlan(user.id + "_last_start");
+        const hasStartedToday = lastStart && lastStart.date === todayStr;
+
+        if (!hasStartedToday) {
+          const resend = getResend();
+          const adminEmail = process.env.ADMIN_EMAIL || "admin@ilm-naafi.edu";
+          const subject = "Sulayman From Ilm-Naafi: Missed Murāja'ah Session Warning!";
+          
+          const emailHtml = `
+            <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+              <h2 style="color: #991b1b; border-bottom: 2px solid #991b1b; padding-bottom: 8px;">Assalamu Alaikum ${user.username},</h2>
+              <p>We noticed you haven't started your scheduled Murāja'ah session yet today, which was due 30 minutes ago.</p>
+              
+              <p style="background-color: #fef2f2; border: 1px solid #fca5a5; padding: 14px; border-radius: 8px; color: #991b1b; font-weight: bold;">
+                Status: Pending (${plan.dailyLoad || '1 Juz'} is overdue)
+              </p>
+              
+              <p>Consistency is key to Quran memorization. Please log in as soon as possible to secure your daily streak!</p>
+              <p style="font-size: 11px; color: #64748b; margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+                Barakallahu Feekum,<br>
+                <b>Sulayman From Ilm-Naafi Academy</b>
+              </p>
+            </div>
+          `;
+
+          const lastSentKey = `missed_sent_${user.id}_${todayStr}`;
+          const alreadySent = await dbStore.getDevotionalPlan(lastSentKey);
+          if (!alreadySent) {
+            if (resend) {
+              await resend.emails.send({
+                from: "Sulayman From Ilm-Naafi <onboarding@resend.dev>",
+                to: [user.email, adminEmail],
+                subject: subject,
+                html: emailHtml
+              });
+            } else {
+              console.log(`[Email Logging Fallback] (Resend is not configured yet)\nSender: Sulayman From Ilm-Naafi\nTo: ${user.email}\nSubject: ${subject}\nBody:\n${emailHtml}`);
+            }
+            await dbStore.saveDevotionalPlan(lastSentKey, { sent: true });
+            console.log(`[Missed Reminder Sent] Dispatched missed session warning to ${user.email}`);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[Devotional Scheduler Error]:", err);
+  }
+}
+
+// Check every 60 seconds
+setInterval(runDevotionalScheduler, 60000);
 
 // Configure Vite integration
 async function startServer() {
