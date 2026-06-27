@@ -2229,6 +2229,21 @@ app.post("/api/devotional/start-session", authenticateJWT, async (req: Authentic
   }
 });
 
+app.get("/api/devotional/session-status", authenticateJWT, async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastStart = await dbStore.getDevotionalPlan(user.id + "_last_start");
+    const startedToday = lastStart && lastStart.date === todayStr;
+    res.json({ success: true, startedToday: !!startedToday });
+  } catch (e: any) {
+    console.error("[Session Status Endpoint Error]:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 async function runDevotionalScheduler() {
   try {
     const users = await dbStore.getUsers();

@@ -803,7 +803,8 @@ export default function App() {
             username: session.username,
             email: session.email,
             joinedForums: session.joinedForums ?? [],
-            notifications: session.notifications ?? []
+            notifications: session.notifications ?? [],
+            devotionalPlan: (session as any).devotionalPlan
           });
         }
       } catch (err) {
@@ -993,7 +994,8 @@ export default function App() {
             username: session.username,
             email: session.email,
             joinedForums: session.joinedForums ?? [],
-            notifications: session.notifications ?? []
+            notifications: session.notifications ?? [],
+            devotionalPlan: (session as any).devotionalPlan
           });
         } else {
           setProgress(prev => ({ ...prev, username, email, joinedForums: [], notifications: [] }));

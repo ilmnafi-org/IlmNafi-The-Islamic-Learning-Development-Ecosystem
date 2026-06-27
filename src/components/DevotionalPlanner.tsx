@@ -37,6 +37,8 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
   // Ghost Mode
   const [ghostModeActive, setGhostModeActive] = useState(false);
   const [ghostTask, setGhostTask] = useState<string>('');
+  
+  const checkedAutoStartRef = React.useRef(false);
 
   React.useEffect(() => {
     if (progress.devotionalPlan) {
@@ -44,6 +46,42 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
       setSetupMode(false);
     }
   }, [progress.devotionalPlan]);
+
+  const startSession = (planObj?: any) => {
+    const activePlan = planObj || generatedPlan;
+    if (!activePlan) return;
+    setGhostTask(activePlan.dailyLoad || "Daily Revision");
+    setGhostModeActive(true);
+
+    // Call API to register session start
+    fetch('/api/devotional/start-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('ilm_token')}`
+      }
+    }).catch(err => console.error("Start session record error:", err));
+  };
+
+  React.useEffect(() => {
+    if (!generatedPlan || !progress.email || checkedAutoStartRef.current) return;
+    checkedAutoStartRef.current = true;
+
+    // Check if today's session has already been started on the backend
+    fetch('/api/devotional/session-status', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('ilm_token')}`
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && !data.startedToday) {
+        // Auto-start session because they haven't started it today yet
+        startSession(generatedPlan);
+      }
+    })
+    .catch(err => console.error("Error checking session status:", err));
+  }, [generatedPlan, progress.email]);
 
   const calculatePlan = () => {
     setGenerating(true);
@@ -354,10 +392,7 @@ export default function DevotionalPlanner({ lang, progress, onUpdateProgress }: 
                 </div>
                 
                 <button 
-                  onClick={() => {
-                    setGhostTask(generatedPlan.dailyLoad);
-                    setGhostModeActive(true);
-                  }}
+                  onClick={() => startSession()}
                   className="w-full md:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md transition-transform hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <PlayCircle className="w-5 h-5" />

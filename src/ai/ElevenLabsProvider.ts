@@ -8,7 +8,7 @@ export class ElevenLabsProvider {
   private audioContext: AudioContext | null = null;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY || ''; // In production, proxy via backend
+    this.apiKey = (import.meta as any).env.VITE_ELEVENLABS_API_KEY || ''; // In production, proxy via backend
   }
 
   public async speak(text: string, onComplete?: () => void) {

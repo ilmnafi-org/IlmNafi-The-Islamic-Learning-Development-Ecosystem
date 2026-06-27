@@ -8,7 +8,7 @@ export class WhisperProvider {
   private isRecording: boolean = false;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || ''; // In production, route through backend
+    this.apiKey = (import.meta as any).env.VITE_OPENAI_API_KEY || ''; // In production, route through backend
   }
 
   public async startStream(onChunkMatched: (word: string, timestamp: number) => void) {

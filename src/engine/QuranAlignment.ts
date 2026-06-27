@@ -20,6 +20,12 @@ export class QuranAlignment {
       .trim();
   }
 
+  static calculate(spoken: string, expected: string): AlignmentResult {
+    const spokenWords = spoken.trim().split(/\s+/).filter(Boolean);
+    const expectedWords = expected.trim().split(/\s+/).filter(Boolean);
+    return this.alignSequence(spokenWords, expectedWords);
+  }
+
   static alignSequence(spokenWords: string[], expectedWords: string[]): AlignmentResult {
     const normSpoken = spokenWords.map(w => this.normalizeArabic(w));
     const normExpected = expectedWords.map(w => this.normalizeArabic(w));

@@ -79,6 +79,15 @@ export class MurajaahEngine {
     };
   }
 
+  public loadJuz(juz: number) {
+    const mockAyahs: Ayah[] = [
+      { number: 1, text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", surah: 1, juz },
+      { number: 2, text: "الرَّحْمَنِ الرَّحِيمِ", surah: 1, juz },
+      { number: 3, text: "مَالِكِ يَوْمِ الدِّينِ", surah: 1, juz }
+    ];
+    this.loadSession(mockAyahs);
+  }
+
   public loadSession(ayahs: Ayah[]) {
     this.ayahs = ayahs;
     this.currentIndex = 0;
