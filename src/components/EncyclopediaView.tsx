@@ -22,6 +22,9 @@ import {
   Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QuranLibrary } from './encyclopedia/QuranLibrary';
+import { HadithLibrary } from './encyclopedia/HadithLibrary';
+import { CustomLibrary } from './encyclopedia/CustomLibrary';
 
 const categories = [
   { id: 'quran', title: 'Qur\'an & Sciences', description: 'Tafsir, recitation, and meanings', icon: BookOpen },
@@ -124,28 +127,26 @@ export const EncyclopediaView = ({ lang }: { lang: 'en' | 'ar' }) => {
               transition={{ duration: 0.4 }}
               className="bg-white border border-slate-200 p-8 md:p-12 shadow-sm rounded-sm"
             >
-              <button 
-                onClick={() => setSelectedCategory(null)}
-                className="flex items-center text-xs font-mono text-slate-500 hover:text-amber-800 mb-10 transition-colors uppercase tracking-widest"
-              >
-                <ArrowRight className="w-4 h-4 rotate-180 mr-2" strokeWidth={1.5} /> Return to Index
-              </button>
-              <div className="max-w-4xl">
-                 <h2 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight mb-6">
-                   {categories.find(c => c.id === selectedCategory)?.title}
-                 </h2>
-                 <p className="text-lg text-slate-600 font-serif italic mb-10">
-                   {categories.find(c => c.id === selectedCategory)?.description}
-                 </p>
-                 <div className="prose prose-slate max-w-none font-serif">
-                   <p className="text-slate-700 leading-loose text-base md:text-lg mb-8">
-                     This volume of the library contains structured knowledge, verified references, timelines, and scholarly insights. Search specific inquiries above to extract and synthesize information across chapters.
-                   </p>
-                   <div className="flex items-center gap-3 text-xs font-mono uppercase tracking-widest text-amber-800 border border-amber-200 bg-amber-50 px-4 py-3 rounded-sm inline-flex">
-                     <BookOpen className="w-4 h-4" strokeWidth={1.5} /> Verified Scholarly Archive
-                   </div>
-                 </div>
+              <div className="flex justify-between items-start mb-8">
+                <button 
+                  onClick={() => setSelectedCategory(null)}
+                  className="flex items-center text-xs font-mono text-slate-500 hover:text-amber-800 transition-colors uppercase tracking-widest"
+                >
+                  <ArrowRight className="w-4 h-4 rotate-180 mr-2" strokeWidth={1.5} /> Return to Index
+                </button>
               </div>
+
+              {selectedCategory === 'quran' ? (
+                <QuranLibrary />
+              ) : selectedCategory === 'hadith' ? (
+                <HadithLibrary />
+              ) : (
+                <CustomLibrary 
+                  categoryId={selectedCategory} 
+                  categoryTitle={categories.find(c => c.id === selectedCategory)?.title || ''}
+                  categoryDescription={categories.find(c => c.id === selectedCategory)?.description || ''}
+                />
+              )}
             </motion.div>
           )}
         </AnimatePresence>
