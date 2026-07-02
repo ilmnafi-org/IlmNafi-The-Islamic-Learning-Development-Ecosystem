@@ -309,12 +309,12 @@ export default function StudentDashboard({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* RESPONSIVE NAVIGATION: SIDEBAR FOR LARGER SCREENS, HORIZONTAL FOR MOBILE */}
-        <aside className="flex lg:col-span-3 flex-col gap-4 lg:gap-6 bg-[#FAF8F5] lg:border border-slate-200 lg:rounded-3xl lg:p-5 shadow-sm sticky top-[4rem] lg:top-6 z-[60] -mx-4 px-4 py-3 lg:mx-0 lg:py-0 border-y lg:border-y-0">
-          <span className="hidden lg:block text-[9px] font-black uppercase text-slate-400 tracking-wider px-1 border-b border-slate-200/50 pb-2 mb-2">
+        {/* RESPONSIVE NAVIGATION: SIDEBAR FOR LARGER SCREENS */}
+        <aside className="hidden lg:flex lg:col-span-3 flex-col gap-6 bg-[#FAF8F5] border border-slate-200 rounded-3xl p-5 shadow-sm sticky top-6">
+          <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block px-1 border-b border-slate-200/50 pb-2 mb-2">
             {lang === 'en' ? "Workspace Control" : "لوحة التحكم الأكاديمية"}
           </span>
-          <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto scroller-hidden pb-1 lg:pb-0" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+          <nav className="flex flex-col gap-1.5" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
             {tabsInfo.map((tab) => {
               const TabIcon = tab.icon;
               const isActive = innerTab === tab.id;
@@ -322,12 +322,12 @@ export default function StudentDashboard({
                 <button
                   key={tab.id}
                   onClick={() => setInnerTab(tab.id)}
-                  className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl text-[11px] lg:text-xs font-bold transition-all border outline-none cursor-pointer whitespace-nowrap shrink-0 ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all border outline-none cursor-pointer ${
                     isActive 
-                      ? 'bg-emerald-900 text-white border-emerald-950 shadow-md font-black lg:translate-x-1' 
+                      ? 'bg-emerald-900 text-white border-emerald-950 shadow-md font-black translate-x-1' 
                       : 'bg-white text-slate-700 hover:text-emerald-900 border-slate-150 hover:bg-slate-50'
                   }`}
-                  style={{ flexDirection: lang === 'ar' && window.innerWidth >= 1024 ? 'row-reverse' : 'row' }}
+                  style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
                 >
                   <TabIcon className={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-300' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
@@ -337,7 +337,7 @@ export default function StudentDashboard({
           </nav>
 
           {/* DIGITAL ACCREDITED COINED ID BADGE MINIMIZED IN SIDEBAR */}
-          <div className="hidden lg:block bg-gradient-to-br from-slate-900 via-[#071310] to-slate-950 text-white rounded-2xl p-4 border border-slate-800 mt-2">
+          <div className="bg-gradient-to-br from-slate-900 via-[#071310] to-slate-950 text-white rounded-2xl p-4 border border-slate-800 mt-2">
             <div className="flex justify-between items-center pb-2 border-b border-white/5">
               <span className="text-[8px] font-bold text-amber-300 tracking-wider">● {labels.cardActive}</span>
               <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
@@ -636,6 +636,26 @@ export default function StudentDashboard({
 
         </main>
 
+      </div>
+
+      {/* MOBILE BOTTOM NAVIGATION PANEL */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-[80] flex items-center justify-around pb-safe pt-2 px-2" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+        {tabsInfo.map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = innerTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setInnerTab(tab.id)}
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${
+                isActive ? 'text-emerald-800' : 'text-slate-500 hover:text-emerald-700'
+              }`}
+            >
+              <TabIcon className={`w-5 h-5 ${isActive ? 'fill-emerald-100/50 stroke-2' : 'stroke-1.5'}`} />
+              <span className="text-[10px] font-bold mt-1 tracking-tight max-w-full truncate">{tab.label.split(' ')[0]}</span>
+            </button>
+          );
+        })}
       </div>
 
     </div>

@@ -2654,61 +2654,63 @@ export default function App() {
       </AnimatePresence>
 
       {/* FIXED MOBILE BOTTOM NAVIGATION BAR */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-[80] flex items-center justify-around pb-safe pt-2 px-2" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-        <button 
-          onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'home' && !mobileMenuOpen ? 'text-emerald-800' : 'text-slate-500 hover:text-emerald-700'}`}
-        >
-          <Home className={`w-5 h-5 ${activeTab === 'home' && !mobileMenuOpen ? 'fill-emerald-100/50 stroke-2' : 'stroke-1.5'}`} />
-          <span className="text-[10px] font-bold mt-1 tracking-tight">{lang === 'en' ? 'Home' : 'الرئيسية'}</span>
-        </button>
-
-        <button 
-          onClick={() => { setActiveTab('curriculum'); setMobileMenuOpen(false); }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'curriculum' && !mobileMenuOpen ? 'text-amber-800' : 'text-slate-500 hover:text-amber-700'}`}
-        >
-          <GraduationCap className={`w-5 h-5 ${activeTab === 'curriculum' && !mobileMenuOpen ? 'fill-amber-100/50 stroke-2' : 'stroke-1.5'}`} />
-          <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.curriculum}</span>
-        </button>
-
-        {progress.username ? (
+      {activeTab !== 'home' && activeTab !== 'dashboard' && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-[80] flex items-center justify-around pb-safe pt-2 px-2" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
           <button 
-            onClick={() => { setActiveTab('dashboard'); setMobileMenuOpen(false); }}
-            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'dashboard' && !mobileMenuOpen ? 'text-emerald-900' : 'text-slate-500 hover:text-emerald-800'}`}
+            onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'home' && !mobileMenuOpen ? 'text-emerald-800' : 'text-slate-500 hover:text-emerald-700'}`}
           >
-            <div className="bg-emerald-50 w-10 h-10 -mt-6 rounded-full flex items-center justify-center shadow-sm border border-emerald-100">
-              <span className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-extrabold text-sm border-2 border-white shadow-inner">
-                {progress.username.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <span className="text-[10px] font-bold mt-0.5 tracking-tight text-emerald-800">{lang === 'en' ? 'Dash' : 'لوحة'}</span>
+            <Home className={`w-5 h-5 ${activeTab === 'home' && !mobileMenuOpen ? 'fill-emerald-100/50 stroke-2' : 'stroke-1.5'}`} />
+            <span className="text-[10px] font-bold mt-1 tracking-tight">{lang === 'en' ? 'Home' : 'الرئيسية'}</span>
           </button>
-        ) : (
+
           <button 
-            onClick={() => { setActiveTab('daily'); setMobileMenuOpen(false); }}
-            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'daily' && !mobileMenuOpen ? 'text-blue-800' : 'text-slate-500 hover:text-blue-700'}`}
+            onClick={() => { setActiveTab('curriculum'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'curriculum' && !mobileMenuOpen ? 'text-amber-800' : 'text-slate-500 hover:text-amber-700'}`}
           >
-            <Clock className={`w-5 h-5 ${activeTab === 'daily' && !mobileMenuOpen ? 'fill-blue-100/50 stroke-2' : 'stroke-1.5'}`} />
-            <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.daily}</span>
+            <GraduationCap className={`w-5 h-5 ${activeTab === 'curriculum' && !mobileMenuOpen ? 'fill-amber-100/50 stroke-2' : 'stroke-1.5'}`} />
+            <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.curriculum}</span>
           </button>
-        )}
 
-        <button 
-          onClick={() => { setActiveTab('quran'); setMobileMenuOpen(false); }}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'quran' && !mobileMenuOpen ? 'text-teal-800' : 'text-slate-500 hover:text-teal-700'}`}
-        >
-          <BookOpen className={`w-5 h-5 ${activeTab === 'quran' && !mobileMenuOpen ? 'fill-teal-100/50 stroke-2' : 'stroke-1.5'}`} />
-          <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.quran}</span>
-        </button>
+          {progress.username ? (
+            <button 
+              onClick={() => { setActiveTab('dashboard'); setMobileMenuOpen(false); }}
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'dashboard' && !mobileMenuOpen ? 'text-emerald-900' : 'text-slate-500 hover:text-emerald-800'}`}
+            >
+              <div className="bg-emerald-50 w-10 h-10 -mt-6 rounded-full flex items-center justify-center shadow-sm border border-emerald-100">
+                <span className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-extrabold text-sm border-2 border-white shadow-inner">
+                  {progress.username.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold mt-0.5 tracking-tight text-emerald-800">{lang === 'en' ? 'Dash' : 'لوحة'}</span>
+            </button>
+          ) : (
+            <button 
+              onClick={() => { setActiveTab('daily'); setMobileMenuOpen(false); }}
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'daily' && !mobileMenuOpen ? 'text-blue-800' : 'text-slate-500 hover:text-blue-700'}`}
+            >
+              <Clock className={`w-5 h-5 ${activeTab === 'daily' && !mobileMenuOpen ? 'fill-blue-100/50 stroke-2' : 'stroke-1.5'}`} />
+              <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.daily}</span>
+            </button>
+          )}
 
-        <button 
-          onClick={() => setMobileMenuOpen(true)}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${mobileMenuOpen ? 'text-indigo-800' : 'text-slate-500 hover:text-indigo-700'}`}
-        >
-          <Menu className={`w-5 h-5 ${mobileMenuOpen ? 'stroke-2' : 'stroke-1.5'}`} />
-          <span className="text-[10px] font-bold mt-1 tracking-tight">{lang === 'en' ? 'Menu' : 'المزيد'}</span>
-        </button>
-      </div>
+          <button 
+            onClick={() => { setActiveTab('quran'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'quran' && !mobileMenuOpen ? 'text-teal-800' : 'text-slate-500 hover:text-teal-700'}`}
+          >
+            <BookOpen className={`w-5 h-5 ${activeTab === 'quran' && !mobileMenuOpen ? 'fill-teal-100/50 stroke-2' : 'stroke-1.5'}`} />
+            <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.quran}</span>
+          </button>
+
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${mobileMenuOpen ? 'text-indigo-800' : 'text-slate-500 hover:text-indigo-700'}`}
+          >
+            <Menu className={`w-5 h-5 ${mobileMenuOpen ? 'stroke-2' : 'stroke-1.5'}`} />
+            <span className="text-[10px] font-bold mt-1 tracking-tight">{lang === 'en' ? 'Menu' : 'المزيد'}</span>
+          </button>
+        </div>
+      )}
 
     </div>
     </>
