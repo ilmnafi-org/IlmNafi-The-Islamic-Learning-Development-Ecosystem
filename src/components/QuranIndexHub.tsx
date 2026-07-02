@@ -62,29 +62,28 @@ export default function QuranIndexHub({
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800 pb-24 font-sans selection:bg-amber-500/20 selection:text-amber-800" id="quran-catalog-index">
       
-      {/* HEADER BAR */}
-      <div className="border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4.5 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-              <BookOpen className="w-5.5 h-5.5 text-amber-600" />
-            </div>
-            <div>
-              <h1 className="text-sm font-black text-slate-900 tracking-widest font-mono uppercase">
-                {lang === 'en' ? "AL-QUR'AN" : "القرآن الكريم"}
-              </h1>
-              <p className="text-[10px] text-amber-700/80 font-serif italic tracking-wide">
-                {lang === 'en' ? "Modular Divine Revelation Hub" : "تصفح ميسر مع التلاوة والتجويد"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[9px] bg-slate-100 text-slate-650 font-mono font-black uppercase px-2.5 py-1 rounded border border-slate-200 tracking-wider">
-              {lang === 'en' ? "OFFLINE AUDIO ENGINE" : "المزامنة الصوتية"}
-            </span>
-          </div>
+      {/* HERO SECTION */}
+      <section 
+        className="relative overflow-hidden pt-36 pb-24 md:pt-48 md:pb-32 text-center px-4 w-full bg-cover bg-center text-white shadow-md mb-8"
+        style={{
+          backgroundImage: "linear-gradient(to bottom, rgba(5, 23, 19, 0.9), rgba(9, 15, 14, 0.95)), url('https://images.unsplash.com/photo-1608249826359-5b7fb5f8e5ee?auto=format&fit=crop&q=80&w=1600')"
+        }}
+      >
+        <div className="max-w-4xl mx-auto relative z-10 flex flex-col items-center">
+          <span className="inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-200 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest mb-4 border border-amber-500/30">
+            <BookOpen className="w-3 h-3" />
+            {lang === 'en' ? "Modular Divine Revelation Hub" : "تصفح ميسر مع التلاوة والتجويد"}
+          </span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-6 font-sans">
+            {lang === 'en' ? "AL-QUR'AN" : "القرآن الكريم"}
+          </h1>
+          <p className="text-emerald-100/80 font-medium text-sm md:text-base max-w-2xl leading-relaxed">
+            {lang === 'en' 
+              ? "Read, search, and listen to the Holy Quran with integrated offline audio engine and Tajweed visualization."
+              : "قراءة وبحث واستماع للقرآن الكريم مع مزامنة صوتية ذكية وتصور مرئي لأحكام التجويد."}
+          </p>
         </div>
-      </div>
+      </section>
 
       {/* DYNAMIC ERROR MESSAGE */}
       {errorMsg && (
