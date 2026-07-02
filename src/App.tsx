@@ -1566,7 +1566,7 @@ export default function App() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-white border-t border-slate-200 shadow-2xl rounded-t-[2.5rem] p-6 pb-12 z-50 flex flex-col lg:hidden overflow-y-auto"
+              className="fixed bottom-0 left-0 right-0 max-h-[55vh] bg-white border-t border-slate-200 shadow-2xl rounded-t-[2.5rem] p-6 pb-12 z-50 flex flex-col lg:hidden overflow-y-auto overscroll-contain"
               id="mobile-bottom-sheet"
               style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
             >
@@ -1722,7 +1722,7 @@ export default function App() {
                 </div>
 
                 {/* Redesigned Clean Icon-Based Portals Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
                   
                   {/* PORTAL 1: HOLY QURAN */}
                   <div 
@@ -1730,7 +1730,6 @@ export default function App() {
                     className="premium-card hover:border-amber-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
                     id="terminal-portal-quran"
                   >
-                    <div className="absolute top-1.5 right-1.5 bg-amber-100 text-amber-800 font-bold text-[8px] tracking-wide px-1.5 py-0.5 rounded-full uppercase">NEW</div>
                     <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
                       <BookOpen className="w-5 h-5 text-amber-700" />
                     </div>
@@ -1778,6 +1777,25 @@ export default function App() {
                       </h3>
                       <p className="text-[10px] text-slate-400 font-semibold leading-none">
                         {lang === 'en' ? "Tasbih & Compass" : "مسبحة وبوصلة تفاعلية"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* PORTAL 4: ENCYCLOPEDIA (Hadith, etc) */}
+                  <div 
+                    onClick={() => setActiveTab('encyclopedia')}
+                    className="premium-card hover:border-rose-600 p-5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    id="terminal-portal-encyclopedia"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center border border-rose-200 group-hover:scale-110 transition-transform duration-300 shadow-2xs">
+                      <BookOpen className="w-5 h-5 text-rose-800" />
+                    </div>
+                    <div className="mt-3 space-y-1">
+                      <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-rose-800 leading-tight font-sans">
+                        {lang === 'en' ? "Encyclopedia" : "الموسوعة والحديث"}
+                      </h3>
+                      <p className="text-[10px] text-slate-400 font-semibold leading-none">
+                        {lang === 'en' ? "Hadith & Seerah" : "السيرة والكتب الصحاح"}
                       </p>
                     </div>
                   </div>

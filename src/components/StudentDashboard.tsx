@@ -295,9 +295,15 @@ export default function StudentDashboard({
             {labels.subtitle}
           </p>
         </div>
-        <div className="text-slate-400 text-xs font-mono bg-white border border-slate-200 px-4 py-2.5 rounded-2xl flex items-center gap-2 self-start md:self-auto shadow-sm">
-          <Calendar className="w-4 h-4 text-emerald-800" />
-          <span>UTC: {new Date().toISOString().split('T')[0]}</span>
+        <div className="text-slate-400 text-xs font-mono bg-white border border-slate-200 px-4 py-2.5 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-2 self-start md:self-auto shadow-sm">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-emerald-800" />
+            <span>Gregorian: {new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'ar-EG')}</span>
+          </div>
+          <div className="hidden md:block w-px h-4 bg-slate-200"></div>
+          <div className="flex items-center gap-2 text-emerald-800 font-semibold">
+            <span>Hijri: {new Intl.DateTimeFormat(lang === 'en' ? 'en-TN-u-ca-islamic' : 'ar-SA-u-ca-islamic', {day: 'numeric', month: 'long', year : 'numeric'}).format(new Date())}</span>
+          </div>
         </div>
       </div>
 

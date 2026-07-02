@@ -54,6 +54,21 @@ export const AUTHENTIC_ADHKAR_DB: DhikrItem[] = [
     grade: "Sahih"
   },
   {
+    id: "m_100_istighfar",
+    category: "morning",
+    arabic: "أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ",
+    transliteration: "Astaghfirullaha wa atubu ilayhi.",
+    translationEn: "I seek the forgiveness of Allah and repent to Him.",
+    translationAr: "أستغفر الله وأتوب إليه.",
+    translationUr: "میں اللہ سے بخشش مانگتا ہوں اور اس کی طرف توبہ کرتا ہوں۔",
+    translationHa: "Ina neman gafarar Allah kuma ina tuba zuwa gare Shi.",
+    targetCount: 100,
+    source: "Hisnul Muslim / Bukhari 6307",
+    virtueEn: "The Prophet (ﷺ) used to say this one hundred times a day.",
+    virtueAr: "والله إني لأستغفر الله وأتوب إليه في اليوم أكثر من سبعين مرة.",
+    grade: "Sahih"
+  },
+  {
     id: "m_20_ilman",
     category: "morning",
     arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا",

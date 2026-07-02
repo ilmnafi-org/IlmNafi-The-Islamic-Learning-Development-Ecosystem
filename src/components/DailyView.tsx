@@ -31,7 +31,8 @@ import {
   Info,
   ChevronUp,
   Bell,
-  BellOff
+  BellOff,
+  Share2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AUTHENTIC_ADHKAR_DB, DhikrItem, DAILY_WIRDS_PRESETS } from '../adhkarData';
@@ -453,6 +454,19 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
     setTimeout(() => {
       setCopiedId(null);
     }, 2000);
+  };
+
+  const handleShare = (dhikr: DhikrItem) => {
+    const textToShare = `${dhikr.arabic}\n\n${dhikr.translationEn}\n\nShared from Ilm Nafi App`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Ilm Nafi Adhkar',
+        text: textToShare,
+      }).catch((err) => console.error("Error sharing:", err));
+    } else {
+      handleCopy(textToShare, dhikr.id);
+      alert(lang === 'en' ? "Copied to clipboard to share" : "تم النسخ للمشاركة");
+    }
   };
 
   // 12 Backup Classical Prayers for complete robust offline operation (always valid)
@@ -1128,6 +1142,15 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                           >
                             {isCurrentlyReading === activeStep.id + '-tr' ? <VolumeX className="w-4 h-4 animate-pulse text-indigo-305" /> : <Volume2 className="w-4 h-4 text-indigo-600" />}
                             <span>{lang === 'en' ? "Read Meaning" : "قراءة المعنى"}</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleShare(activeStep)}
+                            className="p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200"
+                            title={lang === 'en' ? "Share this Adhkar" : "مشاركة هذا الذكر"}
+                          >
+                            <Share2 className="w-4 h-4 text-slate-500" />
+                            <span>{lang === 'en' ? "Share" : "مشاركة"}</span>
                           </button>
                         </div>
                       </div>
