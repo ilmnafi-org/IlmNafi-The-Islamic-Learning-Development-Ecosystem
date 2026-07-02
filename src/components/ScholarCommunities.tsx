@@ -6,7 +6,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Award, ShieldCheck, BookOpen, Clock, Heart, Download, 
-  ChevronRight, ArrowLeft, Bell, BookCheck, ClipboardList, Filter
+  ChevronRight, ArrowLeft, Bell, BookCheck, ClipboardList, Filter,
+  Search, Check, MessageSquare, Globe, Sparkles, Building, Landmark,
+  BookMarked
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VERIFIED_SCHOLARS, Scholar, ScholarAnnouncement } from '../data/scholarData';
@@ -28,46 +30,80 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
   const [webinars, setWebinars] = useState<any[]>([]);
   const [followedScholars, setFollowedScholars] = useState<string[]>([]);
 
+  // Communities and memberships state
+  const [communities, setCommunities] = useState<any[]>([]);
+  const [joinedCommunityIds, setJoinedCommunityIds] = useState<string[]>([]);
+  const [activeSectionTab, setActiveSectionTab] = useState<'scholars' | 'communities'>('scholars');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loadingCommunities, setLoadingCommunities] = useState(true);
+
+  const fetchCommunitiesData = () => {
+    setLoadingCommunities(true);
+    // Fetch all communities
+    fetch('/api/scholar/communities')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCommunities(data);
+        }
+      })
+      .catch(err => console.error("Failed to fetch communities:", err));
+
+    // Fetch memberships if logged in
+    if (currentUser) {
+      fetch('/api/scholar/communities/membership')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setJoinedCommunityIds(data.map(m => m.community_id));
+          }
+        })
+        .catch(err => console.error("Failed to fetch memberships:", err))
+        .finally(() => setLoadingCommunities(false));
+    } else {
+      setJoinedCommunityIds([]);
+      setLoadingCommunities(false);
+    }
+  };
+
   useEffect(() => {
-    // Live Supabase Sync for Announcements
+    // Sync for Announcements
     fetch('/api/scholar/announcements')
       .then(res => res.json())
       .then(data => {
-        if (data && data.length > 0) {
+        if (Array.isArray(data)) {
           setAnnouncements(data);
-        } else {
-          setAnnouncements([]);
         }
       })
-      .catch((err) => {
-        console.error("Live sync failed", err);
-        setAnnouncements([]);
-      });
+      .catch((err) => console.error("Announcements sync failed", err));
 
-    // Live Supabase Sync for Questions
+    // Sync for Questions
     fetch('/api/scholar/questions')
       .then(res => res.json())
       .then(data => {
-        if (data) setQuestions(data);
+        if (Array.isArray(data)) setQuestions(data);
       })
-      .catch((err) => console.error("Questions live sync failed", err));
+      .catch((err) => console.error("Questions sync failed", err));
 
-    // Live Supabase Sync for Webinars
+    // Sync for Webinars
     fetch('/api/scholar/webinars')
       .then(res => res.json())
       .then(data => {
-        if (data) setWebinars(data);
+        if (Array.isArray(data)) setWebinars(data);
       })
-      .catch((err) => console.error("Webinars live sync failed", err));
+      .catch((err) => console.error("Webinars sync failed", err));
 
-    // Load following status
+    // Load following status from localStorage
     const savedFollowing = localStorage.getItem('ilm_followed_scholars');
     if (savedFollowing) {
       try {
         setFollowedScholars(JSON.parse(savedFollowing));
       } catch (e) {}
     }
-  }, []);
+
+    // Load initial communities
+    fetchCommunitiesData();
+  }, [currentUser]);
 
   const handleFollowToggle = (id: string) => {
     if (!ensureAuth(lang === 'en' ? 'follow verified scholar spaces' : 'متابعة حساب ومجلس الشيخ')) return;
@@ -110,98 +146,337 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
     onShowToast(lang === 'en' ? `Downloading book manuscript: ${name}` : `تحميل الملف العلمي الموثق: ${name}`);
   };
 
+  // Community Join / Leave handlers
+  const handleJoinCommunity = (communityId: string) => {
+    if (!ensureAuth(lang === 'en' ? 'join scholar community' : 'الانضمام لمجلس علم الشيخ')) return;
+    
+    fetch('/api/scholar/communities/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ communityId })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setJoinedCommunityIds(prev => [...prev, communityId]);
+          onShowToast(lang === 'en' ? "Successfully joined community! Welcome!" : "تم الانضمام للمجلس بنجاح! مرحبًا بك في حلقة الشيخ.");
+          fetchCommunitiesData(); // Recalculate members count and states
+        }
+      })
+      .catch(err => {
+        console.error("Failed to join community:", err);
+        onShowToast("Connection failed.");
+      });
+  };
+
+  const handleLeaveCommunity = (communityId: string) => {
+    fetch('/api/scholar/communities/leave', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ communityId })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setJoinedCommunityIds(prev => prev.filter(id => id !== communityId));
+          onShowToast(lang === 'en' ? "Left community." : "تم مغادرة المجلس.");
+          fetchCommunitiesData();
+        }
+      })
+      .catch(err => {
+        console.error("Failed to leave community:", err);
+        onShowToast("Connection failed.");
+      });
+  };
+
+  // Searching and Filtering Scholars
+  const filteredScholars = VERIFIED_SCHOLARS.filter(s => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      s.nameEn.toLowerCase().includes(q) ||
+      s.nameAr.toLowerCase().includes(q) ||
+      s.institutionEn.toLowerCase().includes(q) ||
+      s.institutionAr.toLowerCase().includes(q) ||
+      s.badgeEn.toLowerCase().includes(q) ||
+      s.badgeAr.toLowerCase().includes(q) ||
+      s.qualificationsEn.some(qual => qual.toLowerCase().includes(q)) ||
+      s.qualificationsAr.some(qual => qual.toLowerCase().includes(q))
+    );
+  });
+
+  // Searching and Filtering Communities
+  const filteredCommunities = communities.filter(c => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      c.name_en.toLowerCase().includes(q) ||
+      c.name_ar.toLowerCase().includes(q) ||
+      c.description_en.toLowerCase().includes(q) ||
+      c.description_ar.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="space-y-6">
       
       {activeScholarId === null ? (
         <div className="space-y-6">
-          <div className="border-b pb-4">
-            <h2 className="text-xl md:text-2xl font-extrabold text-[#201002] flex items-center gap-2">
-              <Users className="w-6 h-6 text-amber-805" />
-              <span>{lang === 'en' ? "Scholar Communities & Faculties" : "مجتمعات العلماء ومجالس العلوم"}</span>
-            </h2>
-            <p className="text-xs text-slate-500 font-sans mt-0.5">
-              {lang === 'en' 
-                ? "Browse verified profiles, read individual credentials or authentic Ijazah lines, follow scholars, and explore their private announcements." 
-                : "تصفح السير الذاتية المعتمدة لكبار مشايخنا، واطلع على أسانيد إجازاتهم، وتابع منصاتهم لتلقي مذكراتهم وأبحاثهم."}
-            </p>
+          {/* Header section with minimal spacing */}
+          <div className="border-b pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-extrabold text-[#201002] flex items-center gap-2">
+                <Users className="w-6 h-6 text-amber-805 shrink-0" />
+                <span>{lang === 'en' ? "Scholar Hub & Academic Circles" : "مجتمعات المشايخ والمجالس العلمية"}</span>
+              </h2>
+              <p className="text-xs text-slate-500 font-sans mt-1">
+                {lang === 'en' 
+                  ? "Search verified profiles, view qualifications, follow scholars, and join interactive community study circles." 
+                  : "ابحث في الهيئة العلمية المعتمدة، واطلع على مؤهلاتهم، وتابع منصاتهم وانضم إلى الحلقات الحوارية التخصصية."}
+              </p>
+            </div>
+            
+            {/* Elegant Section Tab Switcher */}
+            <div className="flex bg-slate-100 p-1 rounded-xl self-start md:self-auto shrink-0 font-sans">
+              <button
+                onClick={() => { setActiveSectionTab('scholars'); setSearchQuery(''); }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeSectionTab === 'scholars' 
+                    ? 'bg-white text-[#201002] shadow-sm font-black' 
+                    : 'text-slate-650 hover:text-slate-900'
+                }`}
+              >
+                {lang === 'en' ? "Verified Scholars" : "الهيئة العلمية"}
+              </button>
+              <button
+                onClick={() => { setActiveSectionTab('communities'); setSearchQuery(''); }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeSectionTab === 'communities' 
+                    ? 'bg-white text-[#201002] shadow-sm font-black' 
+                    : 'text-slate-650 hover:text-slate-900'
+                }`}
+              >
+                {lang === 'en' ? "Study Circles" : "المجالس العلمية"}
+              </button>
+            </div>
           </div>
 
-          {/* Scholars card collection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-sans">
-            {VERIFIED_SCHOLARS.map((s) => {
-              const isFollowing = followedScholars.includes(s.id);
-              return (
-                <div 
-                  key={s.id}
-                  onClick={() => {
-                    setActiveScholarId(s.id);
-                    setNestedTab('announcements');
-                  }}
-                  className="bg-white rounded-3xl border border-slate-100 hover:border-amber-700/40 p-5 md:p-6 transition-all duration-300 hover:shadow-2xl shadow-[0_10px_35px_rgba(0,0,0,0.04)] cursor-pointer flex flex-col justify-between gap-5 relative overflow-hidden"
-                >
-                  <div className="space-y-4">
-                    {/* Header credentials */}
-                    <div className="flex items-start gap-4">
-                      <img src={s.avatar} alt="avatar" className="w-14 h-14 rounded-full border border-amber-800 shadow object-cover shrink-0" />
-                      <div className="min-w-0">
-                        <span className="bg-amber-100 text-amber-950 font-black text-[9px] px-2.5 py-0.5 rounded-inner shadow-sm uppercase inline-block border border-amber-300/30">
-                          {lang === 'en' ? s.badgeEn : s.badgeAr}
+          {/* Unified Real-Time Search Bar */}
+          <div className="relative font-sans max-w-full">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={
+                activeSectionTab === 'scholars'
+                  ? (lang === 'en' ? "Search scholars by name, institution, specialties, badges..." : "ابحث عن مشايخ الهيئة بالاسم، المؤهل، التخصص، أو الإجازة...")
+                  : (lang === 'en' ? "Search active study circles by topic, syllabus, scholar..." : "ابحث في المجالس العلمية عن الفقه، الحديث، التجويد...")
+              }
+              className="block w-full pl-11 pr-4 py-3 border border-slate-200 rounded-2xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700/20 text-slate-800 font-medium placeholder-slate-400 transition"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-4 flex items-center text-xs text-slate-450 hover:text-slate-700"
+              >
+                {lang === 'en' ? "Clear" : "مسح"}
+              </button>
+            )}
+          </div>
+
+          {/* Scholars section viewport */}
+          {activeSectionTab === 'scholars' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
+              {filteredScholars.length === 0 ? (
+                <div className="col-span-full py-16 text-center bg-white border border-slate-150 rounded-3xl p-6">
+                  <Building className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-xs text-slate-550 font-sans">
+                    {lang === 'en' ? "No verified scholars match your search criteria." : "لا توجد نتائج مطابقة لبحثك في قائمة الهيئة العلمية المعتمدة."}
+                  </p>
+                </div>
+              ) : (
+                filteredScholars.map((s) => {
+                  const isFollowing = followedScholars.includes(s.id);
+                  return (
+                    <div 
+                      key={s.id}
+                      onClick={() => {
+                        setActiveScholarId(s.id);
+                        setNestedTab('announcements');
+                      }}
+                      className="bg-white rounded-3xl border border-slate-100 hover:border-amber-700/40 p-5 transition-all duration-300 hover:shadow-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] cursor-pointer flex flex-col justify-between gap-5 relative overflow-hidden"
+                    >
+                      <div className="space-y-4">
+                        {/* Avatar & credentials */}
+                        <div className="flex items-start gap-4">
+                          <img src={s.avatar} alt={s.nameEn} className="w-14 h-14 rounded-full border-2 border-amber-800 shadow object-cover shrink-0" />
+                          <div className="min-w-0">
+                            <span className="bg-amber-50 text-amber-950 font-black text-[9px] px-2 py-0.5 rounded-md border border-amber-200 inline-block uppercase">
+                              {lang === 'en' ? s.badgeEn : s.badgeAr}
+                            </span>
+                            <h3 className="text-sm font-black text-slate-900 leading-tight mt-1 truncate">
+                              {lang === 'en' ? s.nameEn : s.nameAr}
+                            </h3>
+                            <p className="text-[11px] text-slate-500 font-sans truncate mt-0.5">
+                              {lang === 'en' ? s.institutionEn : s.institutionAr}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Tenure summary list */}
+                        <div className="space-y-1.5 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-600">
+                          <p className="font-bold text-slate-800 text-[11px]">
+                            {lang === 'en' ? "Specialties & Tenure:" : "المؤهلات العلمية الرئيسية:"}
+                          </p>
+                          <ul className="list-disc pl-4 space-y-1 text-slate-500 font-sans text-[11px]">
+                            {(lang === 'en' ? s.qualificationsEn : s.qualificationsAr).slice(0, 2).map((q, idx) => (
+                              <li key={idx} className="truncate">{q}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Footer actions with simplified details */}
+                      <div className="border-t border-slate-100 pt-3 flex items-center justify-between gap-2 shrink-0">
+                        <span className="text-[10px] text-slate-400 font-semibold font-mono">
+                          {isFollowing 
+                            ? (lang === 'en' ? "✓ Subscribed" : "✓ مشترك بالمنبر")
+                            : (lang === 'en' ? `${s.followersCount + (isFollowing ? 1:0)} scholars` : `${s.followersCount + (isFollowing ? 1:0)} طالب علم`)}
                         </span>
-                        <h3 className="text-base font-black text-slate-900 leading-tight mt-1">
-                          {lang === 'en' ? s.nameEn : s.nameAr}
-                        </h3>
-                        <p className="text-xs text-slate-500 font-sans truncate mt-0.5">
-                          {lang === 'en' ? s.institutionEn : s.institutionAr}
-                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFollowToggle(s.id);
+                            }}
+                            className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition cursor-pointer ${
+                              isFollowing 
+                                ? 'bg-amber-50 border-amber-200 text-[#503020]' 
+                                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                            }`}
+                          >
+                            {isFollowing ? (lang === 'en' ? "Following" : "متابَع") : (lang === 'en' ? "Follow" : "متابعة")}
+                          </button>
+                          <button className="p-1.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  );
+                })
+              )}
+            </div>
+          )}
 
-                    {/* Qualifications preview short */}
-                    <div className="space-y-2 border-t border-slate-50 pt-3 text-xs leading-relaxed text-slate-600">
-                      <p className="font-bold text-slate-800">
-                        {lang === 'en' ? "Core Tenure Qualifications:" : "موجز الأهلية والمؤهلات الأكاديمية:"}
-                      </p>
-                      <ul className="list-disc pl-4 space-y-1 text-slate-550 font-sans">
-                        {(lang === 'en' ? s.qualificationsEn : s.qualificationsAr).slice(0, 2).map((q, idx) => (
-                          <li key={idx} className="truncate">{q}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Actions footer */}
-                  <div className="border-t border-slate-100 pt-4 flex items-center justify-between gap-2 shrink-0">
-                    <span className="text-[10px] text-slate-400 font-semibold font-mono">
-                      {isFollowing 
-                        ? (lang === 'en' ? "✓ Following Scholar Space" : "✓ متابع لمنبر الشيخ")
-                        : (lang === 'en' ? `${s.followersCount + (isFollowing ? 1:0)} followers` : `${s.followersCount + (isFollowing ? 1:0)} متابع نشط`)}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFollowToggle(s.id);
-                        }}
-                        className={`px-3 py-1.5 rounded-xl border-2 text-xs font-black transition cursor-pointer ${
-                          isFollowing 
-                            ? 'bg-amber-100 border-amber-250 text-[#503020] font-black shadow-sm' 
-                            : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                        }`}
-                      >
-                        {isFollowing ? (lang === 'en' ? "Following" : "متابَع") : (lang === 'en' ? "Follow" : "متابعة")}
-                      </button>
-                      <button className="p-1.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition cursor-pointer">
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
-                      </button>
-                    </div>
-                  </div>
-
+          {/* Communities section viewport */}
+          {activeSectionTab === 'communities' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-sans">
+              {filteredCommunities.length === 0 ? (
+                <div className="col-span-full py-16 text-center bg-white border border-slate-150 rounded-3xl p-6">
+                  <Landmark className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-xs text-slate-550 font-sans">
+                    {lang === 'en' ? "No interactive study circles match your search." : "لا توجد مجالس علمية تطابق معايير البحث الحالية."}
+                  </p>
                 </div>
-              );
-            })}
-          </div>
+              ) : (
+                filteredCommunities.map((c) => {
+                  const isJoined = joinedCommunityIds.includes(c.id);
+                  const associatedScholar = VERIFIED_SCHOLARS.find(s => s.id === c.scholar_id);
+                  
+                  return (
+                    <div 
+                      key={c.id}
+                      className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)] flex flex-col justify-between transition-all hover:border-emerald-700/20 hover:shadow-lg"
+                    >
+                      {/* Banner header layout */}
+                      <div className="relative h-28 w-full shrink-0">
+                        <img src={c.banner_url} alt={c.name_en} className="w-full h-full object-cover brightness-[0.7]" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-4">
+                          <div>
+                            <span className="text-[10px] font-black text-emerald-300 uppercase tracking-wider block">
+                              {lang === 'en' ? "ACTIVE STUDY HALAQA" : "مجلس حواري مباشر"}
+                            </span>
+                            <h4 className="text-xs md:text-sm font-black text-white leading-tight mt-0.5 line-clamp-1">
+                              {lang === 'en' ? c.name_en : c.name_ar}
+                            </h4>
+                          </div>
+                        </div>
+                      </div>
 
+                      {/* Info body content */}
+                      <div className="p-5 space-y-4 flex-grow flex flex-col justify-between">
+                        <p className="text-xs text-slate-600 leading-relaxed font-sans" style={{ textAlign: 'justify' }}>
+                          {lang === 'en' ? c.description_en : c.description_ar}
+                        </p>
+
+                        {/* Associated scholar reference card */}
+                        {associatedScholar && (
+                          <div 
+                            onClick={() => {
+                              setActiveScholarId(associatedScholar.id);
+                              setNestedTab('announcements');
+                            }}
+                            className="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-100/70 transition"
+                          >
+                            <img src={associatedScholar.avatar} alt="Scholar Avatar" className="w-9 h-9 rounded-full border border-amber-850 object-cover shrink-0" />
+                            <div className="min-w-0">
+                              <span className="text-[9px] text-amber-900 font-extrabold uppercase tracking-wide block">
+                                {lang === 'en' ? "SUPERVISING SCHOLAR" : "الشيخ المشرف"}
+                              </span>
+                              <span className="text-xs font-black text-slate-850 truncate block mt-0.5">
+                                {lang === 'en' ? associatedScholar.nameEn : associatedScholar.nameAr}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer joined/action button */}
+                      <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 flex items-center justify-between shrink-0 font-sans">
+                        <span className="text-[10px] text-slate-400 font-bold">
+                          {isJoined 
+                            ? (lang === 'en' ? "✓ Active Member" : "✓ عضو منضم")
+                            : (lang === 'en' ? "Public Registration" : "تسجيل مفتوح للعموم")}
+                        </span>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setActiveScholarId(c.scholar_id);
+                              setNestedTab('announcements');
+                            }}
+                            className="px-3 py-1.5 bg-white border rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            {lang === 'en' ? "View Feed" : "عرض المنبر"}
+                          </button>
+
+                          {isJoined ? (
+                            <button
+                              onClick={() => handleLeaveCommunity(c.id)}
+                              className="px-4 py-1.5 bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 rounded-xl text-xs font-black transition cursor-pointer"
+                            >
+                              {lang === 'en' ? "Leave" : "مغادرة"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleJoinCommunity(c.id)}
+                              className="px-4 py-1.5 bg-emerald-800 hover:bg-emerald-950 text-white rounded-xl text-xs font-black transition cursor-pointer"
+                            >
+                              {lang === 'en' ? "Join Circle" : "انضمام للحلقة"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
       ) : (
         /* Detailed Scholar Community Mini-Portal space */
@@ -233,7 +508,7 @@ export const ScholarCommunities: React.FC<ScholarCommunitiesProps> = ({
                   {/* Scholar Premium Credentials display Card */}
                   <div className="bg-gradient-to-br from-white to-amber-50/15 border border-slate-100 rounded-3xl p-6 space-y-5 shadow-[0_12px_45px_rgba(0,0,0,0.04)]">
                     <div className="text-center space-y-3 pb-4 border-b">
-                      <img src={current.avatar} alt="avatar" className="w-20 h-20 rounded-full border-2 border-amber-800 shadow mx-auto object-cover" />
+                      <img src={current.avatar} alt={current.nameEn} className="w-20 h-20 rounded-full border-2 border-amber-800 shadow mx-auto object-cover" />
                       <div>
                         <span className="bg-amber-100 text-amber-950 font-black text-[9px] px-3 py-0.5 rounded-full border shadow-xs inline-block">
                           {lang === 'en' ? current.badgeEn : current.badgeAr}

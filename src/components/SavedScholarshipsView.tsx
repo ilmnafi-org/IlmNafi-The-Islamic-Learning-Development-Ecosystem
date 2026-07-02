@@ -120,7 +120,7 @@ export default function SavedScholarshipsView({ progress, onToggleSaveScholarshi
   ] as const;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-12" id="saved-scholarships-container">
+    <div className="w-full max-w-full px-2 sm:px-4 md:px-6 py-6" id="saved-scholarships-container">
       {/* HEADER SEGMENT */}
       <div className="border-b border-slate-100 pb-8 mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>

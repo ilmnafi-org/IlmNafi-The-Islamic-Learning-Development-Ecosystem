@@ -309,7 +309,7 @@ export default function IssueTrackerView({ lang }: IssueTrackerViewProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10" id="issue-tracker-portal">
+    <div className="w-full max-w-full px-2 sm:px-4 md:px-6 py-8 space-y-10" id="issue-tracker-portal">
       {/* Editorial Header Card */}
       <div className="bg-gradient-to-br from-slate-900 to-amber-950 text-white rounded-3xl p-6 md:p-10 shadow-lg border border-amber-900/30 relative overflow-hidden text-left">
         {/* Ambient background glows */}

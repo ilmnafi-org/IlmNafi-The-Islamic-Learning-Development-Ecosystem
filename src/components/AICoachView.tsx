@@ -39,7 +39,7 @@ export default function AICoachView({
   const blendMastery = totalAttempts > 0 ? Math.min(100, Math.round(averageAccuracy * 0.95)) : 0;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-6" id="ai-coach-wrapper">
+    <div className="w-full max-w-full px-2 sm:px-4 md:px-6 py-6" id="ai-coach-wrapper">
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         

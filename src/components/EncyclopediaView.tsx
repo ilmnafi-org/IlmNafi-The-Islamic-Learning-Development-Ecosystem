@@ -54,9 +54,9 @@ export const EncyclopediaView = ({ lang }: { lang: 'en' | 'ar' }) => {
   const filteredCategories = categories.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="w-full px-4 md:px-8 lg:px-12 py-8 min-h-screen bg-[#faf9f6] font-sans">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-8 min-h-screen bg-[#faf9f6] font-sans">
       {/* Header & AI Search */}
-      <div className="max-w-7xl mx-auto mb-16">
+      <div className="max-w-full mb-16">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-slate-300 pb-8">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight mb-4">
@@ -85,7 +85,7 @@ export const EncyclopediaView = ({ lang }: { lang: 'en' | 'ar' }) => {
       </div>
 
       {/* Categories Grid (Library Shelves) */}
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-full">
         <AnimatePresence mode="wait">
           {!selectedCategory ? (
             <motion.div 

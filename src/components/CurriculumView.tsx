@@ -142,7 +142,7 @@ export default function CurriculumView({ progress, onCompleteLesson, lang = 'en'
         </section>
       )}
       
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-12 pb-12" id="curriculum-container">
+      <div className="w-full max-w-full px-2 sm:px-4 md:px-6 pb-12" id="curriculum-container">
 
       
       {/* HEADER SECTION */}

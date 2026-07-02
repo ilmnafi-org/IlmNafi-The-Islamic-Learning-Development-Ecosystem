@@ -48,7 +48,7 @@ export default function ScholarshipsView({ progress, onToggleSaveScholarship }: 
   });
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-12" id="scholarships-container">
+    <div className="w-full max-w-full px-2 sm:px-4 md:px-6 py-6" id="scholarships-container">
       {/* HEADER SECTION */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12 border-b border-slate-100 pb-8">
         <div>

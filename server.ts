@@ -1950,6 +1950,57 @@ app.post("/api/scholar/announcements/sync", express.json({ limit: '10mb' }), asy
   }
 });
 
+// --- Scholar Communities & Memberships API Routes ---
+app.get("/api/scholar/communities", async (req, res) => {
+  try {
+    const list = await dbStore.getCommunities();
+    res.json(list);
+  } catch (err: any) {
+    console.error("Error fetching communities:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/scholar/communities/membership", authenticateJWT, async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+  if (!user) return res.status(401).json({ error: "Unauthorized access" });
+  try {
+    const memberships = await dbStore.getCommunityMemberships(user.id);
+    res.json(memberships);
+  } catch (err: any) {
+    console.error("Error fetching memberships:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/scholar/communities/join", authenticateJWT, async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+  const { communityId } = req.body;
+  if (!user) return res.status(401).json({ error: "Unauthorized access" });
+  if (!communityId) return res.status(400).json({ error: "Missing communityId" });
+  try {
+    await dbStore.joinCommunity(communityId, user.id);
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("Error joining community:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/scholar/communities/leave", authenticateJWT, async (req: AuthenticatedRequest, res) => {
+  const user = req.user;
+  const { communityId } = req.body;
+  if (!user) return res.status(401).json({ error: "Unauthorized access" });
+  if (!communityId) return res.status(400).json({ error: "Missing communityId" });
+  try {
+    await dbStore.leaveCommunity(communityId, user.id);
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("Error leaving community:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Secure, CORS-enabled Audio Streaming Proxy to resolve browser Mixed Content (HTTP/HTTPS) and CORS blocks
 app.get("/api/audio-proxy", async (req, res) => {
   const audioUrl = req.query.url as string;

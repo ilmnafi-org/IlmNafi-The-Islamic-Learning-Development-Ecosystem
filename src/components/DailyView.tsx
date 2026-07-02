@@ -791,7 +791,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
   const isCategoryCurrentlyFullyComplete = totalCompletedInCat === filteredAdhkar.length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 pt-6 pb-24" id="view-daily-spiritual-board">
+    <div className="w-full max-w-full px-2 sm:px-4 md:px-6 pt-6 pb-24" id="view-daily-spiritual-board">
       
       {/* Redesigned Space-Optimized Compact Header */}
       <div className="bg-slate-900 text-white rounded-[2rem] p-4 md:p-5 shadow-xl mb-6 flex items-center justify-between gap-4 border border-slate-800" id="spiritual-board-compact-header">

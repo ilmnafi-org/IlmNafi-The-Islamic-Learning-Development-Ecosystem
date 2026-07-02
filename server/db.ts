@@ -77,9 +77,11 @@ let fallbackData: {
   users: ServerUser[];
   threads: ServerThread[];
   issues: ServerIssue[];
+  communities?: any[];
+  community_members?: any[];
 } | null = null;
 
-function getFallbackDb(): { users: ServerUser[]; threads: ServerThread[]; issues: ServerIssue[] } {
+function getFallbackDb(): { users: ServerUser[]; threads: ServerThread[]; issues: ServerIssue[]; communities?: any[]; community_members?: any[] } {
   if (fallbackData) return fallbackData;
 
   try {
@@ -198,7 +200,66 @@ function getFallbackDb(): { users: ServerUser[]; threads: ServerThread[]; issues
           created_at: "2026-06-19T08:00:00.000Z",
           updated_at: "2026-06-19T12:00:00.000Z"
         }
-      ]
+      ],
+      communities: [
+        {
+          id: "comm_yusuf",
+          slug: "fiqh-academy",
+          scholar_id: "scholar_yusuf",
+          name_en: "Comparative Fiqh & Modern Financial Transactions",
+          name_ar: "أكاديمية الفقه المقارن والمعاملات المالية المعاصرة",
+          description_en: "A scholarly community dedicated to discussing classical jurisprudence rulings on modern commercial transactions, bioethics, and contemporary legal situations.",
+          description_ar: "مجلس علمي تخصصي يعنى بمدارسة نوازل الفقه المقارن، ومسائل المعاملات المالية الحديثة، والاجتهادات المعاصرة بأدلتها الشرعية.",
+          banner_url: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600",
+          is_private: false,
+          require_approval: false,
+          verified_students_only: false,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: "comm_tariq",
+          slug: "hadith-assembly",
+          scholar_id: "scholar_tariq",
+          name_en: "Hadith Studies & Critical Methodologies (Ilm Ar-Rijal)",
+          name_ar: "مجلس علوم الحديث النبوي والجرح والتعديل",
+          description_en: "Delve into the analysis of transmission chains (Sanad), the biographies of narrators, and authentic compilation reviews from the Islamic University of Madinah.",
+          description_ar: "حلقة علمية مخصصة للبحث في أسانيد الحديث الشريف، وقواعد الجرح والتعديل، ودراسة العلل، وتحقيق المخطوطات والكتب الستة.",
+          banner_url: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&q=80&w=600",
+          is_private: false,
+          require_approval: false,
+          verified_students_only: false,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: "comm_maryam",
+          slug: "recitation-halaqa",
+          scholar_id: "scholar_maryam",
+          name_en: "Quranic Phonology, Tajweed Rules & Masterclasses",
+          name_ar: "مجلس القراءات العشر وأصوات ومخارج الحروف",
+          description_en: "Join the masterclass for the study of the Ten Mutawatir Recitations, phonology, vocalizations of Al-Jazariyyah, and direct teacher reviews.",
+          description_ar: "مقرأة متخصصة في مدارسة مخارج الحروف، وضبط علم التجويد، وتلقي القراءات العشر المتواترة من طريقي الشاطبية والدرة.",
+          banner_url: "https://images.unsplash.com/photo-1584227361834-8c887ba53ff2?auto=format&fit=crop&q=80&w=600",
+          is_private: false,
+          require_approval: false,
+          verified_students_only: false,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: "comm_ahmed",
+          slug: "contemporary-fatwa",
+          scholar_id: "scholar_ahmed",
+          name_en: "Bioethics, Shariah Auditing & Contemporary Issues",
+          name_ar: "مجلس النوازل الشرعية والمعايير المصرفية الأخلاقية",
+          description_en: "A roundtable community focusing on Shariah compliance auditing for global start-ups, venture capitals, bioethics, and contemporary challenges.",
+          description_ar: "منتدى حواري يبحث في فقه النوازل المعاصرة، وتدقيق المعايير المصرفية، وقضايا الأخلاقيات الطبية والتقنية من منظور الشريعة.",
+          banner_url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600",
+          is_private: false,
+          require_approval: false,
+          verified_students_only: false,
+          created_at: new Date().toISOString()
+        }
+      ],
+      community_members: []
     };
     saveFallbackDb();
   }
@@ -713,6 +774,119 @@ class ServerDB {
       }
     } catch (e: any) {
       console.warn("Error in saveDevotionalPlan:", e);
+    }
+  }
+
+  // --- Scholar Communities Methods ---
+  public async getCommunities(): Promise<any[]> {
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      return db.communities || [];
+    }
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await (supabase.from('ilm_communities') as any).select('*');
+      if (error) throw error;
+      return data || [];
+    } catch (err: any) {
+      console.warn("Error fetching communities from Supabase, fallback to sandbox:", err.message);
+      const db = getFallbackDb();
+      return db.communities || [];
+    }
+  }
+
+  public async getCommunityMemberships(userId: string): Promise<any[]> {
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      return (db.community_members || []).filter(m => m.user_id === userId);
+    }
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { data, error } = await (supabase.from('ilm_community_members') as any).select('*').eq('user_id', userId);
+      if (error) throw error;
+      return data || [];
+    } catch (err: any) {
+      console.warn("Error fetching community memberships, fallback to sandbox:", err.message);
+      const db = getFallbackDb();
+      return (db.community_members || []).filter(m => m.user_id === userId);
+    }
+  }
+
+  public async joinCommunity(communityId: string, userId: string): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      if (!db.community_members) db.community_members = [];
+      const exists = db.community_members.some(m => m.community_id === communityId && m.user_id === userId);
+      if (!exists) {
+        db.community_members.push({
+          id: "mem_" + Math.random().toString(36).substring(2, 9),
+          community_id: communityId,
+          user_id: userId,
+          role: 'student',
+          status: 'approved',
+          joined_at: new Date().toISOString()
+        });
+        saveFallbackDb();
+      }
+      return true;
+    }
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { error } = await (supabase.from('ilm_community_members') as any).upsert({
+        id: `mem_${communityId}_${userId}`,
+        community_id: communityId,
+        user_id: userId,
+        role: 'student',
+        status: 'approved',
+        joined_at: new Date().toISOString()
+      });
+      if (error) throw error;
+      return true;
+    } catch (err: any) {
+      console.warn("Error joining community on Supabase, fallback to sandbox:", err.message);
+      const db = getFallbackDb();
+      if (!db.community_members) db.community_members = [];
+      const exists = db.community_members.some(m => m.community_id === communityId && m.user_id === userId);
+      if (!exists) {
+        db.community_members.push({
+          id: "mem_" + Math.random().toString(36).substring(2, 9),
+          community_id: communityId,
+          user_id: userId,
+          role: 'student',
+          status: 'approved',
+          joined_at: new Date().toISOString()
+        });
+        saveFallbackDb();
+      }
+      return true;
+    }
+  }
+
+  public async leaveCommunity(communityId: string, userId: string): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      const db = getFallbackDb();
+      if (db.community_members) {
+        db.community_members = db.community_members.filter(m => !(m.community_id === communityId && m.user_id === userId));
+        saveFallbackDb();
+      }
+      return true;
+    }
+    try {
+      const supabase = getSupabaseAdmin()!;
+      const { error } = await (supabase.from('ilm_community_members') as any)
+        .delete()
+        .eq('community_id', communityId)
+        .eq('user_id', userId);
+      if (error) throw error;
+      return true;
+    } catch (err: any) {
+      console.warn("Error leaving community on Supabase, fallback to sandbox:", err.message);
+      const db = getFallbackDb();
+      if (db.community_members) {
+        db.community_members = db.community_members.filter(m => !(m.community_id === communityId && m.user_id === userId));
+        saveFallbackDb();
+      }
+      return true;
     }
   }
 }

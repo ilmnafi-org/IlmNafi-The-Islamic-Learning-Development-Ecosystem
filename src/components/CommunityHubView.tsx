@@ -155,7 +155,7 @@ export default function CommunityHubView({ lang }: CommunityHubViewProps) {
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-12" id="community-hub-container">
+    <div className="w-full max-w-full px-2 sm:px-4 md:px-6 py-6" id="community-hub-container">
       {/* HERO HERO HEADER */}
       <div className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 rounded-3xl border border-emerald-900/40 p-8 md:p-12 text-white mb-12 shadow-xl">
         <div className="absolute inset-x-0 bottom-0 top-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_40%)]" />
