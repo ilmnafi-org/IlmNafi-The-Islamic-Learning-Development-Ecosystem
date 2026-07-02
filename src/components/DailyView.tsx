@@ -793,52 +793,18 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
     <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-12" id="view-daily-spiritual-board">
       
       {/* Redesigned Space-Optimized Compact Header */}
-      <div className="bg-slate-900 text-white rounded-3xl p-5 md:p-6 shadow-md mb-6 relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-slate-800" id="spiritual-board-compact-header">
-        {/* Decorative ambient gradient aura */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl -ml-12 -mb-12 pointer-events-none" />
-        
-        <div className="space-y-1 relative z-10 max-w-xl">
-          <span className="inline-flex items-center gap-1 bg-amber-500/15 text-amber-300 text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider border border-amber-500/20">
-            <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Nafi Spiritual Companion
+      <div className="bg-slate-900 text-white rounded-[2rem] p-4 md:p-5 shadow-xl mb-6 flex items-center justify-between gap-4 border border-slate-800" id="spiritual-board-compact-header">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/10 text-amber-400">
+            <Flame className="w-5 h-5 animate-pulse" />
           </span>
-          <h1 className="text-xl md:text-2xl font-black tracking-tight leading-none font-sans">
-            {lang === 'en' ? "Daily Wird, Adhkar & Tasbih Portal" : "الأوراد المأثورة وبوابة الأذكار والتسابيح"}
-          </h1>
-          <p className="text-slate-450 text-[11px] leading-tight">
-            {lang === 'en'
-              ? "Your space-saving daily companion. Morning & evening remembrances, digital tasbih, and community reminders."
-              : "محطتك الروحية المنهجية التفاعلية لمتابعة تفاصيل أورادك الصباحية والمسائية دون تشتت."}
-          </p>
-        </div>
-
-        {/* Space-optimized stats widgets */}
-        <div className="flex flex-wrap gap-2 relative z-10">
-          {/* Stat Item 1: Streak */}
-          <div className="bg-white/5 backdrop-blur-xs border border-white/5 rounded-xl px-3.5 py-1.5 flex items-center gap-2">
-            <Flame className="w-4 h-4 text-amber-400" />
-            <div>
-              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block leading-none">{t.consecutiveDays}</span>
-              <span className="text-xs font-black font-mono text-white leading-none mt-1 block">{streak} {lang === 'en' ? "Days" : "أيام"}</span>
-            </div>
-          </div>
-          {/* Stat Item 2: Active Accomplishments */}
-          <div className="bg-white/5 backdrop-blur-xs border border-white/5 rounded-xl px-3.5 py-1.5 flex items-center gap-2">
-            <Award className="w-4 h-4 text-emerald-400" />
-            <div>
-              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block leading-none">Daily Done</span>
-              <span className="text-xs font-black font-mono text-white leading-none mt-1 block">
-                {completedToday.count} {lang === 'en' ? "Sessions" : "جلسات"}
-              </span>
-            </div>
-          </div>
-          {/* Stat Item 3: Tasbih Total */}
-          <div className="bg-white/5 backdrop-blur-xs border border-white/5 rounded-xl px-3.5 py-1.5 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-blue-400" />
-            <div>
-              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block leading-none">Total Tally</span>
-              <span className="text-xs font-black font-mono text-white leading-none mt-1 block">{tasbihTotalScore}</span>
-            </div>
+          <div>
+            <h1 className="text-lg md:text-xl font-black tracking-tight leading-none">
+              {lang === 'en' ? "Spiritual Companion" : "الرفيق الروحي"}
+            </h1>
+            <p className="text-slate-400 text-[11px] leading-tight mt-1">
+              {lang === 'en' ? "Daily Wird, Adhkar & Tasbih Portal" : "الأوراد المأثورة وبوابة الأذكار والتسابيح"}
+            </p>
           </div>
         </div>
       </div>
@@ -882,7 +848,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                           setAdhkarViewState('list');
                           setAdhkarIndex(0);
                         }}
-                        className="aspect-square bg-white border border-slate-200/80 hover:border-amber-600 rounded-2xl p-2 flex flex-col items-center justify-between text-center transition-all duration-200 hover:shadow-md cursor-pointer group active:scale-95 shadow-xs"
+                        className="aspect-square bg-white border-0 rounded-3xl p-2 flex flex-col items-center justify-between text-center transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer group active:scale-95"
                       >
                         <div className="w-9 h-9 rounded-full bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-lg transition">
                           {item.icon}
@@ -940,10 +906,10 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                             setAdhkarIndex(globalIdx);
                             setAdhkarViewState('detail');
                           }}
-                          className={`w-full p-4 rounded-3xl border text-left transition flex flex-col justify-between cursor-pointer gap-3 min-h-[120px] ${
+                          className={`w-full p-4 rounded-[2rem] border-0 text-left transition flex flex-col justify-between cursor-pointer gap-3 min-h-[120px] shadow-lg ${
                             isDone
-                              ? 'border-emerald-200 bg-emerald-50 text-emerald-950 shadow-sm'
-                              : 'border-slate-150 bg-white hover:bg-slate-50 hover:border-slate-300 hover:shadow-md text-slate-800'
+                              ? 'bg-emerald-50 text-emerald-950 shadow-emerald-900/5'
+                              : 'bg-white hover:bg-slate-50 hover:shadow-xl text-slate-800 shadow-slate-200/50'
                           }`}
                           style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
                         >

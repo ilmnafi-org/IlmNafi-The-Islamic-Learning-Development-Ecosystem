@@ -639,7 +639,7 @@ export default function StudentDashboard({
       </div>
 
       {/* MOBILE BOTTOM NAVIGATION PANEL */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-[90] pb-safe shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.05)]">
+      <div className="lg:hidden fixed bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md border border-slate-200 z-[90] pb-safe shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl">
         <nav className="flex items-center justify-around p-2" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
           {tabsInfo.map((tab) => {
             const TabIcon = tab.icon;
