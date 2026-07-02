@@ -1249,17 +1249,6 @@ export default function App() {
               {labels.quran}
             </button>
             <button 
-              onClick={() => { setActiveTab('encyclopedia'); setShowMoreNav(false); }}
-              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-                activeTab === 'encyclopedia' 
-                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                  : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-              }`}
-              id="nav-encyclopedia"
-            >
-              {lang === 'en' ? 'Hadith & Library' : 'الحديث والموسوعة'}
-            </button>
-            <button 
               onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
               className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
                 activeTab === 'daily' 
@@ -2662,75 +2651,6 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* FLOATING MOBILE BOTTOM NAVIGATION PANEL */}
-      {activeTab !== 'home' && activeTab !== 'dashboard' && (
-        <div className="lg:hidden fixed bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md border border-slate-200/50 rounded-2xl py-2 px-3 shadow-2xl flex justify-around items-center z-[80] gap-1 shrink-0">
-          <button 
-            onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}
-            className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${activeTab === 'home' && !mobileMenuOpen ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'}`}
-          >
-            <div className={`p-1.5 rounded-lg transition-transform ${activeTab === 'home' && !mobileMenuOpen ? 'bg-emerald-100 text-emerald-950 scale-110' : 'bg-transparent text-slate-400'}`}>
-              <Home className={`w-4 h-4 shrink-0 ${activeTab === 'home' && !mobileMenuOpen ? 'fill-emerald-100/50 stroke-2' : 'stroke-1.5'}`} />
-            </div>
-            <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none">{lang === 'en' ? 'Home' : 'الرئيسية'}</span>
-          </button>
-
-          <button 
-            onClick={() => { setActiveTab('curriculum'); setMobileMenuOpen(false); }}
-            className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${activeTab === 'curriculum' && !mobileMenuOpen ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'}`}
-          >
-            <div className={`p-1.5 rounded-lg transition-transform ${activeTab === 'curriculum' && !mobileMenuOpen ? 'bg-amber-100 text-amber-950 scale-110' : 'bg-transparent text-slate-400'}`}>
-              <GraduationCap className={`w-4 h-4 shrink-0 ${activeTab === 'curriculum' && !mobileMenuOpen ? 'fill-amber-100/50 stroke-2' : 'stroke-1.5'}`} />
-            </div>
-            <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none">{labels.curriculum.split(' ')[0]}</span>
-          </button>
-
-          {progress.username ? (
-            <button 
-              onClick={() => { setActiveTab('dashboard'); setMobileMenuOpen(false); }}
-              className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${activeTab === 'dashboard' && !mobileMenuOpen ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'}`}
-            >
-              <div className="bg-emerald-50 w-10 h-10 -mt-6 rounded-full flex items-center justify-center shadow-sm border border-emerald-100">
-                <span className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-extrabold text-sm border-2 border-white shadow-inner">
-                  {progress.username.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none text-emerald-800">{lang === 'en' ? 'Dash' : 'لوحة'}</span>
-            </button>
-          ) : (
-            <button 
-              onClick={() => { setActiveTab('daily'); setMobileMenuOpen(false); }}
-              className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${activeTab === 'daily' && !mobileMenuOpen ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'}`}
-            >
-              <div className={`p-1.5 rounded-lg transition-transform ${activeTab === 'daily' && !mobileMenuOpen ? 'bg-blue-100 text-blue-950 scale-110' : 'bg-transparent text-slate-400'}`}>
-                <Clock className={`w-4 h-4 shrink-0 ${activeTab === 'daily' && !mobileMenuOpen ? 'fill-blue-100/50 stroke-2' : 'stroke-1.5'}`} />
-              </div>
-              <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none">{labels.daily.split(' ')[0]}</span>
-            </button>
-          )}
-
-          <button 
-            onClick={() => { setActiveTab('quran'); setMobileMenuOpen(false); }}
-            className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${activeTab === 'quran' && !mobileMenuOpen ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'}`}
-          >
-            <div className={`p-1.5 rounded-lg transition-transform ${activeTab === 'quran' && !mobileMenuOpen ? 'bg-teal-100 text-teal-950 scale-110' : 'bg-transparent text-slate-400'}`}>
-              <BookOpen className={`w-4 h-4 shrink-0 ${activeTab === 'quran' && !mobileMenuOpen ? 'fill-teal-100/50 stroke-2' : 'stroke-1.5'}`} />
-            </div>
-            <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none">{labels.quran.split(' ')[0]}</span>
-          </button>
-
-          <button 
-            onClick={() => { setActiveTab('encyclopedia'); setMobileMenuOpen(false); }}
-            className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${activeTab === 'encyclopedia' && !mobileMenuOpen ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'}`}
-          >
-            <div className={`p-1.5 rounded-lg transition-transform ${activeTab === 'encyclopedia' && !mobileMenuOpen ? 'bg-amber-100 text-amber-950 scale-110' : 'bg-transparent text-slate-400'}`}>
-              <Library className={`w-4 h-4 shrink-0 ${activeTab === 'encyclopedia' && !mobileMenuOpen ? 'fill-amber-100/50 stroke-2' : 'stroke-1.5'}`} />
-            </div>
-            <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none">{lang === 'en' ? 'Hadith' : 'الحديث'}</span>
-          </button>
-        </div>
-      )}
 
     </div>
     </>

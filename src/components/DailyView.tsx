@@ -209,6 +209,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
   // Adhkar Step-Through selection module
   const [adhkarCategory, setAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life' | 'travel' | 'anxiety' | 'food'>('morning');
   const [selectedAdhkarCategory, setSelectedAdhkarCategory] = useState<'morning' | 'evening' | 'after_salah' | 'sleep' | 'daily_life' | 'travel' | 'anxiety' | 'food' | null>(null);
+  const [adhkarViewState, setAdhkarViewState] = useState<'categories' | 'list' | 'detail'>('categories');
   const [adhkarIndex, setAdhkarIndex] = useState(0);
   const [adhkarCompletedStates, setAdhkarCompletedStates] = useState<{[key: string]: number}>({}); // tracks clicks per item ID
   const [translationLang, setTranslationLang] = useState<'en' | 'ar' | 'ur' | 'ha'>(lang);
@@ -878,6 +879,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                         onClick={() => {
                           setAdhkarCategory(item.type as any);
                           setSelectedAdhkarCategory(item.type as any);
+                          setAdhkarViewState('list');
                           setAdhkarIndex(0);
                         }}
                         className="aspect-square bg-white border border-slate-200/80 hover:border-amber-600 rounded-2xl p-2 flex flex-col items-center justify-between text-center transition-all duration-200 hover:shadow-md cursor-pointer group active:scale-95 shadow-xs"
@@ -925,177 +927,108 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                   </div>
                 </div>
 
-                {/* Main Interactive Deck */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              
-              {/* Left Column: STEPPING FRAMEWORK AND DETAILS info (order-2 on mobile, order-1 / col-span-4 on desktop) */}
-              <div className="lg:col-span-4 bg-white/95 border border-slate-150/40 rounded-3xl p-5 shadow-xl space-y-4 order-2 lg:order-1">
-                <div>
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wide mb-1">
-                    {lang === 'en' ? "Remembrance Progression List" : "سجل الأذكار والتقدم اليومي"}
-                  </h3>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    {t.adhkarSubtitle}
-                  </p>
-                </div>
-
-                {/* Paginated list of 5 items */}
-                <div className="space-y-2">
-                  {filteredAdhkar.slice(safeProgressionPage * 5, (safeProgressionPage + 1) * 5).map((item) => {
-                    const globalIdx = filteredAdhkar.findIndex(x => x.id === item.id);
-                    const currentCount = adhkarCompletedStates[item.id] || 0;
-                    const isDone = currentCount >= item.targetCount;
-                    const isActive = globalIdx === adhkarIndex;
-
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setAdhkarIndex(globalIdx)}
-                        className={`w-full p-2.5 rounded-xl border text-left transition text-xs flex items-center justify-between cursor-pointer ${
-                          isActive 
-                            ? 'border-amber-600 bg-amber-50/40 text-amber-950 font-extrabold shadow-inner' 
-                            : 'border-slate-150 bg-slate-50/50 text-slate-700 hover:bg-white'
-                        }`}
-                        style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
-                      >
-                        <div className="flex items-center gap-2 max-w-[75%]">
-                          <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono shrink-0 ${
-                            isDone ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-200 text-slate-700'
-                          }`}>
-                            {isDone ? "✓" : globalIdx + 1}
-                          </span>
-                          <span className="truncate font-sans leading-none">
-                            {lang === 'en' ? item.transliteration : item.arabic}
-                          </span>
-                        </div>
-                        <span className="font-mono text-[10px] font-black text-slate-400 shrink-0">
-                          {currentCount} / {item.targetCount}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Left Column Pagination Controls */}
-                {filteredAdhkar.length > 5 && (
-                  <div className="flex items-center justify-between bg-slate-50/60 px-3 py-1.5 rounded-xl border border-slate-150 text-[10px] select-none">
-                    <button
-                      onClick={() => setProgressionPage(prev => Math.max(0, prev - 1))}
-                      disabled={safeProgressionPage === 0}
-                      className="px-2 py-1 bg-white border border-slate-250 rounded-lg text-slate-600 hover:text-slate-900 disabled:opacity-45 cursor-pointer font-extrabold"
-                    >
-                      {lang === 'en' ? 'Prev' : 'السابق'}
-                    </button>
-                    <span className="font-mono font-bold text-slate-500">
-                      {lang === 'en' ? `Page ${safeProgressionPage + 1} of ${Math.ceil(filteredAdhkar.length / 5)}` : `صفحة ${safeProgressionPage + 1} من ${Math.ceil(filteredAdhkar.length / 5)}`}
-                    </span>
-                    <button
-                      onClick={() => setProgressionPage(prev => Math.min(Math.ceil(filteredAdhkar.length / 5) - 1, prev + 1))}
-                      disabled={safeProgressionPage === Math.ceil(filteredAdhkar.length / 5) - 1}
-                      className="px-2 py-1 bg-white border border-slate-250 rounded-lg text-slate-600 hover:text-slate-900 disabled:opacity-45 cursor-pointer font-extrabold"
-                    >
-                      {lang === 'en' ? 'Next' : 'التالي'}
-                    </button>
+                {adhkarViewState === 'list' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredAdhkar.map((item, globalIdx) => {
+                      const currentCount = adhkarCompletedStates[item.id] || 0;
+                      const isDone = currentCount >= item.targetCount;
+                      
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setAdhkarIndex(globalIdx);
+                            setAdhkarViewState('detail');
+                          }}
+                          className={`w-full p-4 rounded-3xl border text-left transition flex flex-col justify-between cursor-pointer gap-3 min-h-[120px] ${
+                            isDone
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-950 shadow-sm'
+                              : 'border-slate-150 bg-white hover:bg-slate-50 hover:border-slate-300 hover:shadow-md text-slate-800'
+                          }`}
+                          style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
+                        >
+                          <div className="flex items-start gap-3 w-full">
+                            <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-mono shrink-0 mt-0.5 ${
+                              isDone ? 'bg-emerald-200 text-emerald-900 font-extrabold' : 'bg-slate-100 text-slate-600 font-bold'
+                            }`}>
+                              {isDone ? "✓" : globalIdx + 1}
+                            </span>
+                            <span className="font-sans leading-relaxed text-sm md:text-base font-semibold line-clamp-3 overflow-hidden text-right w-full" dir="rtl">
+                              {item.arabic}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between mt-auto w-full pt-2 border-t border-slate-100/50">
+                            <span className="text-[10px] text-slate-500 line-clamp-1 flex-1">
+                              {lang === 'en' ? item.translation : item.transliteration}
+                            </span>
+                            <span className={`font-mono text-[10px] font-black shrink-0 px-2 py-0.5 rounded-lg ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
+                              {currentCount} / {item.targetCount}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                  <span className="font-black text-slate-500 uppercase tracking-wider">Progress:</span>
-                  <span className="bg-emerald-50 text-emerald-850 px-2.5 py-0.5 rounded-full border border-emerald-250/20 font-black">
-                    {totalCompletedInCat} / {filteredAdhkar.length} Done
-                  </span>
-                </div>
+                {adhkarViewState === 'detail' && (
+                  <div className="max-w-2xl mx-auto space-y-6">
+                    {/* Return to list button */}
+                    <button
+                      onClick={() => setAdhkarViewState('list')}
+                      className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer transition py-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      {lang === 'en' ? "Back to List" : "العودة للقائمة"}
+                    </button>
 
-                {/* Progress bar */}
-                <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
-                  <div 
-                    className="bg-emerald-600 h-1 transition-all duration-300" 
-                    style={{ width: `${(totalCompletedInCat / filteredAdhkar.length) * 100}%` }}
-                  ></div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 w-full">
-                  <button
-                    onClick={() => {
-                      const resetObj = { ...adhkarCompletedStates };
-                      filteredAdhkar.forEach(x => {
-                        resetObj[x.id] = 0;
-                      });
-                      setAdhkarCompletedStates(resetObj);
-                      setAdhkarIndex(0);
-                    }}
-                    className="flex-1 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-slate-200"
-                  >
-                    <RefreshCw className="w-3 h-3 text-slate-450" />
-                    <span>{t.resetAdhkar}</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const doneObj = { ...adhkarCompletedStates };
-                      filteredAdhkar.forEach(x => {
-                        doneObj[x.id] = x.targetCount;
-                      });
-                      setAdhkarCompletedStates(doneObj);
-                    }}
-                    className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] tracking-wide font-extrabold rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-emerald-250/20"
-                  >
-                    <CheckSquare className="w-3 h-3 text-emerald-600" />
-                    <span>{t.bulkCompleteAll}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Column: LARGE COMPREHENSIVE ACTIVE WORK CARD (order-1 on mobile, order-2 / col-span-8 on desktop) */}
-              <div className="lg:col-span-8 space-y-6 order-1 lg:order-2">
-                
-                {isCategoryCurrentlyFullyComplete ? (
-                  <motion.div 
-                    initial={{ scale: 0.96, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="bg-[#FAF8F5] border-2 border-dashed border-emerald-500/30 rounded-3xl p-10 text-center space-y-4"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center">
-                      <Check className="w-8 h-8 font-extrabold" />
-                    </div>
-                    <h4 className="text-lg font-black text-slate-900">{t.completedStatus}</h4>
-                    <p className="text-slate-600 text-xs max-w-md mx-auto leading-relaxed">
-                      {t.completedWellDone.replace("{count}", String(filteredAdhkar.length))}
-                    </p>
-                    <div className="pt-2">
-                      <button
-                        onClick={() => {
-                          const resetObj = { ...adhkarCompletedStates };
-                          filteredAdhkar.forEach(x => { resetObj[x.id] = 0; });
-                          setAdhkarCompletedStates(resetObj);
-                          setAdhkarIndex(0);
-                        }}
-                        className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-950 text-white font-extrabold text-[11px] uppercase tracking-wide rounded-xl shadow cursor-pointer transition"
+                    {isCategoryCurrentlyFullyComplete ? (
+                      <motion.div 
+                        initial={{ scale: 0.96, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-[#FAF8F5] border-2 border-dashed border-emerald-500/30 rounded-3xl p-10 text-center space-y-4"
                       >
-                        {t.resetAdhkar}
-                      </button>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <div className="bg-white border border-slate-150/40 rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 relative overflow-hidden">
-                    {/* Badge details */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <span className="text-[10px] font-mono text-emerald-803 uppercase tracking-wider font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-250/20">
-                        {activeStep.grade === 'Sahih' ? "Sahih Grade (Bukhari/Muslim)" : "Hasan (Sound Chain)"}
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-400">
-                        {adhkarIndex + 1} / {filteredAdhkar.length}
-                      </span>
-                    </div>
-
-                    {/* Transliteration & Source references */}
-                    <div className="space-y-4 text-center">
-                      <div className="relative">
-                        <p className="text-3xl text-[#004d3d] font-serif leading-loose font-black py-4 select-all" dir="rtl">
-                          {activeStep.arabic}
+                        <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center">
+                          <Check className="w-8 h-8 font-extrabold" />
+                        </div>
+                        <h4 className="text-lg font-black text-slate-900">{t.completedStatus}</h4>
+                        <p className="text-slate-600 text-xs max-w-md mx-auto leading-relaxed">
+                          {t.completedWellDone.replace("{count}", String(filteredAdhkar.length))}
                         </p>
-                        
-                        {/* Audio Pronunciation & Copy Actions Overlay bar */}
+                        <div className="pt-2">
+                          <button
+                            onClick={() => {
+                              const resetObj = { ...adhkarCompletedStates };
+                              filteredAdhkar.forEach(x => { resetObj[x.id] = 0; });
+                              setAdhkarCompletedStates(resetObj);
+                              setAdhkarIndex(0);
+                            }}
+                            className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-950 text-white font-extrabold text-[11px] uppercase tracking-wide rounded-xl shadow cursor-pointer transition"
+                          >
+                            {t.resetAdhkar}
+                          </button>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <div className="bg-white rounded-none pt-2 pb-6 space-y-4 relative border-0">
+                        {/* Title / Badge details - smaller text, left aligned */}
+                        <div className="flex flex-row items-center gap-3">
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50/50 px-2 py-0.5 rounded-md">
+                            {activeStep.grade === 'Sahih' ? "Sahih" : "Hasan"}
+                          </span>
+                          <span className="text-[10px] font-mono font-bold text-slate-400">
+                            {adhkarIndex + 1} / {filteredAdhkar.length}
+                          </span>
+                        </div>
+
+                        {/* Transliteration & Source references */}
+                        <div className="space-y-4 text-left w-full">
+                          <div className="relative w-full text-right" dir="rtl">
+                            <p className="text-xl md:text-2xl text-[#004d3d] font-serif leading-loose font-bold py-2 select-all">
+                              {activeStep.arabic}
+                            </p>
+                            
+                            {/* Audio Pronunciation & Copy Actions Overlay bar */}
                         <div className="flex flex-wrap justify-center items-center gap-2 mt-2">
                           <button
                             onClick={() => handleTTS(activeStep.arabic, 'ar', activeStep.id + '-ar')}
@@ -1155,11 +1088,11 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                         </div>
                       </div>
                       
-                      <div className="py-2.5 border-y border-slate-100/60 text-slate-650 italic text-xs max-w-2xl mx-auto leading-relaxed">
-                        "{activeStep.transliteration}"
+                      <div className="py-2.5 text-slate-650 italic text-[11px] leading-relaxed text-left">
+                        {activeStep.transliteration}
                       </div>
 
-                      <div className="flex flex-wrap justify-center items-center gap-1 px-1 my-3 bg-slate-50 p-1.5 rounded-xl border border-slate-100 max-w-sm mx-auto">
+                      <div className="flex flex-wrap items-center gap-1 my-2">
                         {[
                           { code: 'en', label: 'English' },
                           { code: 'ar', label: 'العربية' },
@@ -1172,7 +1105,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                             className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer select-none ${
                               translationLang === item.code
                                 ? 'bg-amber-900 text-white shadow-xs'
-                                : 'text-slate-500 hover:text-slate-800'
+                                : 'bg-slate-50 text-slate-500 hover:text-slate-800'
                             }`}
                           >
                             {item.label}
@@ -1180,7 +1113,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                         ))}
                       </div>
 
-                      <div className="text-xs text-slate-700 font-sans max-w-2xl mx-auto font-medium transition-all duration-300 leading-relaxed px-4 py-3 bg-slate-50/50 rounded-2xl border border-slate-100/40">
+                      <div className="text-[11px] text-slate-700 font-sans font-medium transition-all duration-300 leading-relaxed py-2 text-left">
                         {translationLang === 'en' && activeStep.translationEn}
                         {translationLang === 'ar' && activeStep.translationAr}
                         {translationLang === 'ur' && activeStep.translationUr}
@@ -1188,47 +1121,38 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                       </div>
                     </div>
 
-                    {/* TAP ZONE FOR COUNT UP */}
-                    <div className="flex flex-col items-center justify-center space-y-3 py-4">
+                    {/* REDESIGNED COUNTER ZONE - Left aligned, smaller */}
+                    <div className="flex items-center justify-between py-2 border-y border-slate-100">
                       
-                      {/* Active count marker */}
-                      <div className="text-center font-sans">
-                        <span className="text-4xl font-black font-mono text-amber-900 block">
-                          {adhkarCompletedStates[activeStep.id] || 0} / {activeStep.targetCount}
-                        </span>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black block mt-1">
-                          {(adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount ? "Completed!" : "Required Recitations"}
-                        </span>
-                      </div>
-
-                      {/* Recite clicking medallion button */}
-                      <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleStepClick(activeStep)}
-                        disabled={(adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount}
-                        className={`w-36 h-36 rounded-full flex flex-col items-center justify-center relative cursor-pointer outline-none border-[6px] select-none ${
-                          (adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount
-                            ? 'bg-emerald-50 border-emerald-100 hover:bg-emerald-50 text-emerald-800'
-                            : 'bg-gradient-to-tr from-slate-900 to-slate-800 hover:from-amber-950 hover:to-amber-900 border-amber-50 text-white shadow-lg'
-                        }`}
-                      >
-                        {((adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount) ? (
-                          <div className="flex flex-col items-center justify-center gap-1.5">
-                            <Check className="w-10 h-10 text-emerald-600 font-black animate-bounce" />
-                            <span className="text-[10px] uppercase font-bold tracking-wider">{lang === 'en' ? "Done" : "اكتمل"}</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center gap-1">
-                            <span className="text-2xl font-black font-mono">
+                      <div className="flex items-center gap-3">
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleStepClick(activeStep)}
+                          disabled={(adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount}
+                          className={`w-14 h-14 rounded-full flex flex-col items-center justify-center relative cursor-pointer outline-none select-none transition-colors ${
+                            (adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-slate-800 hover:bg-slate-900 text-white shadow-sm'
+                          }`}
+                        >
+                          {((adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount) ? (
+                            <Check className="w-5 h-5 text-emerald-600 font-black" />
+                          ) : (
+                            <span className="text-xl font-bold font-mono">
                               {activeStep.targetCount - (adhkarCompletedStates[activeStep.id] || 0)}
                             </span>
-                            <span className="text-[9px] uppercase font-bold tracking-widest opacity-80">
-                              {lang === 'en' ? "Click Recite" : "اضغط للورد"}
-                            </span>
-                          </div>
-                        )}
-                      </motion.button>
-
+                          )}
+                        </motion.button>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-800">
+                            {lang === 'en' ? "Count" : "العدد"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {adhkarCompletedStates[activeStep.id] || 0} / {activeStep.targetCount}
+                          </span>
+                        </div>
+                      </div>
+                      
                     </div>
 
                     {/* Metadata on Virtue Context */}
@@ -1312,11 +1236,9 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                 </div>
 
               </div>
-
-            </div>
+            )}
           </div>
-          )}
-
+        )}
       </div>
 
       <AnimatePresence>

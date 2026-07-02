@@ -639,25 +639,25 @@ export default function StudentDashboard({
       </div>
 
       {/* MOBILE BOTTOM NAVIGATION PANEL */}
-      <div className="lg:hidden fixed bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md border border-slate-200/50 rounded-2xl py-2 px-3 shadow-2xl flex justify-around items-center z-[80] gap-1 shrink-0">
-        {tabsInfo.map((tab) => {
-          const TabIcon = tab.icon;
-          const isActive = innerTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setInnerTab(tab.id)}
-              className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all outline-none flex-1 max-w-[85px] cursor-pointer ${
-                isActive ? 'text-emerald-950 font-black' : 'text-slate-500 hover:text-emerald-900'
-              }`}
-            >
-              <div className={`p-1.5 rounded-lg transition-transform ${isActive ? 'bg-emerald-100 text-emerald-950 scale-110' : 'bg-transparent text-slate-400'}`}>
-                <TabIcon className={`w-4 h-4 shrink-0 ${isActive ? 'fill-emerald-100/50 stroke-2' : 'stroke-1.5'}`} />
-              </div>
-              <span className="text-[9.5px] font-bold tracking-tight block truncate max-w-full leading-none">{tab.label.split(' ')[0]}</span>
-            </button>
-          );
-        })}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-[90] pb-safe shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.05)]">
+        <nav className="flex items-center justify-around p-2" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+          {tabsInfo.map((tab) => {
+            const TabIcon = tab.icon;
+            const isActive = innerTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setInnerTab(tab.id)}
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all cursor-pointer ${
+                  isActive ? 'text-amber-800 bg-amber-50 scale-105' : 'text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                <TabIcon className="w-5 h-5" />
+                <span className="text-[9px] font-bold tracking-tight">{tab.label.split(' ')[0]}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
     </div>
