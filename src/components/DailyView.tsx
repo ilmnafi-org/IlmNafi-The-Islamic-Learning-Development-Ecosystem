@@ -790,7 +790,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
   const isCategoryCurrentlyFullyComplete = totalCompletedInCat === filteredAdhkar.length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 py-12" id="view-daily-spiritual-board">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-12 pt-6 pb-24" id="view-daily-spiritual-board">
       
       {/* Redesigned Space-Optimized Compact Header */}
       <div className="bg-slate-900 text-white rounded-[2rem] p-4 md:p-5 shadow-xl mb-6 flex items-center justify-between gap-4 border border-slate-800" id="spiritual-board-compact-header">
@@ -925,7 +925,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                           </div>
                           <div className="flex items-center justify-between mt-auto w-full pt-2 border-t border-slate-100/50">
                             <span className="text-[10px] text-slate-500 line-clamp-1 flex-1">
-                              {lang === 'en' ? item.translation : item.transliteration}
+                              {lang === 'en' ? item.translationEn : item.transliteration}
                             </span>
                             <span className={`font-mono text-[10px] font-black shrink-0 px-2 py-0.5 rounded-lg ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
                               {currentCount} / {item.targetCount}
@@ -976,168 +976,169 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                         </div>
                       </motion.div>
                     ) : (
-                      <div className="bg-white rounded-none pt-2 pb-6 space-y-4 relative border-0">
+                      <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-2xl border border-slate-100 relative space-y-6">
                         {/* Title / Badge details - smaller text, left aligned */}
-                        <div className="flex flex-row items-center gap-3">
-                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50/50 px-2 py-0.5 rounded-md">
-                            {activeStep.grade === 'Sahih' ? "Sahih" : "Hasan"}
-                          </span>
-                          <span className="text-[10px] font-mono font-bold text-slate-400">
+                        <div className="flex flex-row items-center justify-between pb-4 border-b border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-lg">
+                              {activeStep.grade === 'Sahih' ? "Sahih" : "Hasan"}
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono font-bold text-slate-400">
                             {adhkarIndex + 1} / {filteredAdhkar.length}
                           </span>
                         </div>
 
                         {/* Transliteration & Source references */}
-                        <div className="space-y-4 text-left w-full">
-                          <div className="relative w-full text-right" dir="rtl">
-                            <p className="text-xl md:text-2xl text-[#004d3d] font-serif leading-loose font-bold py-2 select-all">
+                        <div className="space-y-8 text-center w-full">
+                          <div className="relative w-full text-center" dir="rtl">
+                            <p className="text-3xl md:text-4xl text-[#004d3d] font-serif leading-loose font-bold py-4 select-all">
                               {activeStep.arabic}
                             </p>
                             
+                            {/* REDESIGNED COUNTER ZONE - Centered, Prominent */}
+                            <div className="flex justify-center items-center py-4">
+                              <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleStepClick(activeStep)}
+                                disabled={(adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount}
+                                className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center relative cursor-pointer outline-none select-none transition-all duration-300 shadow-xl ${
+                                  (adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount
+                                    ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                                    : 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/30'
+                                }`}
+                              >
+                                {((adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount) ? (
+                                  <Check className="w-8 h-8 font-black" />
+                                ) : (
+                                  <span className="text-3xl md:text-4xl font-black font-mono">
+                                    {activeStep.targetCount - (adhkarCompletedStates[activeStep.id] || 0)}
+                                  </span>
+                                )}
+                              </motion.button>
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono font-bold uppercase tracking-widest mt-[-1rem]">
+                              {lang === 'en' ? "Count" : "العدد"}: {adhkarCompletedStates[activeStep.id] || 0} / {activeStep.targetCount}
+                            </div>
+                            
                             {/* Audio Pronunciation & Copy Actions Overlay bar */}
-                        <div className="flex flex-wrap justify-center items-center gap-2 mt-2">
-                          <button
-                            onClick={() => handleTTS(activeStep.arabic, 'ar', activeStep.id + '-ar')}
-                            className={`p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                              isCurrentlyReading === activeStep.id + '-ar'
-                                ? 'bg-amber-800 text-white border-amber-600 shadow-sm'
-                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
-                            }`}
-                            title={lang === 'en' ? "Pronounce Arabic text" : "الاستماع للنطق العربي"}
-                          >
-                            {isCurrentlyReading === activeStep.id + '-ar' ? <VolumeX className="w-4 h-4 animate-pulse text-amber-300" /> : <Volume2 className="w-4 h-4 text-amber-700" />}
-                            <span>{lang === 'en' ? "Arabic Audio" : "نطق الذكر"}</span>
-                          </button>
+                            <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
+                              <button
+                                onClick={() => handleTTS(activeStep.arabic, 'ar', activeStep.id + '-ar')}
+                                className={`p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                                  isCurrentlyReading === activeStep.id + '-ar'
+                                    ? 'bg-amber-800 text-white border-amber-600 shadow-sm'
+                                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+                                }`}
+                                title={lang === 'en' ? "Pronounce Arabic text" : "الاستماع للنطق العربي"}
+                              >
+                                {isCurrentlyReading === activeStep.id + '-ar' ? <VolumeX className="w-4 h-4 animate-pulse text-amber-300" /> : <Volume2 className="w-4 h-4 text-amber-700" />}
+                                <span>{lang === 'en' ? "Arabic Audio" : "نطق الذكر"}</span>
+                              </button>
 
-                          <button
-                            onClick={() => handleCopy(activeStep.arabic, activeStep.id)}
-                            className={`p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                              copiedId === activeStep.id
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs'
-                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
-                            }`}
-                            title={lang === 'en' ? "Copy Arabic to clipboard" : "نسخ النص العربي"}
-                          >
-                            <Check className={`w-4 h-4 text-emerald-600 transition ${copiedId === activeStep.id ? 'opacity-100 scale-100' : 'opacity-0 scale-0 hidden'}`} />
-                            {copiedId !== activeStep.id && <Bookmark className="w-4 h-4 text-slate-400" />}
-                            <span>{copiedId === activeStep.id ? (lang === 'en' ? "Copied" : "تم النسخ") : (lang === 'en' ? "Copy Arabic" : "نسخ")}</span>
-                          </button>
+                              <button
+                                onClick={() => handleCopy(activeStep.arabic, activeStep.id)}
+                                className={`p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                                  copiedId === activeStep.id
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs'
+                                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+                                }`}
+                                title={lang === 'en' ? "Copy Arabic to clipboard" : "نسخ النص العربي"}
+                              >
+                                <Check className={`w-4 h-4 text-emerald-600 transition ${copiedId === activeStep.id ? 'opacity-100 scale-100' : 'opacity-0 scale-0 hidden'}`} />
+                                {copiedId !== activeStep.id && <Bookmark className="w-4 h-4 text-slate-400" />}
+                                <span>{copiedId === activeStep.id ? (lang === 'en' ? "Copied" : "تم النسخ") : (lang === 'en' ? "Copy" : "نسخ")}</span>
+                              </button>
 
-                          <button
-                            onClick={() => {
-                              const textToRead = 
-                                translationLang === 'en' ? activeStep.translationEn :
-                                translationLang === 'ar' ? activeStep.translationAr :
-                                translationLang === 'ur' ? activeStep.translationUr :
-                                activeStep.translationHa;
-                              handleTTS(textToRead, translationLang, activeStep.id + '-tr');
-                            }}
-                            className={`p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                              isCurrentlyReading === activeStep.id + '-tr'
-                                ? 'bg-indigo-805 text-white border-indigo-600 shadow-xs'
-                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
-                            }`}
-                            title={lang === 'en' ? "Read translation out loud" : "قراءة الترجمة"}
-                          >
-                            {isCurrentlyReading === activeStep.id + '-tr' ? <VolumeX className="w-4 h-4 animate-pulse text-indigo-305" /> : <Volume2 className="w-4 h-4 text-indigo-600" />}
-                            <span>{lang === 'en' ? "Read Meaning" : "قراءة المعنى"}</span>
-                          </button>
+                              <button
+                                onClick={() => handleShare(activeStep)}
+                                className="p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200"
+                                title={lang === 'en' ? "Share this Adhkar" : "مشاركة هذا الذكر"}
+                              >
+                                <Share2 className="w-4 h-4 text-slate-500" />
+                                <span>{lang === 'en' ? "Share" : "مشاركة"}</span>
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {/* Translation & Transliteration Box */}
+                          <div className="bg-slate-50 rounded-2xl p-4 md:p-6 space-y-4 border border-slate-100 text-left">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                              <div className="flex flex-wrap items-center gap-1">
+                                {[
+                                  { code: 'en', label: 'English' },
+                                  { code: 'ar', label: 'العربية' },
+                                  { code: 'ur', label: 'اردو' },
+                                  { code: 'ha', label: 'Hausa' }
+                                ].map((item) => (
+                                  <button
+                                    key={item.code}
+                                    onClick={() => setTranslationLang(item.code as any)}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold transition cursor-pointer select-none ${
+                                      translationLang === item.code
+                                        ? 'bg-amber-900 text-white shadow-xs'
+                                        : 'bg-slate-200/50 text-slate-600 hover:text-slate-800'
+                                    }`}
+                                  >
+                                    {item.label}
+                                  </button>
+                                ))}
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const textToRead = 
+                                    translationLang === 'en' ? activeStep.translationEn :
+                                    translationLang === 'ar' ? activeStep.translationAr :
+                                    translationLang === 'ur' ? activeStep.translationUr :
+                                    activeStep.translationHa;
+                                  handleTTS(textToRead, translationLang, activeStep.id + '-tr');
+                                }}
+                                className={`p-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                                  isCurrentlyReading === activeStep.id + '-tr'
+                                    ? 'bg-indigo-800 text-white border-indigo-600 shadow-xs'
+                                    : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
+                                }`}
+                                title={lang === 'en' ? "Read translation out loud" : "قراءة الترجمة"}
+                              >
+                                {isCurrentlyReading === activeStep.id + '-tr' ? <VolumeX className="w-3.5 h-3.5 animate-pulse text-indigo-300" /> : <Volume2 className="w-3.5 h-3.5 text-indigo-600" />}
+                                <span className="hidden sm:inline">{lang === 'en' ? "Listen" : "استماع"}</span>
+                              </button>
+                            </div>
+                            
+                            <div className="text-sm md:text-base text-slate-800 font-medium leading-relaxed">
+                              {translationLang === 'en' && activeStep.translationEn}
+                              {translationLang === 'ar' && activeStep.translationAr}
+                              {translationLang === 'ur' && activeStep.translationUr}
+                              {translationLang === 'ha' && activeStep.translationHa}
+                            </div>
+                            
+                            <div className="pt-3 mt-3 border-t border-slate-200/60">
+                              <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-1">Transliteration</p>
+                              <div className="text-xs text-slate-600 italic leading-relaxed">
+                                {activeStep.transliteration}
+                              </div>
+                            </div>
+                          </div>
 
-                          <button
-                            onClick={() => handleShare(activeStep)}
-                            className="p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200"
-                            title={lang === 'en' ? "Share this Adhkar" : "مشاركة هذا الذكر"}
-                          >
-                            <Share2 className="w-4 h-4 text-slate-500" />
-                            <span>{lang === 'en' ? "Share" : "مشاركة"}</span>
-                          </button>
                         </div>
-                      </div>
-                      
-                      <div className="py-2.5 text-slate-650 italic text-[11px] leading-relaxed text-left">
-                        {activeStep.transliteration}
-                      </div>
 
-                      <div className="flex flex-wrap items-center gap-1 my-2">
-                        {[
-                          { code: 'en', label: 'English' },
-                          { code: 'ar', label: 'العربية' },
-                          { code: 'ur', label: 'اردو' },
-                          { code: 'ha', label: 'Hausa' }
-                        ].map((item) => (
-                          <button
-                            key={item.code}
-                            onClick={() => setTranslationLang(item.code as any)}
-                            className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer select-none ${
-                              translationLang === item.code
-                                ? 'bg-amber-900 text-white shadow-xs'
-                                : 'bg-slate-50 text-slate-500 hover:text-slate-800'
-                            }`}
-                          >
-                            {item.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="text-[11px] text-slate-700 font-sans font-medium transition-all duration-300 leading-relaxed py-2 text-left">
-                        {translationLang === 'en' && activeStep.translationEn}
-                        {translationLang === 'ar' && activeStep.translationAr}
-                        {translationLang === 'ur' && activeStep.translationUr}
-                        {translationLang === 'ha' && activeStep.translationHa}
-                      </div>
-                    </div>
-
-                    {/* REDESIGNED COUNTER ZONE - Left aligned, smaller */}
-                    <div className="flex items-center justify-between py-2 border-y border-slate-100">
-                      
-                      <div className="flex items-center gap-3">
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleStepClick(activeStep)}
-                          disabled={(adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount}
-                          className={`w-14 h-14 rounded-full flex flex-col items-center justify-center relative cursor-pointer outline-none select-none transition-colors ${
-                            (adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-slate-800 hover:bg-slate-900 text-white shadow-sm'
-                          }`}
-                        >
-                          {((adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount) ? (
-                            <Check className="w-5 h-5 text-emerald-600 font-black" />
-                          ) : (
-                            <span className="text-xl font-bold font-mono">
-                              {activeStep.targetCount - (adhkarCompletedStates[activeStep.id] || 0)}
+                        {/* Metadata on Virtue Context */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] leading-relaxed">
+                          <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 text-left">
+                            <span className="font-extrabold text-[#503020] uppercase tracking-wider block mb-1">
+                              📖 {t.sourceLabel}
                             </span>
-                          )}
-                        </motion.button>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-800">
-                            {lang === 'en' ? "Count" : "العدد"}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            {adhkarCompletedStates[activeStep.id] || 0} / {activeStep.targetCount}
-                          </span>
+                            <p className="text-slate-600 italic select-all font-mono">{activeStep.source}</p>
+                          </div>
+                          <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-100/60 text-left">
+                            <span className="font-extrabold text-amber-900 uppercase tracking-wider block mb-1">
+                              ✨ {t.virtueLabel}
+                            </span>
+                            <p className="text-slate-600 text-justify">
+                              {lang === 'en' ? activeStep.virtueEn : activeStep.virtueAr}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      
-                    </div>
-
-                    {/* Metadata on Virtue Context */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 text-[11px] leading-relaxed">
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <span className="font-extrabold text-[#503020] uppercase tracking-wider block mb-1">
-                          📖 {t.sourceLabel}
-                        </span>
-                        <p className="text-slate-650 italic select-all font-mono">{activeStep.source}</p>
-                      </div>
-                      <div className="p-4 bg-amber-50/40 rounded-2xl border border-amber-100/60">
-                        <span className="font-extrabold text-amber-905 uppercase tracking-wider block mb-1">
-                          ✨ {t.virtueLabel}
-                        </span>
-                        <p className="text-slate-600 text-justify">
-                          {lang === 'en' ? activeStep.virtueEn : activeStep.virtueAr}
-                        </p>
-                      </div>
-                    </div>
 
                     {/* Manual Progression Prev / Next Deck arrows */}
                     <div className="flex justify-between items-center bg-slate-50/60 px-4 py-3 rounded-2xl border border-slate-150 mt-4">
