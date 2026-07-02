@@ -73,7 +73,7 @@ export function HomeView({ lang, setActiveTab }: HomeViewProps) {
     >
       {/* EXTENDED HERO SECTION */}
       <section 
-        className="relative overflow-hidden pt-40 pb-32 md:pt-56 md:pb-40 text-center px-4 w-full mx-auto bg-cover bg-center text-white shadow-[0_25px_60px_rgba(7,28,23,0.12)]"
+        className="relative overflow-hidden pt-40 pb-12 md:pt-56 md:pb-16 text-center px-4 w-full mx-auto bg-cover bg-center text-white shadow-[0_25px_60px_rgba(7,28,23,0.12)]"
         style={{
           backgroundImage: "linear-gradient(to bottom, rgba(5, 23, 19, 0.95), rgba(9, 15, 14, 0.9)), url('https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=1600')"
         }}
@@ -143,7 +143,7 @@ export function HomeView({ lang, setActiveTab }: HomeViewProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 mt-20 pt-10 border-t border-white/10 w-full text-center"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 mt-12 pt-6 border-t border-white/10 w-full text-center"
           >
             <div>
               <p className="text-3xl md:text-4xl font-extrabold text-amber-400 mb-1">50+</p>

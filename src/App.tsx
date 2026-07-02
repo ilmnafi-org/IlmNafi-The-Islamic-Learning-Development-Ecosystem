@@ -2203,49 +2203,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* GLOBAL MOBILE BOTTOM NAVIGATION - FLOATING */}
-      {activeTab !== 'home' && activeTab !== 'dashboard' && (
-        <div className="lg:hidden fixed bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md border border-slate-200 z-[90] pb-safe shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl overflow-hidden">
-          <nav className="flex items-center justify-around p-2" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-            <button
-              onClick={() => setActiveTab('curriculum')}
-              className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all cursor-pointer ${
-                activeTab === 'curriculum' ? 'text-amber-800 bg-amber-50 scale-105' : 'text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <GraduationCap className="w-5 h-5" />
-              <span className="text-[9px] font-bold tracking-tight">{labels.curriculum}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('coach')}
-              className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all cursor-pointer ${
-                activeTab === 'coach' ? 'text-emerald-800 bg-emerald-50 scale-105' : 'text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <Mic className="w-5 h-5" />
-              <span className="text-[9px] font-bold tracking-tight">{labels.coach}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('quran')}
-              className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all cursor-pointer ${
-                activeTab === 'quran' ? 'text-amber-800 bg-amber-50 scale-105' : 'text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <Book className="w-5 h-5" />
-              <span className="text-[9px] font-bold tracking-tight">{labels.quran}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('daily')}
-              className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all cursor-pointer ${
-                activeTab === 'daily' ? 'text-amber-800 bg-amber-50 scale-105' : 'text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <Moon className="w-5 h-5" />
-              <span className="text-[9px] font-bold tracking-tight">{labels.daily}</span>
-            </button>
-          </nav>
-        </div>
-      )}
+      
 
     </div>
     </>

@@ -16,6 +16,7 @@ import {
   VolumeX, 
   AlertCircle, 
   RefreshCw,
+  X,
   Award,
   Bookmark,
   ChevronLeft,
@@ -998,379 +999,154 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                             
                             {/* REDESIGNED COUNTER ZONE - Centered, Prominent */}
                             <div className="flex justify-center items-center py-4">
-                              <motion.button
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleStepClick(activeStep)}
+                              <motion.button 
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => {
+                                  triggerSynthClick(800);
+                                  handleStepClick(activeStep);
+                                }}
                                 disabled={(adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount}
-                                className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center relative cursor-pointer outline-none select-none transition-all duration-300 shadow-xl ${
+                                className={`w-32 h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center border-4 shadow-xl cursor-pointer transition-all ${
                                   (adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount
-                                    ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-                                    : 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/30'
+                                    ? 'bg-emerald-500 border-emerald-600 text-white shadow-emerald-500/30'
+                                    : 'bg-white border-amber-100 text-slate-800 hover:border-amber-200'
                                 }`}
                               >
                                 {((adhkarCompletedStates[activeStep.id] || 0) >= activeStep.targetCount) ? (
-                                  <Check className="w-8 h-8 font-black" />
+                                  <Check className="w-12 h-12 md:w-16 md:h-16 mb-1" />
                                 ) : (
-                                  <span className="text-3xl md:text-4xl font-black font-mono">
+                                  <span className="text-4xl md:text-5xl font-black font-mono">
                                     {activeStep.targetCount - (adhkarCompletedStates[activeStep.id] || 0)}
                                   </span>
                                 )}
+                                <span className="text-[9px] uppercase tracking-widest font-bold opacity-80 mt-1">
+                                  {lang === 'en' ? "Count" : "العدد"}: {adhkarCompletedStates[activeStep.id] || 0} / {activeStep.targetCount}
+                                </span>
                               </motion.button>
-                            </div>
-                            <div className="text-[10px] text-slate-400 font-mono font-bold uppercase tracking-widest mt-[-1rem]">
-                              {lang === 'en' ? "Count" : "العدد"}: {adhkarCompletedStates[activeStep.id] || 0} / {activeStep.targetCount}
-                            </div>
-                            
-                            {/* Audio Pronunciation & Copy Actions Overlay bar */}
-                            <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
-                              <button
-                                onClick={() => handleTTS(activeStep.arabic, 'ar', activeStep.id + '-ar')}
-                                className={`p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                                  isCurrentlyReading === activeStep.id + '-ar'
-                                    ? 'bg-amber-800 text-white border-amber-600 shadow-sm'
-                                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
-                                }`}
-                                title={lang === 'en' ? "Pronounce Arabic text" : "الاستماع للنطق العربي"}
-                              >
-                                {isCurrentlyReading === activeStep.id + '-ar' ? <VolumeX className="w-4 h-4 animate-pulse text-amber-300" /> : <Volume2 className="w-4 h-4 text-amber-700" />}
-                                <span>{lang === 'en' ? "Arabic Audio" : "نطق الذكر"}</span>
-                              </button>
-
-                              <button
-                                onClick={() => handleCopy(activeStep.arabic, activeStep.id)}
-                                className={`p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                                  copiedId === activeStep.id
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs'
-                                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
-                                }`}
-                                title={lang === 'en' ? "Copy Arabic to clipboard" : "نسخ النص العربي"}
-                              >
-                                <Check className={`w-4 h-4 text-emerald-600 transition ${copiedId === activeStep.id ? 'opacity-100 scale-100' : 'opacity-0 scale-0 hidden'}`} />
-                                {copiedId !== activeStep.id && <Bookmark className="w-4 h-4 text-slate-400" />}
-                                <span>{copiedId === activeStep.id ? (lang === 'en' ? "Copied" : "تم النسخ") : (lang === 'en' ? "Copy" : "نسخ")}</span>
-                              </button>
-
-                              <button
-                                onClick={() => handleShare(activeStep)}
-                                className="p-2 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200"
-                                title={lang === 'en' ? "Share this Adhkar" : "مشاركة هذا الذكر"}
-                              >
-                                <Share2 className="w-4 h-4 text-slate-500" />
-                                <span>{lang === 'en' ? "Share" : "مشاركة"}</span>
-                              </button>
                             </div>
                           </div>
                           
-                          {/* Translation & Transliteration Box */}
-                          <div className="bg-slate-50 rounded-2xl p-4 md:p-6 space-y-4 border border-slate-100 text-left">
-                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
-                              <div className="flex flex-wrap items-center gap-1">
-                                {[
-                                  { code: 'en', label: 'English' },
-                                  { code: 'ar', label: 'العربية' },
-                                  { code: 'ur', label: 'اردو' },
-                                  { code: 'ha', label: 'Hausa' }
-                                ].map((item) => (
-                                  <button
-                                    key={item.code}
-                                    onClick={() => setTranslationLang(item.code as any)}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold transition cursor-pointer select-none ${
-                                      translationLang === item.code
-                                        ? 'bg-amber-900 text-white shadow-xs'
-                                        : 'bg-slate-200/50 text-slate-600 hover:text-slate-800'
-                                    }`}
-                                  >
-                                    {item.label}
-                                  </button>
-                                ))}
-                              </div>
-                              <button
-                                onClick={() => {
-                                  const textToRead = 
-                                    translationLang === 'en' ? activeStep.translationEn :
-                                    translationLang === 'ar' ? activeStep.translationAr :
-                                    translationLang === 'ur' ? activeStep.translationUr :
-                                    activeStep.translationHa;
-                                  handleTTS(textToRead, translationLang, activeStep.id + '-tr');
-                                }}
-                                className={`p-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                                  isCurrentlyReading === activeStep.id + '-tr'
-                                    ? 'bg-indigo-800 text-white border-indigo-600 shadow-xs'
-                                    : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
-                                }`}
-                                title={lang === 'en' ? "Read translation out loud" : "قراءة الترجمة"}
-                              >
-                                {isCurrentlyReading === activeStep.id + '-tr' ? <VolumeX className="w-3.5 h-3.5 animate-pulse text-indigo-300" /> : <Volume2 className="w-3.5 h-3.5 text-indigo-600" />}
-                                <span className="hidden sm:inline">{lang === 'en' ? "Listen" : "استماع"}</span>
-                              </button>
-                            </div>
-                            
-                            <div className="text-sm md:text-base text-slate-800 font-medium leading-relaxed">
-                              {translationLang === 'en' && activeStep.translationEn}
-                              {translationLang === 'ar' && activeStep.translationAr}
-                              {translationLang === 'ur' && activeStep.translationUr}
-                              {translationLang === 'ha' && activeStep.translationHa}
-                            </div>
-                            
-                            <div className="pt-3 mt-3 border-t border-slate-200/60">
-                              <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-1">Transliteration</p>
-                              <div className="text-xs text-slate-600 italic leading-relaxed">
-                                {activeStep.transliteration}
-                              </div>
-                            </div>
-                          </div>
-
-                        </div>
-
-                        {/* Metadata on Virtue Context */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] leading-relaxed">
-                          <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 text-left">
-                            <span className="font-extrabold text-[#503020] uppercase tracking-wider block mb-1">
-                              📖 {t.sourceLabel}
+                          <p className="text-slate-600 text-sm md:text-base font-serif italic max-w-lg mx-auto mt-4">
+                            {lang === 'en' ? activeStep.translationEn : activeStep.translationAr}
+                          </p>
+                          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mt-6 inline-block w-full max-w-lg text-left">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                              {lang === 'en' ? "Transliteration" : "اللفظ"}
                             </span>
-                            <p className="text-slate-600 italic select-all font-mono">{activeStep.source}</p>
-                          </div>
-                          <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-100/60 text-left">
-                            <span className="font-extrabold text-amber-900 uppercase tracking-wider block mb-1">
-                              ✨ {t.virtueLabel}
-                            </span>
-                            <p className="text-slate-600 text-justify">
-                              {lang === 'en' ? activeStep.virtueEn : activeStep.virtueAr}
+                            <p className="text-xs text-slate-700 font-mono leading-relaxed">
+                              {activeStep.transliteration}
                             </p>
                           </div>
                         </div>
 
-                    {/* Manual Progression Prev / Next Deck arrows */}
-                    <div className="flex justify-between items-center bg-slate-50/60 px-4 py-3 rounded-2xl border border-slate-150 mt-4">
-                      <button
-                        onClick={() => setAdhkarIndex(prev => Math.max(0, prev - 1))}
-                        disabled={adhkarIndex === 0}
-                        className="px-4 py-2 bg-white border border-slate-205 rounded-xl text-slate-700 hover:text-slate-905 text-[11px] font-extrabold flex items-center gap-1 shadow-xs disabled:opacity-40 cursor-pointer"
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                        <span>{t.prevItem}</span>
-                      </button>
-                      <span className="text-[10px] font-black text-slate-400 uppercase">Interactive Deck Swiper</span>
-                      <button
-                        onClick={() => setAdhkarIndex(prev => Math.min(filteredAdhkar.length - 1, prev + 1))}
-                        disabled={adhkarIndex === filteredAdhkar.length - 1}
-                        className="px-4 py-2 bg-white border border-slate-205 rounded-xl text-slate-700 hover:text-slate-950 text-[11px] font-extrabold flex items-center gap-1 shadow-xs disabled:opacity-40 cursor-pointer"
-                      >
-                        <span>{t.nextItem}</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
+                        {/* Navigation Actions */}
+                        <div className="pt-6 mt-8 border-t border-slate-100 flex items-center justify-between">
+                          <button
+                            onClick={() => setAdhkarIndex(prev => Math.max(0, prev - 1))}
+                            disabled={adhkarIndex === 0}
+                            className={`p-3 rounded-xl transition-all ${adhkarIndex === 0 ? 'opacity-30 cursor-not-allowed text-slate-400' : 'text-slate-700 bg-slate-50 hover:bg-slate-100'}`}
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          
+                          <button
+                            onClick={() => setAdhkarIndex(prev => Math.min(filteredAdhkar.length - 1, prev + 1))}
+                            disabled={adhkarIndex === filteredAdhkar.length - 1}
+                            className={`p-3 rounded-xl transition-all ${adhkarIndex === filteredAdhkar.length - 1 ? 'opacity-30 cursor-not-allowed text-slate-400' : 'text-slate-700 bg-slate-50 hover:bg-slate-100'}`}
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
-
-                {/* VISUAL 14-DAY HEATMAP CONTROLLER */}
-                <div className="bg-white border border-slate-150/40 rounded-3xl p-6 shadow-xl space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-1">
-                      <Calendar className="w-4 h-4 text-emerald-600" />
-                      <span>{t.consistencyHeatmap}</span>
-                    </h3>
-                    <span className="text-[10px] font-bold text-[#503020]">Active Habit Loop tracking</span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5 justify-center py-2">
-                    {Array.from({ length: 14 }).map((_, delta) => {
-                      const dayVal = new Date();
-                      dayVal.setDate(dayVal.getDate() - (13 - delta));
-                      const keyStr = dayVal.toISOString().split('T')[0];
-                      const isActive = heatmap[keyStr] || delta % 3 === 1; // simulation fallback if fresh
-                      const labelText = dayVal.toLocaleDateString(lang === 'en' ? 'en' : 'ar', { weekday: 'short', day: 'numeric' });
-                      
-                      return (
-                        <div 
-                          key={labelText}
-                          className="flex flex-col items-center gap-1"
-                          title={`${labelText}: ${isActive ? 'Practice Completed' : 'Session Rest'}`}
-                        >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[9px] font-bold transition border ${
-                            isActive 
-                              ? 'bg-emerald-600 border-emerald-800 text-white shadow-sm' 
-                              : 'bg-slate-50 border-slate-150 text-slate-350 hover:bg-slate-100'
-                          }`}>
-                            {dayVal.getDate()}
-                          </div>
-                          <span className="text-[8px] text-slate-400 font-mono font-medium">{dayVal.toLocaleDateString('en', { weekday: 'narrow' })}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
+            </div>
+          )}
+        </div>
+      
+      {/* ADHKAR BOTTOM DRAWERS */}
       <AnimatePresence>
-        {/* DRAWER B: GLORIOUS DIGITAL TASBIH & COLLABORATIVE LIVE LOBBY */}
         {activeAdhkarDrawer === 'tasbih' && (
-          <div key="tasbih-drawer-root">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+          <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[200] cursor-pointer"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
               onClick={() => handleSetAdhkarDrawer(null)}
             />
-            {/* Slide-Up Sheet */}
-            <motion.div
-              key="tasbih-drawer"
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 600 }}
-              dragElastic={{ top: 0, bottom: 0.4 }}
-              onDragEnd={(event, info) => {
-                if (info.offset.y > 150) {
-                  handleSetAdhkarDrawer(null);
-                }
-              }}
-              initial={{ y: "100%" }}
+            <motion.div 
+              initial={{ y: '100%' }}
               animate={{ y: 0 }}
-              exit={{ y: "105%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 220 }}
-              className="fixed bottom-0 inset-x-0 bg-white text-slate-800 rounded-t-[2rem] shadow-2xl z-[201] max-h-[90vh] overflow-y-auto border-t border-slate-205 pb-12"
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative bg-white rounded-t-3xl shadow-2xl h-[85vh] md:h-[75vh] flex flex-col overflow-hidden"
             >
-              <div className="flex flex-col items-center py-3.5 select-none">
-                <div className="w-14 h-1.5 bg-slate-200 hover:bg-slate-350 rounded-full cursor-pointer transition-colors" onClick={() => handleSetAdhkarDrawer(null)} />
-                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-1 font-sans">Swipe down or tap above to close</span>
-              </div>
-              
-              <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="text-left">
-                    <span className="text-[10px] uppercase tracking-widest text-[#C59B32] font-mono font-bold leading-none mb-1 block">Spiritual Tally Desk</span>
-                    <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-sans">
-                      {lang === 'en' ? "Digital Tasbih Counter & Halaqa" : "المسبحة الإلكترونية ومجلس الذكر والورد"}
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => handleSetAdhkarDrawer(null)}
-                    type="button"
-                    className="p-1.5 px-4 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-black cursor-pointer border-0 transition-all active:scale-95"
-                  >
-                    {lang === 'en' ? "Dismiss" : "إغلاق"}
-                  </button>
+              <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-100">
+                <div className="flex flex-col">
+                  <h3 className="font-serif text-2xl font-bold text-slate-900">{t.tasbih}</h3>
+                  <p className="text-xs text-slate-500 font-medium">Digital Dhikr Counter</p>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              
-              {/* Left Column: Tally selection and presets (order-2 on mobile, order-1 / col-span-4 on desktop) */}
-              <div className="lg:col-span-4 bg-white border border-slate-150/40 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl order-2 lg:order-1">
-                
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 mb-1.5">{t.wirdSelectFocus}</h3>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">{t.tasbihSubtitle}</p>
-                </div>
-
-                <div className="space-y-3 pb-4 border-b border-slate-100">
-                  {DAILY_WIRDS_PRESETS.map((item, idx) => {
-                    const isSelected = tasbihPresetIdx === idx && !customWirdText;
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setTasbihPresetIdx(idx);
-                          setCustomWirdText("");
-                          setTasbihCount(0);
-                        }}
-                        className={`w-full p-4 rounded-2xl border text-right transition duration-200 flex flex-col gap-2 cursor-pointer focus:outline-none ${
-                          isSelected
-                            ? 'border-amber-600 bg-amber-50/40 text-amber-950 shadow-sm'
-                            : 'border-slate-110 hover:border-amber-300 text-slate-800 bg-slate-50/50 hover:bg-white'
-                        }`}
-                        style={{ direction: 'rtl' }}
-                      >
-                        <span className="text-xl text-amber-950 font-serif font-extrabold block">
-                          {item.arabic}
-                        </span>
-                        <div className="flex justify-between items-center text-[10px] text-slate-400 font-sans w-full">
-                          <span className="font-bold uppercase tracking-wider">{item.name}</span>
-                          <span className="italic opacity-80">Target: {item.target} reps</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Custom target wird parameters */}
-                <div className="space-y-3">
-                  <label className="block text-[11px] font-extrabold text-slate-650 uppercase tracking-wider">
-                    {t.wirdCustomLabel}
-                  </label>
-                  <input
-                    type="text"
-                    value={customWirdText}
-                    onChange={(e) => {
-                      setCustomWirdText(e.target.value);
-                      setTasbihCount(0);
-                    }}
-                    placeholder={t.customWirdPlaceholder}
-                    className="w-full px-4 py-3 bg-slate-50/70 text-slate-900 border border-slate-205 hover:border-slate-350 rounded-2xl text-xs focus:ring-1 focus:ring-amber-500 outline-none transition"
-                  />
-                  
-                  {customWirdText && (
-                    <div className="space-y-1.5 animate-fadeIn">
-                      <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase">
-                        <span>{t.customTargetLabel}</span>
-                        <span>{customTarget} reps</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="3"
-                        max="200"
-                        step="1"
-                        value={customTarget}
-                        onChange={(e) => {
-                          setCustomTarget(Number(e.target.value));
-                          setTasbihCount(0);
-                        }}
-                        className="w-full accent-amber-800"
-                      />
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-              {/* Middle Box: MAJESTIC LARGE TAPPING INTERFACE (order-1 on mobile, order-2 / col-span-8 on desktop) */}
-              <div className="lg:col-span-8 bg-gradient-to-br from-white to-[#fefcf8] border border-amber-900/10 shadow-xl rounded-3xl p-8 md:p-12 flex flex-col items-center justify-center space-y-8 min-h-[500px] order-1 lg:order-2">
-                
-                <div className="text-center space-y-2">
-                  <span className="text-3xl font-extrabold text-amber-950 block leading-loose font-serif select-all" dir="rtl">
-                    {customWirdText ? customWirdText : DAILY_WIRDS_PRESETS[tasbihPresetIdx].arabic}
-                  </span>
-                  <p className="text-[10px] font-black text-slate-500 font-mono tracking-widest uppercase">
-                    {customWirdText ? "Custom Wird Focus Option" : DAILY_WIRDS_PRESETS[tasbihPresetIdx].name}
-                  </p>
-                </div>
-
-                {/* Massive tactile bead round button */}
-                <motion.button
-                  whileTap={{ scale: 0.93 }}
-                  onClick={handleTasbihBeadIncrement}
-                  className="w-56 h-56 rounded-full bg-gradient-to-tr from-[#1b1c1e] via-[#334155] to-slate-900 text-white shadow-2xl flex flex-col items-center justify-center relative cursor-pointer outline-none border-[12px] border-amber-50 shrink-0 select-none group"
-                  id="bead-circle-counter"
+                <button 
+                  onClick={() => handleSetAdhkarDrawer(null)}
+                  className="w-10 h-10 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-full flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  <div className="absolute inset-2.5 border border-dashed border-white/10 rounded-full animate-spin-slow"></div>
-                  
-                  <span className="text-6xl font-black font-mono text-white mb-1 drop-shadow-md tracking-tighter">
-                    {tasbihCount}
-                  </span>
-                  <span className="text-[9px] uppercase font-bold tracking-widest text-[#fcd34d] bg-black/40 px-3 py-1 rounded-full border border-white/5">
-                    {(customWirdText ? customTarget : 33) - tasbihCount} {lang === 'en' ? "Left" : "متبقٍ"}
-                  </span>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                  <div className="absolute bottom-5 bg-amber-950/90 text-amber-250 border border-amber-600/20 px-3.5 py-0.5 rounded-full text-[10px] font-mono font-bold">
-                    Target: {customWirdText ? customTarget : 33}
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col items-center pb-24 space-y-8">
+                
+                {/* Custom Wird Header */}
+                <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.tasbihHeader}</span>
+                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+                      <button onClick={() => setCustomTarget(33)} className={`px-3 py-1.5 text-[10px] font-bold transition-colors cursor-pointer ${customTarget === 33 ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-100'}`}>33</button>
+                      <div className="w-[1px] h-4 bg-slate-200"></div>
+                      <button onClick={() => setCustomTarget(100)} className={`px-3 py-1.5 text-[10px] font-bold transition-colors cursor-pointer ${customTarget === 100 ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-100'}`}>100</button>
+                      <div className="w-[1px] h-4 bg-slate-200"></div>
+                      <button onClick={() => setCustomTarget(999)} className={`px-3 py-1.5 text-[10px] font-bold transition-colors cursor-pointer ${customTarget === 999 ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-100'}`}>∞</button>
+                    </div>
                   </div>
-                </motion.button>
+                  <input 
+                    type="text" 
+                    placeholder="E.g., Subhanallah, Alhamdulillah..." 
+                    value={customWirdText}
+                    onChange={(e) => setCustomWirdText(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-slate-800"
+                  />
+                </div>
 
+                <div className="flex justify-center items-center py-4 w-full">
+                  <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleTasbihBeadIncrement}
+                    className="w-full max-w-sm aspect-[2/1] rounded-3xl bg-white text-slate-900 shadow-md border border-slate-200 flex flex-col items-center justify-center relative cursor-pointer outline-none select-none hover:shadow-lg transition-all group overflow-hidden"
+                    id="bead-circle-counter"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-2 bg-slate-100">
+                      <div className="h-full bg-amber-500 transition-all duration-300" style={{ width: `${(tasbihCount / (customTarget || 33)) * 100}%` }}></div>
+                    </div>
+                    
+                    <span className="text-7xl font-black font-mono text-slate-900 mb-3 tracking-tighter">
+                      {tasbihCount.toString().padStart(2, '0')}
+                    </span>
+                    
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
+                        Target: {customTarget || 33}
+                      </span>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">
+                        {(customTarget || 33) - tasbihCount} {lang === 'en' ? "Left" : "متبقٍ"}
+                      </span>
+                    </div>
+                    
+                    <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/5 transition-colors"></div>
+                  </motion.button>
+                </div>
+                
                 {/* Haptic / Synth sound controls */}
                 <div className="w-full max-w-md bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 flex flex-col gap-3 text-xs text-slate-700">
                   <div className="flex items-center justify-between">
@@ -1414,10 +1190,6 @@ export const DailyView: React.FC<DailyViewProps> = ({ lang, onDrawerChange }) =>
                     <span>{lang === 'en' ? "Full Recount Reset" : "تصفير المعداد"}</span>
                   </button>
                 </div>
-
-              </div>
-
-            </div>
 
             {/* MOCK LIVE MULTI-USER DHIKR CHAMBER OR HALAQA ROOM (Extremely Retentive Feature) */}
             <div className="bg-slate-900 text-white rounded-3xl p-8 relative overflow-hidden border border-slate-800 shadow-xl space-y-6">

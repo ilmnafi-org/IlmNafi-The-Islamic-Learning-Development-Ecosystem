@@ -1118,3 +1118,97 @@ export const DAILY_WIRDS_PRESETS = [
   { name: "La ilaha illallah", arabic: "لَا إِلَهَ إِلَّا اللهُ", target: 100 },
   { name: "Salawat (Allahumma Salli)", arabic: "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ", target: 100 }
 ];
+
+// Appending some extra adhkar for robust coverage
+AUTHENTIC_ADHKAR_DB.push(
+  {
+    id: "extra_food_1",
+    category: "food",
+    arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا، وَرَزَقَنِيهِ، مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ",
+    transliteration: "Alhamdu lillahil-ladhi at'amani hadha, wa razaqanihi, min ghayri hawlin minni wa la quwwatin.",
+    translationEn: "All praise is to Allah Who has fed me this and provided it for me without any strength or power on my part.",
+    translationAr: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا، وَرَزَقَنِيهِ، مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ",
+    translationUr: "تمام تعریفیں اللہ کے لیے ہیں جس نے مجھے یہ کھلایا اور میری کسی طاقت اور قوت کے بغیر مجھے یہ رزق دیا۔",
+    translationHa: "Godiya ta tabbata ga Allah wanda ya ciyar da ni wannan kuma ya azurta ni da shi ba tare da wani ƙarfi ko dabara daga gare ni ba.",
+    source: "Sunan Abu Dawud 4023",
+    targetCount: 1,
+    virtueEn: "Sins are forgiven for one who recites this after finishing their meal.",
+    virtueAr: "غفر له ما تقدم من ذنبه.",
+    grade: "Hasan"
+  },
+  {
+    id: "extra_food_2",
+    category: "food",
+    arabic: "بِسْمِ اللَّهِ فِي أَوَّلِهِ وَآخِرِهِ",
+    transliteration: "Bismillahi fee awwalihi wa akhirihi",
+    translationEn: "In the name of Allah in its beginning and its end.",
+    translationAr: "بِسْمِ اللَّهِ فِي أَوَّلِهِ وَآخِرِهِ",
+    translationUr: "اللہ کے نام سے اس کے شروع اور آخر میں۔",
+    translationHa: "Da sunan Allah a farkonsa da karshensa.",
+    source: "Jami at-Tirmidhi 1858",
+    targetCount: 1,
+    virtueEn: "To be said if one forgets to say Bismillah before starting the meal, preventing the Shaytan from sharing the food.",
+    virtueAr: "إذا نسي أحدكم أن يذكر اسم الله تعالى على طعامه فليقل هذا.",
+    grade: "Sahih"
+  },
+  {
+    id: "extra_anxiety_1",
+    category: "anxiety",
+    arabic: "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ",
+    transliteration: "Ya Hayyu Ya Qayyum, bi-rahmatika astagheeth.",
+    translationEn: "O Ever-Living, O Sustainer, in Your Mercy I seek relief.",
+    translationAr: "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ",
+    translationUr: "اے ہمیشہ زندہ رہنے والے، اے سب کو سنبھالنے والے، میں تیری رحمت کے وسیلے سے فریاد کرتا ہوں۔",
+    translationHa: "Ya Rayayye, Ya Madawwami, da rahamarKa nake neman agaji.",
+    source: "Jami at-Tirmidhi 3524",
+    targetCount: 1,
+    virtueEn: "The Prophet (PBUH) would say this supplication when distressed or facing hardship.",
+    virtueAr: "كان النبي صلى الله عليه وسلم إذا كربه أمر قال ذلك.",
+    grade: "Hasan"
+  },
+  {
+    id: "extra_anxiety_2",
+    category: "anxiety",
+    arabic: "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",
+    transliteration: "La ilaha illa Anta, subhanaka innee kuntu minadh-dhalimeen.",
+    translationEn: "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.",
+    translationAr: "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",
+    translationUr: "تیرے سوا کوئی معبود نہیں، تو پاک ہے، بیشک میں ہی قصورواروں میں سے تھا۔",
+    translationHa: "Babu abun bautawa da gaskiya sai Kai, tsarki ya tabbata a gare Ka. Lallai na kasance cikin mayaudara.",
+    source: "Surah Al-Anbya 21:87",
+    targetCount: 1,
+    virtueEn: "The supplication of Yunus (Jonah) in the belly of the whale. No Muslim supplicates with it for anything but Allah responds to him.",
+    virtueAr: "دعوة ذي النون إذ دعا بها في بطن الحوت لم يدع بها رجل مسلم في شيء قط إلا استجاب الله له.",
+    grade: "Sahih"
+  },
+  {
+    id: "extra_travel_1",
+    category: "travel",
+    arabic: "بِسْمِ اللهِ، تَوَكَّلْتُ عَلَى اللهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللهِ",
+    transliteration: "Bismillahi, tawakkaltu 'alallahi, wa la hawla wa la quwwata illa billah.",
+    translationEn: "In the name of Allah, I place my trust in Allah, and there is no might nor power except with Allah.",
+    translationAr: "بِسْمِ اللهِ، تَوَكَّلْتُ عَلَى اللهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللهِ",
+    translationUr: "اللہ کے نام سے، میں نے اللہ پر بھروسہ کیا، اور اللہ کی مدد کے بغیر نہ گناہوں سے بچنے کی طاقت ہے اور نہ نیکی کرنے کی۔",
+    translationHa: "Da sunan Allah, na dogara ga Allah, kuma babu dabara ko ƙarfi sai da Allah.",
+    source: "Sunan Abu Dawud 5095",
+    targetCount: 1,
+    virtueEn: "Upon leaving the house, saying this guarantees guidance, sufficiency, and protection from Shaytan.",
+    virtueAr: "يقال له: هديت وكفيت ووقيت، وتنحى عنه الشيطان.",
+    grade: "Sahih"
+  },
+  {
+    id: "extra_sleep_1",
+    category: "sleep",
+    arabic: "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي وَبِكَ أَرْفَعُهُ، إِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ",
+    transliteration: "Bismika Rabbi wada'tu janbi wa bika arfa'uhu. In amsakta nafsi farhamha, wa in arsaltaha fahfadhha bima tahfadhu bihi 'ibadakas-saliheen.",
+    translationEn: "In Your name my Lord, I lie down and in Your name I rise, so if You should take my soul then have mercy upon it, and if You should return my soul then protect it in the manner You do so with Your righteous servants.",
+    translationAr: "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي وَبِكَ أَرْفَعُهُ...",
+    translationUr: "اے میرے رب، تیرے نام سے میں نے اپنا پہلو رکھا اور تیرے ہی نام سے اسے اٹھاؤں گا۔",
+    translationHa: "Da sunanKa Ubangijina na kwanta, kuma da sunanKa nake tashi...",
+    source: "Sahih al-Bukhari 6320",
+    targetCount: 1,
+    virtueEn: "Provides divine protection through the night for your soul.",
+    virtueAr: "الحماية الإلهية للروح طوال الليل.",
+    grade: "Sahih"
+  }
+);
