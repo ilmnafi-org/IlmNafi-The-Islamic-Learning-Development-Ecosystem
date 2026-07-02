@@ -60,10 +60,12 @@ export const EncyclopediaView = ({ lang }: { lang: 'en' | 'ar' }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-slate-300 pb-8">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight mb-4">
-              The Grand Library
+              {lang === 'en' ? 'Hadith & Grand Library' : 'الحديث والمكتبة الكبرى'}
             </h1>
             <p className="text-base md:text-lg text-slate-600 leading-relaxed font-serif italic">
-              "Read! In the name of your Lord who created." A structured, scholarly archive of Islamic history, theology, and jurisprudence.
+              {lang === 'en' 
+                ? `"Read! In the name of your Lord who created." A structured, scholarly archive of authentic Hadith (Sahih Bukhari, etc), history, theology, and jurisprudence.`
+                : `﴿اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ﴾ أرشيف علمي منظم للحديث الشريف (صحيح البخاري وغيره) والتاريخ والعقيدة والفقه.`}
             </p>
           </div>
           

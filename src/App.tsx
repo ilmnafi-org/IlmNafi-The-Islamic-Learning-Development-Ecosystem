@@ -38,6 +38,7 @@ import {
   Plus,
   ArrowUp,
   Activity,
+  Home,
   Sliders,
   TrendingUp,
   RefreshCw,
@@ -1190,10 +1191,10 @@ export default function App() {
         dir={lang === 'ar' ? 'rtl' : 'ltr'}
       >
       
-      {/* FLOATING TOP NAVBAR */}
+      {/* FULL WIDTH STICKY TOP NAVBAR */}
       <nav 
-        className="fixed top-3 left-1/2 -translate-x-1/2 w-[94%] max-w-7xl bg-white/95 backdrop-blur-md border border-slate-200/95 rounded-2xl shadow-lg z-[80] transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-3 md:px-5 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible" 
-        id="app-floating-navbar"
+        className="sticky top-0 left-0 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm z-[80] transition-all min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-4 md:px-6 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible" 
+        id="app-top-navbar"
       >
         {/* Brand identity logo */}
         <button 
@@ -1255,7 +1256,7 @@ export default function App() {
               }`}
               id="nav-encyclopedia"
             >
-              {lang === 'en' ? 'Encyclopedia' : 'الموسوعة'}
+              {lang === 'en' ? 'Hadith & Library' : 'الحديث والموسوعة'}
             </button>
             <button 
               onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
@@ -1535,14 +1536,6 @@ export default function App() {
             </button>
           )}
 
-          {/* Trigger list and mobile navigation bar */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 lg:hidden focus:outline-none cursor-pointer"
-            id="mobile-nav-toggle"
-          >
-            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
         </div>
       </nav>
 
@@ -1588,39 +1581,73 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pb-6">
-                {[
-                  { id: 'curriculum', label: labels.curriculum, icon: GraduationCap, color: 'text-amber-800 bg-amber-500/10' },
-                  { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
-                  { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
-                  { id: 'encyclopedia', label: lang === 'en' ? 'Encyclopedia' : 'الموسوعة', icon: BookOpen, color: 'text-rose-800 bg-rose-500/10' },
-                  { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
-                  { id: 'community', label: lang === 'en' ? 'Open Source Connect' : 'المساهمة المفتوحة', icon: Users, color: 'text-indigo-800 bg-indigo-500/10' },
-                  { id: 'api-docs', label: lang === 'en' ? 'Developer APIs' : 'واجهات المبرمجين', icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
-                  { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-red-800 bg-red-500/10' },
-                  { id: 'issue-tracker', label: labels.issueTracker, icon: ShieldAlert, color: 'text-amber-800 bg-amber-550/10' },
-                  { id: 'settings', label: labels.settings, icon: Settings, color: 'text-slate-800 bg-slate-500/10' },
-                  ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Workspace Dashboard" : "لوحة المتعلم الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
-                ].map(item => {
-                  const IconComponent = item.icon;
-                  const isActive = activeTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }}
-                      className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all w-full cursor-pointer gap-2 ${
-                        isActive 
-                          ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner animate-pulse' 
-                          : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:border-slate-200'
-                      }`}
-                    >
-                      <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
-                        <IconComponent className="w-5 h-5 animate-none" />
-                      </span>
-                      <span className="text-xs font-bold leading-tight block truncate max-w-full">{item.label}</span>
-                    </button>
-                  );
-                })}
+              <div className="flex flex-col gap-6 pb-20">
+                
+                {/* Learn & Practice */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3 px-1">{lang === 'en' ? 'Learn & Practice' : 'التعلم والتطبيق'}</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'curriculum', label: labels.curriculum, icon: GraduationCap, color: 'text-amber-800 bg-amber-500/10' },
+                      { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
+                      ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Dashboard" : "اللوحة الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
+                    ].map(item => {
+                      const IconComponent = item.icon;
+                      const isActive = activeTab === item.id;
+                      return (
+                        <button key={item.id} onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }} className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isActive ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner' : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700'}`}>
+                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}><IconComponent className="w-4 h-4" /></span>
+                          <span className="text-[11px] font-bold leading-tight truncate text-left">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Libraries */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3 px-1">{lang === 'en' ? 'Libraries & Resources' : 'المكتبات والمصادر'}</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
+                      { id: 'encyclopedia', label: lang === 'en' ? 'Encyclopedia & Hadith' : 'الموسوعة والحديث', icon: BookOpen, color: 'text-rose-800 bg-rose-500/10' },
+                      { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
+                    ].map(item => {
+                      const IconComponent = item.icon;
+                      const isActive = activeTab === item.id;
+                      return (
+                        <button key={item.id} onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }} className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isActive ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner' : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700'}`}>
+                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}><IconComponent className="w-4 h-4" /></span>
+                          <span className="text-[11px] font-bold leading-tight truncate text-left">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Tools & Settings */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3 px-1">{lang === 'en' ? 'Tools & Settings' : 'الأدوات والإعدادات'}</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-red-800 bg-red-500/10' },
+                      { id: 'settings', label: labels.settings, icon: Settings, color: 'text-slate-800 bg-slate-500/10' },
+                      { id: 'community', label: lang === 'en' ? 'Community' : 'المجتمع', icon: Users, color: 'text-indigo-800 bg-indigo-500/10' },
+                      { id: 'api-docs', label: lang === 'en' ? 'APIs' : 'المبرمجين', icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
+                      { id: 'issue-tracker', label: labels.issueTracker, icon: ShieldAlert, color: 'text-amber-800 bg-amber-550/10' },
+                    ].map(item => {
+                      const IconComponent = item.icon;
+                      const isActive = activeTab === item.id;
+                      return (
+                        <button key={item.id} onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }} className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isActive ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner' : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700'}`}>
+                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}><IconComponent className="w-4 h-4" /></span>
+                          <span className="text-[11px] font-bold leading-tight truncate text-left">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </div>
             </motion.div>
           </>
@@ -1792,10 +1819,10 @@ export default function App() {
                     </div>
                     <div className="mt-3 space-y-1">
                       <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-rose-800 leading-tight font-sans">
-                        {lang === 'en' ? "Encyclopedia" : "الموسوعة والحديث"}
+                        {lang === 'en' ? "Hadith & Library" : "الحديث والموسوعة"}
                       </h3>
                       <p className="text-[10px] text-slate-400 font-semibold leading-none">
-                        {lang === 'en' ? "Hadith & Seerah" : "السيرة والكتب الصحاح"}
+                        {lang === 'en' ? "Sahih Bukhari & Seerah" : "صحيح البخاري والسيرة"}
                       </p>
                     </div>
                   </div>
@@ -2625,6 +2652,63 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* FIXED MOBILE BOTTOM NAVIGATION BAR */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-[80] flex items-center justify-around pb-safe pt-2 px-2" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+        <button 
+          onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'home' && !mobileMenuOpen ? 'text-emerald-800' : 'text-slate-500 hover:text-emerald-700'}`}
+        >
+          <Home className={`w-5 h-5 ${activeTab === 'home' && !mobileMenuOpen ? 'fill-emerald-100/50 stroke-2' : 'stroke-1.5'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">{lang === 'en' ? 'Home' : 'الرئيسية'}</span>
+        </button>
+
+        <button 
+          onClick={() => { setActiveTab('curriculum'); setMobileMenuOpen(false); }}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'curriculum' && !mobileMenuOpen ? 'text-amber-800' : 'text-slate-500 hover:text-amber-700'}`}
+        >
+          <GraduationCap className={`w-5 h-5 ${activeTab === 'curriculum' && !mobileMenuOpen ? 'fill-amber-100/50 stroke-2' : 'stroke-1.5'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.curriculum}</span>
+        </button>
+
+        {progress.username ? (
+          <button 
+            onClick={() => { setActiveTab('dashboard'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'dashboard' && !mobileMenuOpen ? 'text-emerald-900' : 'text-slate-500 hover:text-emerald-800'}`}
+          >
+            <div className="bg-emerald-50 w-10 h-10 -mt-6 rounded-full flex items-center justify-center shadow-sm border border-emerald-100">
+              <span className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-extrabold text-sm border-2 border-white shadow-inner">
+                {progress.username.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <span className="text-[10px] font-bold mt-0.5 tracking-tight text-emerald-800">{lang === 'en' ? 'Dash' : 'لوحة'}</span>
+          </button>
+        ) : (
+          <button 
+            onClick={() => { setActiveTab('daily'); setMobileMenuOpen(false); }}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'daily' && !mobileMenuOpen ? 'text-blue-800' : 'text-slate-500 hover:text-blue-700'}`}
+          >
+            <Clock className={`w-5 h-5 ${activeTab === 'daily' && !mobileMenuOpen ? 'fill-blue-100/50 stroke-2' : 'stroke-1.5'}`} />
+            <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.daily}</span>
+          </button>
+        )}
+
+        <button 
+          onClick={() => { setActiveTab('quran'); setMobileMenuOpen(false); }}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${activeTab === 'quran' && !mobileMenuOpen ? 'text-teal-800' : 'text-slate-500 hover:text-teal-700'}`}
+        >
+          <BookOpen className={`w-5 h-5 ${activeTab === 'quran' && !mobileMenuOpen ? 'fill-teal-100/50 stroke-2' : 'stroke-1.5'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">{labels.quran}</span>
+        </button>
+
+        <button 
+          onClick={() => setMobileMenuOpen(true)}
+          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${mobileMenuOpen ? 'text-indigo-800' : 'text-slate-500 hover:text-indigo-700'}`}
+        >
+          <Menu className={`w-5 h-5 ${mobileMenuOpen ? 'stroke-2' : 'stroke-1.5'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">{lang === 'en' ? 'Menu' : 'المزيد'}</span>
+        </button>
+      </div>
 
     </div>
     </>
