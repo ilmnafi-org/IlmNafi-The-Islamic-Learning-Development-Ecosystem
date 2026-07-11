@@ -1,16 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Syne:wght@400..800&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Noto Serif", ui-serif, system-serif, serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Lora", ui-serif, system-serif, serif;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom premium scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -19,69 +19,10 @@ html {
   background: #fafbfc;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d9770630;
+  background: #0d948840;
   border-radius: 9999px;
   border: 2px solid #fafbfc;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #b4530950;
+  background: #0d948880;
 }
-
-/* Elegant fade-in animations for custom views */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-slideUp {
-  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-spin-slow {
-  animation: spinSlow 20s linear infinite;
-}
-
-/* Extra decorative animations */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 350ms;
-}
-
-/* Premium dynamic classes for all cards and dropdowns to add heavy shadow and rounded corners */
-.premium-card {
-  background-color: #ffffff;
-  border-radius: 1.75rem !important; /* Heavy border radius 28px */
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.045), 0 5px 15px rgba(0, 0, 0, 0.015) !important; /* Proper heavy box shadow */
-  border: 1px solid rgba(241, 245, 249, 0.7) !important; /* Soft border only, no harsh overbordered lines */
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.premium-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.07), 0 8px 20px rgba(0, 0, 0, 0.02) !important;
-  border-color: rgba(217, 119, 6, 0.2) !important; /* Subtle tint on hover */
-}
-
-/* Dropdown list and menu styling */
-.premium-dropdown {
-  background-color: #ffffff !important;
-  border-radius: 1.25rem !important; /* Heavy border-radius */
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04) !important; /* Proper heavy box shadow for select options list */
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-}
-

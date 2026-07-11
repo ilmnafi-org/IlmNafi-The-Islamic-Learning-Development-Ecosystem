@@ -1,2211 +1,848 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  BookOpen, 
-  Compass, 
-  History, 
-  Clock, 
-  Search, 
-  ArrowRight, 
-  CheckCircle2, 
-  ChevronRight, 
-  Menu, 
-  X, 
-  User, 
-  Bell, 
-  LogIn, 
-  LogOut, 
-  Award, 
-  BarChart, 
-  Bookmark, 
-  Mic, 
-  School, 
-  Settings,
-  Globe, 
-  BookMarked,
-  Sparkles,
-  HelpCircle,
-  Users,
-  Calendar,
-  MessageSquare,
-  BookmarkCheck,
-  ChevronDown,
-  Plus,
-  ArrowUp,
-  Activity,
-  Home,
-  Sliders,
-  TrendingUp,
-  RefreshCw,
-  GraduationCap,
-  Lock,
-  Terminal,
-  ShieldAlert,
-  Play,
-  Pause,
-  SkipForward,
-  Volume2,
-  Square,
-  Library,
-  Book,
-  Moon
-} from 'lucide-react';
+import { Menu, X, Mic, BookOpen, Users, ChevronRight, Star, Heart, ArrowRight, Play, BarChart3, Activity, Headphones, Trophy, CheckCircle, ShieldCheck, WifiOff, Globe2, Quote, ExternalLink } from 'lucide-react';
 
-import CurriculumView from './components/CurriculumView';
-import AICoachView from './components/AICoachView';
-import QuranExplorer from './components/QuranExplorer';
-import CommunityHubView from './components/CommunityHubView';
-import { DailyView } from './components/DailyView';
-import AuthPage from './components/AuthPage';
-import { HomeView } from './components/HomeView';
-import { EncyclopediaView } from './components/EncyclopediaView';
-import { DeenSuite } from './components/DeenSuite';
-import StudentDashboard from './components/StudentDashboard';
-import ScholarshipsView from './components/ScholarshipsView';
-import SavedScholarshipsView from './components/SavedScholarshipsView';
-import NotificationsView from './components/NotificationsView';
-import SettingsView from './components/SettingsView';
-import LegalDocsView from './components/LegalDocsView';
-import ApiDocsView from './components/ApiDocsView';
-import IssueTrackerView from './components/IssueTrackerView';
-import { ForumView } from './components/ForumView';
-import { dbService } from './lib/supabase';
+const AppleIcon = () => (
+  <svg viewBox="0 0 384 512" fill="currentColor" className="w-6 h-6">
+    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+  </svg>
+);
 
-import { UserProgress } from './types';
+const PlayStoreIcon = () => (
+  <svg viewBox="0 0 512 512" fill="currentColor" className="w-6 h-6">
+    <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
+  </svg>
+);
 
-// Wisdom quotes database for dynamic landing page section
-const WISDOM_QUOTES = [
-  {
-    ar: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",
-    en: "Recite (Read), in the name of your Lord who created",
-    source: "Surah Al-Alaq, Verse 1"
-  },
-  {
-    ar: "وَقُل رَّبِّ زِدْنِي عِلْمًا",
-    en: "And say: 'O my Lord! Increase me in knowledge.'",
-    source: "Surah Ta-Ha, Verse 114"
-  },
-  {
-    ar: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-    en: "Indeed, with hardship [will be] ease.",
-    source: "Surah Al-Sharh, Verse 6"
-  },
-  {
-    ar: "مَن سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ",
-    en: "Whoever treads a path to acquire knowledge, Allah will facilitate for him a path to Paradise.",
-    source: "Sahih Muslim"
-  }
-];
+const PhoneFrame = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
+  <div className={`relative w-[280px] md:w-[320px] h-[600px] md:h-[680px] bg-zinc-950 rounded-[3.5rem] p-3 shadow-2xl border-4 border-zinc-800 ${className}`}>
+    <div className="w-full h-full bg-white rounded-[2.75rem] overflow-hidden relative">
+      <div className="absolute top-0 inset-x-0 h-6 bg-zinc-950 rounded-b-[1.5rem] z-30 mx-16" />
+      {children}
+    </div>
+  </div>
+);
 
-// Dynamic landing page Hero content variations that cycle on interaction/timer
-// Scientific Golden Age Timeline Database
-const TIMELINE_DATA = [
-  {
-    century: "8th Century",
-    arEpoch: "القرن الثاني الهجري - عصر التراجم",
-    figure: "Caliph Harun Al-Rashid",
-    arFigure: "الخليفة هارون الرشيد",
-    title: "Beit Al-Hikma Baghdad Foundation",
-    arTitle: "تأسيس بيت الحكمة وحركة الترجمة الكبرى",
-    milestone: "Established a grand library that translated major Sanskrit, Persian, and Syriac computational books into Arabic, igniting a systematic scientific renaissance.",
-    arMilestone: "أمر بترجمة المخطوطات الفلسفية والرياضية الهندية واليونانية إلى اللسان العربي، مما أرسى القواعد الأولى للعلوم المقارنة في بغداد وعموم المشرق."
-  },
-  {
-    century: "9th Century",
-    arEpoch: "القرن الثالث الهجري - عصر الجبر",
-    figure: "Al-Khwarizmi",
-    arFigure: "محمد بن موسى الخوارزمي",
-    title: "The Birth of Algebra (Algorithms)",
-    arTitle: "صياغة علم الجبر والمقابلة واللوغاريتمات",
-    milestone: "Published the foundational treatise 'Kitab al-Jabr wa-l-Muqabala', inventing algebra as an independent branch and describing modern systemic algorithms.",
-    arMilestone: "صنف كتابه الشهير 'الجبر والمقابلة' واشتق أولى الخوارزميات الحسابية المنهجية لحل المعادلات التربيعية، ليدخل اسمه لغات العالم بصفة الخوارزمي (Algorithm)."
-  },
-  {
-    century: "11th Century",
-    arEpoch: "القرن الخامس الهجري - عصر البصريات",
-    figure: "Ibn Al-Haytham (Alhazen)",
-    arFigure: "الحسن ابن الهيثم",
-    title: "Experimental Method & Visual Optics",
-    arTitle: "تأطير المنهج التجريبي وعلم المناظر البصري",
-    milestone: "Authored 'Kitab al-Manazir', proving that vision relies on ambient light reflections arriving in the eye. Perfected the camera obscura, laying the framework of photography.",
-    arMilestone: "صنف كتاب المناظر الرياضي مبطلاً نظريات اليونان، وأثبت كيف يسير الضوء في غرف مظلمة (القمرة) ليؤسس ركائز الفيزياء البصرية والمنهج العلمي التجريبي."
-  },
-  {
-    century: "12th Century",
-    arEpoch: "القرن السادس الهجري - عصر الهندسة",
-    figure: "Al-Jazari",
-    arFigure: "بديع الزمان الجزري",
-    title: "Mechanical Automata & Engineering",
-    arTitle: "الهندسة الميكانيكية وأولى الآلات المبرمجة",
-    milestone: "Engineered segmented gears, crankshafts, and several water-raising machines. Described early programmable humanoid automatons and castles.",
-    arMilestone: "ابتكر تروس القطاعات المسننة ومضخات السحب المزدوجة والمكابس الدوارة، وصمم أولى الساعات المائية الكهروميكانيكية والآلات ذاتية الحركة تاريخياً."
-  }
-];
 
-// Active global scholar peer activity feed
-const ACTIVE_CIRCLES = [
-  {
-    id: "medina",
-    city: { en: "Medina", ar: "المدينة المنورة" },
-    activeScholars: 247,
-    topic: { en: "Verifying articulation of Tajweed letters", ar: "تحقيق صفات مخارج الحلق والصفير والهمس" },
-    status: { en: "Live Circle", ar: "حلقة نشطة حالياً" }
-  },
-  {
-    id: "cairo",
-    city: { en: "Cairo (Al-Azhar)", ar: "القاهرة (جامع الأزهر)" },
-    activeScholars: 412,
-    topic: { en: "Hadith and Sanad chains auditing", ar: "دراسة مراتب ومصطلحات مسانيد الإسناد" },
-    status: { en: "Halaqah Scheduled Today", ar: "تدارس مجالس الرواية اليوم" }
-  },
-  {
-    id: "damascus",
-    city: { en: "Damascus", ar: "دمشق القديمة" },
-    activeScholars: 118,
-    topic: { en: "Science manuscripts at Umayyad library", ar: "مراجعة مخطوطات الفلك والهندسة بالمستودع الأموي" },
-    status: { en: "Awaiting Speaker", ar: "يقرأون المخطوطات الآن" }
-  },
-  {
-    id: "jakarta",
-    city: { en: "Jakarta", ar: "جاكرتا" },
-    activeScholars: 320,
-    topic: { en: "Completing IsDB higher-education application", ar: "شرح ملفات منح البنك الإسلامي للتنمية" },
-    status: { en: "Group Discussion Live", ar: "مجموعة بحث تفاعلية" }
-  },
-  {
-    id: "cordoba",
-    city: { en: "Córdoba", ar: "قرطبة" },
-    activeScholars: 84,
-    topic: { en: "Translating Averroes logical physics texts", ar: "تراجم ومقارنات الفلسفة والطب الأندلسي العتيق" },
-    status: { en: "Reading Room Live", ar: "غرفة قراءة مغلقة" }
-  }
-];
-
-const KAABA_LAT = 21.4225;
-const KAABA_LNG = 39.8262;
-
-function calculateQiblah(lat: number, lng: number): number {
-  const phiK = (KAABA_LAT * Math.PI) / 180;
-  const lambdaK = (KAABA_LNG * Math.PI) / 180;
-  const phi = (lat * Math.PI) / 180;
-  const lambda = (lng * Math.PI) / 180;
-  
-  const dLng = lambdaK - lambda;
-  const y = Math.sin(dLng);
-  const x = Math.cos(phi) * Math.tan(phiK) - Math.sin(phi) * Math.cos(dLng);
-  
-  const bearingRad = Math.atan2(y, x);
-  const bearingDeg = (bearingRad * 180) / Math.PI;
-  return (bearingDeg + 360) % 360;
-}
-
-function formatTo12Hour(timeStr: string): string {
-  if (!timeStr) return "";
-  const parts = timeStr.split(':');
-  if (parts.length < 2) return timeStr;
-  let hours = parseInt(parts[0], 10);
-  const minutes = parts[1];
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  return `${hours}:${minutes} ${ampm}`;
-}
+const TypewriterText = ({ text, className = "" }: { text: string, className?: string }) => {
+  const characters = Array.from(text);
+  return (
+    <motion.span
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      variants={{
+        visible: { transition: { staggerChildren: 0.03 } },
+        hidden: {}
+      }}
+      className={className}
+    >
+      {characters.map((char, index) => (
+        <motion.span
+          key={index}
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 }
+          }}
+        >
+          {char}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
+};
 
 export default function App() {
-  // Navigation active tab: 'home' | 'curriculum' | 'coach' | 'daily' | 'auth' | 'community' | 'dashboard'
-  const [activeTab, setActiveTab] = useState<'home' | 'curriculum' | 'coach' | 'quran' | 'encyclopedia' | 'daily' | 'auth' | 'community' | 'dashboard' | 'settings' | 'notifications' | 'privacy' | 'terms' | 'academic' | 'issue-tracker'>('home');
-  const [lang, setLang] = useState<'ar' | 'en'>('ar'); // Default mainly Arabic content preference
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [showMoreNav, setShowMoreNav] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [adhkarDrawerActive, setAdhkarDrawerActive] = useState<'tasbih' | 'prayers' | 'dua' | null>(null);
-  const [appLoading, setAppLoading] = useState(true);
-  const [loadingQuoteIdx] = useState(() => Math.floor(Math.random() * WISDOM_QUOTES.length));
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  // Hero Index for dynamic rotating headlines and CTA buttons
-
-
-  const [globalAudio, setGlobalAudio] = useState<{
-    isPlaying: boolean;
-    surahName: string;
-    surahNumber: number;
-    ayahNumber: number;
-    reciterName: string;
-    playMode: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const updateHandler = () => {
-      const state = (window as any).__nafiAudioState;
-      if (state) {
-        setGlobalAudio({
-          isPlaying: state.isPlaying,
-          surahName: state.surahName,
-          surahNumber: state.surahNumber,
-          ayahNumber: state.ayahNumber,
-          reciterName: state.reciterName,
-          playMode: state.playMode,
-        });
-      } else {
-        setGlobalAudio(null);
-      }
-    };
-
-    (window as any).__nafiAudioUpdate = updateHandler;
-    updateHandler(); // Check initially
-
-    const interval = setInterval(() => {
-      const player = (window as any).__nafiAudioPlayer;
-      const state = (window as any).__nafiAudioState;
-      if (player && state) {
-        const isPaused = player.paused;
-        if (state.isPlaying === isPaused) {
-          state.isPlaying = !isPaused;
-          updateHandler();
-        }
-      }
-    }, 1000);
-
-    return () => {
-      (window as any).__nafiAudioUpdate = undefined;
-      clearInterval(interval);
-    };
-  }, [activeTab]);
-
-  // URL Path synchronization logic (PushState / Popstate)
-  useEffect(() => {
-    // Synchronize initial URL path on mount
-    const path = window.location.pathname.substring(1);
-    const validTabs: any[] = ['home', 'curriculum', 'coach', 'quran', 'daily', 'auth', 'community', 'dashboard', 'settings', 'notifications', 'privacy', 'terms', 'academic', 'issue-tracker', 'forum'];
-    
-    // Check for reset_token
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('reset_token')) {
-      setActiveTab('auth');
-    } else if (path && validTabs.includes(path)) {
-      setActiveTab(path as any);
-    }
-
-    // Popstate backward/forward navigation handler
-    const handlePopState = () => {
-      const uPath = window.location.pathname.substring(1);
-      const targetTab = uPath || 'home';
-      if (validTabs.includes(targetTab)) {
-        setActiveTab(targetTab as any);
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  // Update URL history path when state changes (without full reload)
-  useEffect(() => {
-    const currentPath = window.location.pathname.substring(1);
-    if (currentPath !== activeTab) {
-      const designPath = activeTab === 'home' ? '/' : `/${activeTab}`;
-      window.history.pushState(null, '', designPath);
-    }
-  }, [activeTab]);
-
-  const handleMiniNext = () => {
-    const state = (window as any).__nafiAudioState;
-    if (state && state.onNext) state.onNext();
-  };
-
-  const handleMiniToggle = () => {
-    const state = (window as any).__nafiAudioState;
-    if (state && state.onTogglePlayPause) state.onTogglePlayPause();
-  };
-
-  const handleMiniStop = () => {
-    const state = (window as any).__nafiAudioState;
-    if (state && state.onStop) state.onStop();
-    (window as any).__nafiAudioState = null;
-    setGlobalAudio(null);
-  };
-  
-  // Landing dynamics states
-  const [landingQiblah, setLandingQiblah] = useState<number | null>(null);
-  const [landingNextPrayer, setLandingNextPrayer] = useState<{ name: string; time: string } | null>(null);
-  const [landingLocation, setLandingLocation] = useState<string>("Makkah");
-  const [showLaunchLangGuide, setShowLaunchLangGuide] = useState(true);
-
-  // Daily reminder index state
-  const [wisdomIdx, setWisdomIdx] = useState(0);
-
-  // FAQ open state
-  const [faqOpenIdx, setFaqOpenIdx] = useState<number | null>(0);
-
-  // peer interactive active selection
-  const [selectedCircleId, setSelectedCircleId] = useState<string>("medina");
-
-  // RSVP seats state
-  const [rsvps, setRsvps] = useState<{[key: number]: number}>({ 0: 42, 1: 18, 2: 29 });
-  const [userRsvped, setUserRsvped] = useState<{[key: number]: boolean}>({});
-
-  // Dynamic Salah Reminder State & Salah Lesson State
-  const [selectedSalah, setSelectedSalah] = useState<'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha'>('fajr');
-  const [activeSalahLesson, setActiveSalahLesson] = useState<number>(0);
-
-  // Scroll tracking and smooth-scroll navigation effects
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAppLoading(false);
-    }, 6200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    // Hide language pointer dynamic launch guide after 12 seconds
-    const timer = setTimeout(() => {
-      setShowLaunchLangGuide(false);
-    }, 12000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (navigator?.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const { latitude, longitude } = pos.coords;
-          const bearing = calculateQiblah(latitude, longitude);
-          setLandingQiblah(bearing);
-          
-          try {
-            const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`);
-            if (res.ok) {
-              const json = await res.json();
-              const timings = json?.data?.timings;
-              if (timings) {
-                const now = new Date();
-                const hrs = now.getHours();
-                const mins = now.getMinutes();
-                const currentMinTotal = hrs * 60 + mins;
-                
-                const prayerOrder = [
-                  { name: 'Fajr', timeStr: timings.Fajr },
-                  { name: 'Sunrise', timeStr: timings.Sunrise },
-                  { name: 'Dhuhr', timeStr: timings.Dhuhr },
-                  { name: 'Asr', timeStr: timings.Asr },
-                  { name: 'Maghrib', timeStr: timings.Maghrib },
-                  { name: 'Isha', timeStr: timings.Isha }
-                ];
-                
-                let foundNext = prayerOrder[0];
-                for (const pr of prayerOrder) {
-                  const parts = pr.timeStr.split(':');
-                  const prMinTotal = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-                  if (prMinTotal > currentMinTotal) {
-                    foundNext = pr;
-                    break;
-                  }
-                }
-                setLandingNextPrayer({ name: foundNext.name, time: formatTo12Hour(foundNext.timeStr) });
-                setLandingLocation(`${latitude.toFixed(1)}°, ${longitude.toFixed(1)}°`);
-              }
-            }
-          } catch (err) {
-            console.warn("Landing page prayer times dynamic fetch failed", err);
-          }
-        },
-        (err) => {
-          console.log("No dynamic location query for landing page default coords used", err);
-        }
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 450);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const RenderAuthGateway = ({ tabName }: { tabName: string }) => {
-    return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-16 text-center font-sans" id="auth-gateway-container">
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 md:p-12 shadow-sm space-y-6 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center border-2 border-amber-500/20 text-[#A37B12] animate-pulse">
-            <Lock className="w-8 h-8" />
-          </div>
-          
-          <div className="space-y-2 max-w-md">
-            <span className="text-[10px] bg-amber-500/10 text-amber-800 font-extrabold px-3 py-1 rounded-full uppercase tracking-wider font-mono">
-              {lang === 'en' ? "Identity Authentication Required" : "مطلوب تسجيل الدخول للاطلاع"}
-            </span>
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
-              {lang === 'en' ? `Access Restricted for ${tabName}` : `طلب الحضور غير مصرح لـ ${tabName}`}
-            </h2>
-            <p className="text-slate-500 text-xs leading-relaxed font-normal">
-              {lang === 'en' 
-                ? "This secure page requires Ilm Naafi scholar authentication credentials to load. Sign in to your verified account to access notifications, study progress, and personalization."
-                : "تتطلب مراجعة هذه التفضيلات (الضبط واللقاءات التفاعلية والنبضات التعليمية) مواءمة بطاقة العضوية العلمية الخاصة بكم لتفادي ضياع الإنجاز والمسارات. يرجى تسجيل الدخول مجاناً."}
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs pt-2">
-            <button
-              onClick={() => setActiveTab('auth')}
-              className="flex-grow bg-slate-900 hover:bg-slate-950 text-white font-extrabold py-3 px-4 rounded-xl text-xs transition-transform transform active:scale-95 shadow-sm min-h-[44px] cursor-pointer border-0"
-              id="gateway-authenticate"
-            >
-              {lang === 'en' ? "Login / Sign Up" : "تسجيل الدخول / فتح حساب"}
-            </button>
-            <button
-              onClick={() => setActiveTab('home')}
-              className="bg-white hover:bg-slate-100 text-slate-700 font-bold py-3 px-4 rounded-xl text-xs transition-colors border border-slate-200 min-h-[44px] cursor-pointer"
-              id="gateway-return-home"
-            >
-              {lang === 'en' ? "Return Home" : "العودة للرئيسية"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeTab]);
-
-  // Initialize progress state
-  const [progress, setProgress] = useState<UserProgress>({
-    weeklyMinutes: 0,
-    lessonsCompleted: [], 
-    savedScholarships: [], 
-    recentRecitations: [],
-    username: '',
-    email: '',
-    joinedForums: [],
-    notifications: []
-  });
-
-  const [liveToast, setLiveToast] = useState<any>(null);
-  const [practiceVerse, setPracticeVerse] = useState<any>(null);
-  const [showDeenSuiteModal, setShowDeenSuiteModal] = useState(false);
-
-  // Home Interactive Study Planner States & Helper
-  const [activeTimelineEpoch, setActiveTimelineEpoch] = useState<number>(0);
-  const [dailyCommitMinutes, setDailyCommitMinutes] = useState<number>(30);
-  const [planFocus, setPlanFocus] = useState<'tajweed' | 'jurisprudence' | 'history' | 'scholarships'>('tajweed');
-
-  const getPlannerResults = (minutes: number, focus: string) => {
-    const weeklyLessons = Math.max(1, Math.round((minutes * 7) / 45));
-    const audioMinutes = Math.round(minutes * 0.4 * 7);
-    const completionWeeks = Math.max(4, Math.round(180 / minutes));
-    
-    let syllabusPoints: string[] = [];
-    if (focus === 'tajweed') {
-      syllabusPoints = lang === 'en' ? [
-        "Makharij al-Huruf (Vocal Articulation Atlas)",
-        "Sifat al-Huruf (Acoustic Attributes & Echo)",
-        "Rules of Nun Sakinah & Tanween",
-        "Interactive AI Waveform Feedback"
-      ] : [
-        "مخارج الحروف (أطلس التصحيح الصوتي)",
-        "صفات الحروف (الهمس والجهر وقوة الحرف)",
-        "أحكام النون الساكنة والتنوين والمدود",
-        "التقييم اللحظي لمخارج اللسان"
-      ];
-    } else if (focus === 'jurisprudence') {
-      syllabusPoints = lang === 'en' ? [
-        "The Nine Conditions of Sacred Worship",
-        "Essential Pillars (Arkan) vs. Obligations",
-        "Prosternation of Forgetfulness (Sujud as-Sahw)",
-        "Classical Comparative Texts Exploration"
-      ] : [
-        "شروط الصلاة التسعة المفروضة للقبول",
-        "أركان الصلاة الـ 14 والواجبات المترتبة",
-        "أحكام سجود السهو والأعذار المبيحة",
-        "دراسة مقارنة للمتون الفقهية المعتمدة"
-      ];
-    } else if (focus === 'history') {
-      syllabusPoints = lang === 'en' ? [
-        "The House of Wisdom (Bayt al-Hikmah)",
-        "Islamic Optics & Camera Obscura Milestones",
-        "The Translation Movement (Arabic & Greek)",
-        "Scholarly Preservation Epics"
-      ] : [
-        "بيت الحكمة في العصر العباسي ونشأة التدوين",
-        "إنجازات البصريات والكاميرا المظلمة لابن الهيثم",
-        "حركة الترجمة من اللغات القديمة إلى العربية",
-        "إسهامات علماء الجبر والهندسة في التنمية"
-      ];
-    } else {
-      syllabusPoints = lang === 'en' ? [
-        "Postgraduate Grant Criteria Identification",
-        "IsDB Scholarship Application Blueprint",
-        "Undergraduate and K-12 Literacy Maps",
-        "Scholarly Network Integration Guides"
-      ] : [
-        "تحديد معايير المنح الأكاديمية للدراسات العليا",
-        "دليل التقديم لبرنامج منح البنك الإسلامي",
-        "تحليل شروط القبول بمؤسسات التعليم المعتمدة",
-        "قنوات تواصل الباحثين وتوثيق الأعمال العلمية"
-      ];
-    }
-
-    return {
-      weeklyLessons,
-      audioMinutes,
-      completionWeeks,
-      syllabusPoints
-    };
-  };
-
-  // ADHAN & PRAYER NOTIFICATION ENGINE STATES
-  const [showAdhanModal, setShowAdhanModal] = useState(false);
-  const [activeAdhanName, setActiveAdhanName] = useState("");
-  const [activeAdhanLabelAr, setActiveAdhanLabelAr] = useState("");
-  const [adhanPlaying, setAdhanPlaying] = useState(false);
-  const adhanAudioRef = useRef<HTMLAudioElement | null>(null);
-  const prayerTimesRef = useRef<any>(null);
-  const lastNotifiedRef = useRef<{[key: string]: boolean}>({});
-
-  // Synchronize prayer timings with Aladhan API or fall back to scholarly standard
-  useEffect(() => {
-    // Standard Scholarly Timings (Fajr, Dhuhr, Asr, Maghrib, Isha)
-    const fallbackTimings = {
-      Fajr: "04:12",
-      Sunrise: "05:45",
-      Dhuhr: "12:35",
-      Asr: "16:15",
-      Maghrib: "19:42",
-      Isha: "21:18"
-    };
-
-    prayerTimesRef.current = fallbackTimings;
-
-    // Fetch live timings if geolocation is active
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const { latitude, longitude } = pos.coords;
-          try {
-            const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`);
-            if (res.ok) {
-              const json = await res.json();
-              const timings = json?.data?.timings;
-              if (timings) {
-                prayerTimesRef.current = {
-                  Fajr: timings.Fajr,
-                  Sunrise: timings.Sunrise,
-                  Dhuhr: timings.Dhuhr,
-                  Asr: timings.Asr,
-                  Maghrib: timings.Maghrib,
-                  Isha: timings.Isha
-                };
-              }
-            }
-          } catch (e) {
-            console.warn("Notification engine prayer timings fallback used:", e);
-          }
-        },
-        () => {}
-      );
-    }
-  }, []);
-
-  // Time ticking loop checking every 10 seconds for notifications, Adhan, Iqamah, and Adhkar reminders
-  useEffect(() => {
-    const checkSchedule = () => {
-      const now = new Date();
-      const hrs = now.getHours();
-      const mins = now.getMinutes();
-      const timeString = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-
-      // 1. Bedtime Adhkar check (Exactly at 22:00 / 10:00 PM)
-      if (timeString === "22:00") {
-        const key = `sleep-${now.toDateString()}`;
-        if (!lastNotifiedRef.current[key]) {
-          lastNotifiedRef.current[key] = true;
-          setLiveToast({
-            title: lang === 'en' ? "💤 Bedtime Remembrance" : "💤 أذكار النوم المباركة",
-            body: lang === 'en' 
-              ? "It is now 10:00 PM. Tap to recite your protective Bedtime Remembrances and Surah Al-Mulk." 
-              : "حان الآن موعد أذكار النوم المأثورة وسورة الملك المنجية. اضغط للقراءة والتحصين."
-          });
-        }
-      }
-
-      // Check each prayer time
-      const timings = prayerTimesRef.current;
-      if (!timings) return;
-
-      const prayersList = [
-        { name: "Fajr", labelAr: "الفجر", timeStr: timings.Fajr },
-        { name: "Dhuhr", labelAr: "الظهر", timeStr: timings.Dhuhr },
-        { name: "Asr", labelAr: "العصر", timeStr: timings.Asr },
-        { name: "Maghrib", labelAr: "المغرب", timeStr: timings.Maghrib },
-        { name: "Isha", labelAr: "العشاء", timeStr: timings.Isha }
-      ];
-
-      prayersList.forEach((prayer) => {
-        const [pHrs, pMins] = prayer.timeStr.split(':').map(Number);
-        
-        // Target Date minutes
-        const prayerTotalMins = pHrs * 60 + pMins;
-        const currentTotalMins = hrs * 60 + mins;
-        
-        const diff = prayerTotalMins - currentTotalMins;
-
-        // A. 15-Minute Left Alert
-        if (diff === 15) {
-          const key = `${prayer.name}-15min-${now.toDateString()}`;
-          if (!lastNotifiedRef.current[key]) {
-            lastNotifiedRef.current[key] = true;
-            setLiveToast({
-              title: lang === 'en' ? `🕌 ${prayer.name} Prayer Alert` : `🕌 تنبيه صلاة ${prayer.labelAr}`,
-              body: lang === 'en'
-                ? `15 minutes left before the Adhan of ${prayer.name} Salat. Prepare yourself for Ablution (Wudu).`
-                : `بقي ١٥ دقيقة على أذان صلاة ${prayer.labelAr}. تهيأ الآن بالوضوء للوقوف بين يدي الله.`
-            });
-          }
-        }
-
-        // B. Entry Time / Adhan Call
-        if (diff === 0) {
-          const key = `${prayer.name}-adhan-${now.toDateString()}`;
-          if (!lastNotifiedRef.current[key]) {
-            lastNotifiedRef.current[key] = true;
-            
-            // Pop the stunning Adhan Modal!
-            setActiveAdhanName(prayer.name);
-            setActiveAdhanLabelAr(prayer.labelAr);
-            setShowAdhanModal(true);
-            setAdhanPlaying(true);
-
-            // Play the soul-stirring Adhan audio
-            if (adhanAudioRef.current) {
-              adhanAudioRef.current.pause();
-            }
-            const audio = new Audio("https://archive.org/download/Adhan_201602/adhan.mp3");
-            adhanAudioRef.current = audio;
-            audio.play().catch(err => console.warn("Adhan autoplay prevented:", err));
-
-            setLiveToast({
-              title: lang === 'en' ? `🕌 Adhan Is Calling` : `🕌 الأذان يرتفع الآن`,
-              body: lang === 'en'
-                ? `The Adhan is now calling for ${prayer.name} Salat! Prepare for prayer.`
-                : `حي على الصلاة.. ارتفع الآن أذان صلاة ${prayer.labelAr}، بادر بالوقوف بالصف.`
-            });
-          }
-        }
-
-        // C. 10-Minute After Iqamah Alert
-        if (diff === -10) {
-          const key = `${prayer.name}-iqama-${now.toDateString()}`;
-          if (!lastNotifiedRef.current[key]) {
-            lastNotifiedRef.current[key] = true;
-            setLiveToast({
-              title: lang === 'en' ? "✨ Iqamah Gathering" : "✨ إقامة الصلاة",
-              body: lang === 'en'
-                ? `Iqamah is now being called for ${prayer.name} Salat. Join the congregation prayer.`
-                : `تقام الآن الصلاة المفروضة فرداً وجماعة لصلاة ${prayer.labelAr}. أسرع بالإنضمام.`
-            });
-          }
-        }
-
-        // D. 15-Minute After Post-Salah Adhkar Reminder
-        if (diff === -15) {
-          const key = `${prayer.name}-adhkar-${now.toDateString()}`;
-          if (!lastNotifiedRef.current[key]) {
-            lastNotifiedRef.current[key] = true;
-            setLiveToast({
-              title: lang === 'en' ? "📿 Post-Salah Remembrance" : "📿 أذكار دبر الصلاة",
-              body: lang === 'en'
-                ? `Don't forget your post-prayer remembrances. Tap to recite your Tasbih & Ayah Al-Kursi.`
-                : `لا تحرم نفسك الأجر؛ حان وقت قراءة التحصين والتسبيحات وأوراد ما بعد صلاة ${prayer.labelAr}.`
-            });
-          }
-        }
-      });
-    };
-
-    // Check once immediately
-    checkSchedule();
-
-    const intervalId = setInterval(checkSchedule, 10000); // Ticks every 10 seconds for high-precision
-    return () => clearInterval(intervalId);
-  }, [lang]);
-
-  // Auto-restore secure HttpOnly session on load
-  useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        const session = await dbService.getCurrentSession();
-        if (session) {
-          setProgress({
-            weeklyMinutes: session.weeklyMinutes ?? 45,
-            lessonsCompleted: session.lessonsCompleted ?? ['les-taj-1'],
-            savedScholarships: session.savedScholarships ?? ['sch-isdb'],
-            recentRecitations: session.recentRecitations ?? [],
-            username: session.username,
-            email: session.email,
-            joinedForums: session.joinedForums ?? [],
-            notifications: session.notifications ?? [],
-            devotionalPlan: (session as any).devotionalPlan
-          });
-        }
-      } catch (err) {
-        // Silent catch on unauthenticated page loads
-      }
-    };
-    restoreSession();
-  }, []);
-
-  // Automatically query and request desktop browser notification permissions upon site opening
-  useEffect(() => {
-    if (window.Notification && window.Notification.permission === 'default') {
-      window.Notification.requestPermission().catch(() => {});
-    }
-  }, []);
-
-  // Real-Time WebSocket Notification socket sync connection
-  useEffect(() => {
-    let socket: WebSocket | null = null;
-    let pingInterval: any = null;
-
-    if (progress.email) {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}`;
-      
-      const connectWS = () => {
-        try {
-          socket = new WebSocket(wsUrl);
-          
-          socket.onopen = () => {
-            console.log("WebSocket connected to Ilm Naafi live-alert router.");
-            if (socket) {
-              socket.send(JSON.stringify({
-                type: 'register',
-                email: progress.email
-              }));
-            }
-          };
-
-          socket.onmessage = (event) => {
-            try {
-              const data = JSON.parse(event.data);
-              
-              if (data.type === 'notification' && data.notification) {
-                // Update student progress notifications list
-                setProgress(prev => {
-                  const currentNotifs = prev.notifications || [];
-                  if (currentNotifs.some(n => n.id === data.notification.id)) {
-                    return prev;
-                  }
-
-                  // Standard Web Push notifications trigger (Native service worker showNotification for mobile phone background compliance)
-                  if (window.Notification && window.Notification.permission === 'granted') {
-                    try {
-                      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-                        navigator.serviceWorker.ready.then((reg) => {
-                          reg.showNotification(data.notification.title, {
-                            body: data.notification.body,
-                            icon: '/icon-192.png',
-                            badge: '/icon-192.png',
-                            vibrate: [200, 100, 200]
-                          } as any);
-                        }).catch(() => {
-                          new window.Notification(data.notification.title, {
-                            body: data.notification.body,
-                            icon: '/icon-192.png'
-                          });
-                        });
-                      } else {
-                        new window.Notification(data.notification.title, {
-                          body: data.notification.body,
-                          icon: '/icon-192.png'
-                        });
-                      }
-                    } catch (e) {
-                      try {
-                        new window.Notification(data.notification.title, {
-                          body: data.notification.body,
-                          icon: '/icon-192.png'
-                        });
-                      } catch (err) {}
-                    }
-                  }
-
-                  // Trigger simulated telephone visual alerts on dashboard if registered
-                  if ((window as any).onPhoneNotificationTriggered) {
-                    (window as any).onPhoneNotificationTriggered(data.notification);
-                  }
-
-                  // Show client-facing toast
-                  setLiveToast(data.notification);
-                  setTimeout(() => setLiveToast(null), 6000);
-
-                  return {
-                    ...prev,
-                    notifications: [data.notification, ...currentNotifs]
-                  };
-                });
-              }
-            } catch (err) {
-              console.error("WS parse failure: ", err);
-            }
-          };
-
-          socket.onclose = () => {
-            console.warn("WebSocket disconnected. Retrying in 5s...");
-            setTimeout(() => {
-              if (progress.email) connectWS();
-            }, 5000);
-          };
-
-          socket.onerror = () => {
-            if (socket) socket.close();
-          };
-        } catch (e) {
-          console.error("Setup WS failure: ", e);
-        }
-      };
-
-      connectWS();
-
-      pingInterval = setInterval(() => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({ type: 'ping' }));
-        }
-      }, 30000);
-    }
-
-    return () => {
-      if (socket) socket.close();
-      if (pingInterval) clearInterval(pingInterval);
-    };
-  }, [progress.email]);
-
-  // Save progress changes directly to the back-end database
-  useEffect(() => {
-    if (progress.email) {
-      dbService.updateSession(progress).catch(() => {});
-    }
-  }, [progress]);
-
-  const handleCompleteLesson = (lessonId: string) => {
-    if (!progress.lessonsCompleted.includes(lessonId)) {
-      setProgress(prev => ({
-        ...prev,
-        lessonsCompleted: [...prev.lessonsCompleted, lessonId],
-        weeklyMinutes: prev.weeklyMinutes + 15
-      }));
-    }
-  };
-
-  const handleToggleSaveScholarship = (scholarshipId: string) => {
-    setProgress(prev => {
-      const exists = prev.savedScholarships.includes(scholarshipId);
-      const updated = exists 
-        ? prev.savedScholarships.filter(id => id !== scholarshipId)
-        : [...prev.savedScholarships, scholarshipId];
-      return {
-        ...prev,
-        savedScholarships: updated
-      };
-    });
-  };
-
-  const handleAddRecitation = (verse: string, score: number) => {
-    setProgress(prev => ({
-      ...prev,
-      recentRecitations: [
-        { date: new Date().toISOString().split('T')[0], verse, score },
-        ...prev.recentRecitations.slice(0, 4) 
-      ],
-      weeklyMinutes: prev.weeklyMinutes + 5
-    }));
-  };
-
-  const handleAuthSuccess = (username: string, email: string) => {
-    // Attempt full session restore on successful credentials authentication
-    const fetchFullAndSet = async () => {
-      try {
-        const session = await dbService.getCurrentSession();
-        if (session) {
-          setProgress({
-            weeklyMinutes: session.weeklyMinutes ?? 45,
-            lessonsCompleted: session.lessonsCompleted ?? ['les-taj-1'],
-            savedScholarships: session.savedScholarships ?? ['sch-isdb'],
-            recentRecitations: session.recentRecitations ?? [],
-            username: session.username,
-            email: session.email,
-            joinedForums: session.joinedForums ?? [],
-            notifications: session.notifications ?? [],
-            devotionalPlan: (session as any).devotionalPlan
-          });
-        } else {
-          setProgress(prev => ({ ...prev, username, email, joinedForums: [], notifications: [] }));
-        }
-      } catch {
-        setProgress(prev => ({ ...prev, username, email, joinedForums: [], notifications: [] }));
-      }
-    };
-    fetchFullAndSet();
-    setActiveTab('dashboard');
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await dbService.signOut();
-    } catch (e) {}
-    setProgress({
-      weeklyMinutes: 0,
-      lessonsCompleted: [],
-      savedScholarships: [],
-      recentRecitations: [],
-      username: '',
-      email: '',
-      joinedForums: [],
-      notifications: []
-    });
-    setShowProfileDropdown(false);
-    setActiveTab('home');
-  };
-
-  const triggerRsvp = (idx: number) => {
-    if (userRsvped[idx]) {
-      setRsvps(prev => ({ ...prev, [idx]: prev[idx] - 1 }));
-      setUserRsvped(prev => ({ ...prev, [idx]: false }));
-    } else {
-      setRsvps(prev => ({ ...prev, [idx]: prev[idx] + 1 }));
-      setUserRsvped(prev => ({ ...prev, [idx]: true }));
-    }
-  };
-
-  // Translations dictionary matching user intent
-  const labels = {
-    en: {
-      brand: "Ilm Naafi Academy",
-      desc: "Beneficial Knowledge Platform",
-      tagline: "Sacred Academic Tradition & Audio Technology",
-      subtitle: "Discover a unified scholarly platform combining K-12 open-source Islamic curriculum, advanced AI recitation guidance, and a global scholarships database.",
-      ctaStart: "Learn Tajweed",
-      ctaCurriculum: "Explore Curriculum",
-      curriculum: "Curriculum",
-      coach: "Learn Tajweed",
-      quran: "Quran Browser",
-      daily: "Dhikr & Tasbih",
-      scholarly: "Scholar Network",
-      scholarships: "Grant Database",
-      signin: "Student ID Login",
-      signout: "Sign Out",
-      weeklyMinutes: "Weekly Minutes",
-      articlesRead: "Articles Read",
-      bookmarked: "Bookmarked",
-      arabicFocus: "العربية (Arabic)",
-      englishFocus: "English",
-      statsCountries: "Global Regions",
-      statsStudents: "Active Scholars",
-      statsLessons: "Lessons Completed",
-      statsFree: "Free Forever",
-      wisdomHeading: "Wisdom of the Day",
-      refreshWisdom: "Recall Prophetic Tradition",
-      faqHeading: "Platform Orientation & FAQs",
-      facultyTitle: "Trustee Academic Faculty",
-      webinarHeading: "Upcoming Seminars and Halaqas",
-      registeredLabel: "RSVP Seat",
-      registeredDone: "Seat Booked!",
-      savedHub: "Saved Opportunities",
-      openSource: "Open Source Hub",
-      apiDocs: "API Docs",
-      notifications: "Notifications",
-      settings: "Settings",
-      issueTracker: "Issue Tracker",
-      footerText: "Ilm Naafi Academy is built as an open consensus academy. Empowering pristine pronunciations and academic equity.",
-      copyright: "All Rights Reserved."
-    },
-    ar: {
-      brand: "مِنصَّة العلم النافع",
-      desc: "جامعة التعليم الإسلامي المفتوح",
-      tagline: "قنوات العلوم الشريفة وفنون التلاوة الصوتية بالذكاء الاصطناعي",
-      subtitle: "نظام أكاديمي موحد يربط متعلمي العلوم المنهجية (فقه، عقيدة، وسيرة)، وأدوات تصحيح التجويد لآيات الذكر الحكيم، وقاعدة بيانات المنح الموثقة مجاناً بالكامل.",
-      ctaStart: "تعلّم التجويد",
-      ctaCurriculum: "تصفح المناهج العلمية",
-      curriculum: "مناهج التعليم",
-      coach: "تعلّم التجويد",
-      quran: "القرآن الكريم",
-      daily: "الأوراد والتسابيح",
-      scholarly: "شبكة العلماء",
-      scholarships: "المنح الأكاديمية",
-      signin: "بطاقة الهوية الأكاديمية",
-      signout: "تسجيل الخروج",
-      weeklyMinutes: "دقائق التعلم",
-      articlesRead: "الدروس المكتملة",
-      bookmarked: "المنح المحفوظة",
-      arabicFocus: "العربية",
-      englishFocus: "English",
-      statsCountries: "أقطار مستفيدة",
-      statsStudents: "طالب علم نشط",
-      statsLessons: "تلاوة ومحاضرة مكتملة",
-      statsFree: "مجاني بالكامل للجميع",
-      wisdomHeading: "الحكمة اليومية المأثورة",
-      refreshWisdom: "استفتح حكمة أخرى",
-      faqHeading: "الأسئلة الشائعة والبروتوكول العلمي",
-      facultyTitle: "هيئة مجلس الإشراف الأكاديمي",
-      webinarHeading: "الحلقات الدراسية المباشرة والمحاضرات",
-      registeredLabel: "حجز منبر",
-      registeredDone: "تم حجز المقعد!",
-      savedHub: "ديوان المحفوظات",
-      openSource: "الرمز المفتوح",
-      apiDocs: "واجهة المطورين API",
-      notifications: "الإشعارات المباشرة",
-      settings: "الإعدادات العامة",
-      issueTracker: "مركز البلاغات والملاحظات",
-      footerText: "تأسست منصة العلم النافع لتمكين المتعلمين من ضبط التلاوة وتسهيل سبل طلب العلم النافع عبر الأقطار والبحار.",
-      copyright: "جميع الحقوق محفوظة."
-    }
-  }[lang];
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  const faqs = [
+    { q: "Is Ilm Nafi completely free?", a: "The core Quran reading and listening features are completely free. We offer premium features for advanced Virtual Murāja'ah analytics." },
+    { q: "Does speech recognition require internet?", a: "Yes, currently our AI models require an active internet connection to process Arabic pronunciation accurately." },
+    { q: "Can I use it on multiple devices?", a: "Yes! Create an account and your progress, bookmarks, and community circles will sync across all your iOS and Android devices." },
+    { q: "How do I join a study circle?", a: "Navigate to the Community tab in the app, where you can discover public circles or join private ones using an invite code." }
+  ];
 
   return (
-    <>
-      <AnimatePresence>
-        {appLoading && (
-          <motion.div
-            key="academy-loading-screen"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.02 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 bg-gradient-to-br from-[#06241c] to-[#0c1412] text-white flex flex-col items-center justify-center z-[99999] p-6 select-none"
-            id="loading-presence-wrapper"
-          >
-            {/* Ambient glowing particles/halos */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-emerald-900/10 blur-[130px] pointer-events-none" />
-
-            <div className="max-w-md w-full text-center space-y-8 relative z-10">
-              
-              {/* Premium Minimalist Emblem */}
-              <div className="flex justify-center">
-                <motion.div
-                  animate={{ 
-                    scale: [0.98, 1.02, 0.98]
-                  }}
-                  transition={{ 
-                    duration: 2.5, 
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-800/10 to-amber-600/5 border border-amber-500/20 flex items-center justify-center text-amber-500 text-3xl font-serif relative"
-                >
-                  <span className="relative z-10 select-none">ع</span>
-                  <div className="absolute inset-0 rounded-2xl border border-amber-500/10 scale-105 animate-pulse" />
-                </motion.div>
-              </div>
-
-              {/* Minimized Gilded Loading Indicators (Minimalist horizontal dots) */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-center gap-2">
-                  <motion.div 
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0 }}
-                    className="w-2.5 h-2.5 bg-amber-500 rounded-full" 
-                  />
-                  <motion.div 
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.15 }}
-                    className="w-2.5 h-2.5 bg-emerald-600 rounded-full" 
-                  />
-                  <motion.div 
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-                    className="w-2.5 h-2.5 bg-amber-600 rounded-full" 
-                  />
-                </div>
-                <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest font-mono text-center">
-                  <span>ilm Naafi / جاري التحضير</span>
-                </div>
-              </div>
-
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div 
-        className="bg-[#fafbfc] text-slate-900 font-sans antialiased min-h-screen flex flex-col relative pb-0" 
-        id="ilm-naafi-app"
-        dir={lang === 'ar' ? 'rtl' : 'ltr'}
-      >
-      
-      {/* FULL WIDTH STICKY TOP NAVBAR */}
-      <nav 
-        className={`fixed top-0 left-0 w-full z-[80] transition-all duration-300 min-h-[4rem] h-auto lg:h-16 py-2.5 lg:py-0 px-4 md:px-6 lg:px-8 flex flex-row flex-nowrap items-center justify-between gap-1.5 overflow-visible ${
-          ['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled
-            ? 'bg-transparent border-transparent text-white' 
-            : 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm text-slate-900'
-        }`}
-        id="app-top-navbar"
-      >
-        {/* Brand identity logo */}
-        <button 
-          onClick={() => { setActiveTab('home'); setShowMoreNav(false); }} 
-          className={`font-extrabold tracking-tight cursor-pointer py-1 text-left flex items-center gap-1.5 md:gap-2 outline-none focus:outline-none shrink-0 ${(['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-white' : 'text-[#004d3d]'}`}
-          id="brand-logo"
+    <div className="min-h-screen bg-[#FDFDFD] font-sans text-zinc-900 selection:bg-teal-200 overflow-x-hidden">
+      {/* Floating Navbar */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4 md:pt-6 pointer-events-none">
+        <motion.header 
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="pointer-events-auto w-full max-w-6xl transition-all duration-500 rounded-full bg-white/90 backdrop-blur-xl shadow-lg shadow-zinc-200/50 border border-zinc-200/50 py-3 px-2"
         >
-          <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-extrabold border shrink-0 select-none ${(['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'bg-white/20 text-white border-white/30' : 'bg-amber-700/10 text-amber-800 border-amber-850/15'}`}>
-            ع
-          </span>
-          <div className="flex flex-col items-start leading-none whitespace-nowrap">
-            <span className="text-xs sm:text-sm font-extrabold">{labels.brand}</span>
-            <span className={`text-[8px] sm:text-[9px] font-semibold mt-0.5 ${(['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-emerald-100' : 'text-amber-800'}`}>{labels.desc}</span>
-          </div>
-        </button>
-
-        {/* Centered Desktop Navigation Links - hardened with overflow safety and compact sizing against large font zoom */}
-        <div className="hidden lg:flex flex-1 items-center justify-center border-l border-r border-slate-100/90 mx-1 xl:mx-2">
-          <div className="flex items-center justify-center gap-1 xl:gap-1.5 font-medium text-[10px] xl:text-[12px] whitespace-nowrap py-1 px-1.5 xl:px-3 overflow-x-auto scroller-hidden select-none flex-nowrap scroll-smooth" id="desktop-nav-links-center">
-            <button 
-              onClick={() => { setActiveTab('curriculum'); setShowMoreNav(false); }}
-              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-                activeTab === 'curriculum' 
-                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                  : (['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-slate-100 hover:text-white hover:bg-white/10 border border-transparent' : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-              }`}
-              id="nav-curriculum"
-            >
-              {labels.curriculum}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('coach'); setShowMoreNav(false); }}
-              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-                activeTab === 'coach' 
-                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                  : (['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-slate-100 hover:text-white hover:bg-white/10 border border-transparent' : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-              }`}
-              id="nav-coach"
-            >
-              {labels.coach}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('quran'); setShowMoreNav(false); }}
-              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-                activeTab === 'quran' 
-                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-550/15' 
-                  : (['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-slate-100 hover:text-white hover:bg-white/10 border border-transparent' : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-              }`}
-              id="nav-quran"
-            >
-              {labels.quran}
-            </button>
-            <button 
-              onClick={() => { setActiveTab('daily'); setShowMoreNav(false); }}
-              className={`px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 ${
-                activeTab === 'daily' 
-                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15' 
-                  : (['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-slate-100 hover:text-white hover:bg-white/10 border border-transparent' : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-              }`}
-              id="nav-daily"
-            >
-              {labels.daily}
-            </button>
-          </div>
-
-          {/* MORE DROPDOWN DESKTOP - MOVED HERE */}
-          <div className="relative hidden lg:flex items-center ml-1 xl:ml-2 text-[10px] xl:text-[12px]">
-            <button 
-              onClick={(e) => { e.stopPropagation(); setShowMoreNav(!showMoreNav); }}
-              className={`flex items-center gap-1 xl:gap-1.5 px-2 xl:px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-bold shrink-0 relative ${
-                ['community', 'dashboard', 'settings', 'issue-tracker', 'privacy', 'terms', 'academic'].includes(activeTab)
-                  ? 'text-amber-900 bg-amber-500/10 font-extrabold border border-amber-500/15'
-                  : (['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-slate-100 hover:text-white hover:bg-white/10 border border-transparent' : 'text-slate-600 hover:text-amber-900 hover:bg-slate-50 border border-transparent'
-              }`}
-              id="nav-more-systems"
-            >
-              <span>{lang === 'en' ? "Hub" : "المنصات"}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showMoreNav ? 'rotate-180' : ''}`} />
-            </button>
-
-            {/* Desktop More Nav Dropdown Panel */}
-            <AnimatePresence>
-              {showMoreNav && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className={`absolute top-full mt-3 w-64 premium-dropdown p-2.5 space-y-1 z-[9999] max-h-[75vh] overflow-y-auto text-xs shadow-2xl border border-slate-200/80 bg-white rounded-2xl ${
-                    lang === 'ar' ? '-left-6' : '-right-6'
-                  }`}
-                  id="nav-more-dropdown"
-                >
-                  <button 
-                    onClick={() => { setActiveTab('community'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'community' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-800 shrink-0">
-                      <Users className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0 pointer-events-none">
-                      <span className="text-[12px]">{lang === 'en' ? "Open Source Connect" : "بوابة المطورين والمجتمع"}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Contribute resources" : "المساهمة المفتوحة"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('api-docs'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'api-docs' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-800 shrink-0 pointer-events-none">
-                      <Terminal className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0 pointer-events-none">
-                      <span className="text-[12px]">{lang === 'en' ? "Developer APIs" : "مستندات الربط"}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "API specifications" : "واجهات المبرمجين"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('notifications'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} relative ${
-                      activeTab === 'notifications' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-800 shrink-0 pointer-events-none">
-                      <Bell className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0 pointer-events-none">
-                      <span className="text-[12px] flex items-center gap-1.5">
-                        <span>{labels.notifications}</span>
-                        {progress.notifications && progress.notifications.filter(n => !n.isRead).length > 0 && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                        )}
-                      </span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "System alerts & cues" : "إشعارات المنصة الفورية"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('issue-tracker'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'issue-tracker' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-amber-550/10 flex items-center justify-center text-amber-800 shrink-0 pointer-events-none">
-                      <ShieldAlert className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0 pointer-events-none">
-                      <span className="text-[12px]">{labels.issueTracker}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "Report & audit bugs" : "تقديم ومتابعة بلاغات الأعطال"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('settings'); setShowMoreNav(false); }}
-                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all text-left ${lang === 'ar' ? 'text-right' : 'text-left'} ${
-                      activeTab === 'settings' 
-                        ? 'bg-amber-500/10 text-amber-955 font-extrabold' 
-                        : 'hover:bg-slate-50 text-slate-700 font-bold'
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center text-slate-800 shrink-0 pointer-events-none">
-                      <Settings className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="flex flex-col min-w-0 pointer-events-none">
-                      <span className="text-[12px]">{labels.settings}</span>
-                      <span className="text-[9.5px] text-slate-400 truncate font-normal">
-                        {lang === 'en' ? "User Preferences" : "إعدادات الهوية والمنصة"}
-                      </span>
-                    </div>
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Right Nav Box: Lang Toggle and Login profiles */}
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <button
-              onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-              className={`flex items-center gap-1 rounded-xl px-3 py-1.5 border transition-colors text-xs font-semibold ${(['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' : 'bg-slate-50 hover:bg-amber-50 hover:text-amber-900 text-slate-700 border-slate-200'}`}
-              id="lang-toggle-nav"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">
-                {lang === 'en' ? "العربية" : "English"}
-              </span>
-            </button>
-
-            {/* Direction pointer cue pointing to language change icon */}
-            <AnimatePresence>
-              {((activeTab === 'daily' && adhkarDrawerActive !== null) || showLaunchLangGuide) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.9 }}
-                  onClick={() => setShowLaunchLangGuide(false)}
-                  className="absolute right-0 top-full mt-2.5 z-[250] w-48 bg-emerald-950 text-white rounded-2xl p-3 shadow-2xl border border-emerald-500 flex flex-col items-center text-center cursor-pointer transition-transform hover:scale-102"
-                >
-                  {/* Upward pointer arrow */}
-                  <div className="absolute -top-1.5 right-6 w-3 h-3 bg-emerald-950 border-t border-l border-emerald-500 rotate-45" />
-                  
-                  {/* Glowing Indicator pointing upwards */}
-                  <motion.div 
-                    animate={{ y: [0, -4, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                    className="text-amber-300 text-sm font-bold mb-1"
-                  >
-                    ↑
-                  </motion.div>
-                  
-                  <span className="text-[11px] font-extrabold tracking-tight text-white leading-tight font-sans">
-                    Change language here
-                  </span>
-                  <span className="text-[8px] text-emerald-200 mt-0.5 font-medium leading-normal block font-sans">
-                    Switch text, audio & translation instantly (Tap to close)
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* User ID controls */}
-          {progress.username ? (
-            <div className="relative">
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowProfileDropdown(!showProfileDropdown); }}
-                className={`flex items-center gap-1.5 border rounded-xl px-4 py-2 font-bold text-xs transition shadow-sm outline-none ${(['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800'}`}
-                id="btn-profile-dropdown"
-              >
-                <User className={`w-3.5 h-3.5 ${(['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-emerald-300' : 'text-emerald-800'}`} />
-                <span>{progress.username}</span>
-                <ChevronDown className={`w-3 h-3 ${(['home', 'curriculum', 'quran'].includes(activeTab) && !isScrolled) ? 'text-emerald-200/70' : 'text-slate-400'}`} />
-              </button>
-              
-              {showProfileDropdown && (
-                <div 
-                  className={`absolute mt-2 w-64 premium-dropdown p-4 space-y-4 z-[999] text-xs animate-fadeIn bg-white border border-slate-200/80 rounded-2xl shadow-xl max-h-[75vh] overflow-y-auto ${
-                    lang === 'ar' ? 'left-0' : 'right-0'
-                  }`} 
-                  id="profile-dropdown-card"
-                >
-                  <div className="border-b border-slate-100 pb-3">
-                    <p className="font-extrabold text-slate-900 leading-tight">{progress.username}</p>
-                    <p className="text-[10px] text-slate-500 mt-1">{progress.email}</p>
-                  </div>
-
-                  {/* Progress details */}
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                        <BarChart className="w-3.5 h-3.5 text-amber-700" /> {labels.weeklyMinutes}
-                      </span>
-                      <span className="font-bold text-slate-950">{progress.weeklyMinutes} min</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-700" /> {labels.articlesRead}
-                      </span>
-                      <span className="font-bold text-slate-950">{progress.lessonsCompleted.length}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                        <Bookmark className="w-3.5 h-3.5 text-amber-700" /> {labels.bookmarked}
-                      </span>
-                      <span className="font-bold text-slate-950">{progress.savedScholarships.length}</span>
-                    </div>
-                  </div>
-
-                  {/* Open dashboard quick navigation trigger */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <button
-                      onClick={() => { setActiveTab('dashboard'); setShowProfileDropdown(false); }}
-                      className="w-full h-10 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-205/30 rounded-xl transition-colors font-extrabold text-[11px] text-amber-955 flex items-center justify-between cursor-pointer"
-                      style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}
-                      id="dropdown-btn-to-dashboard"
-                    >
-                      <span className="flex items-center gap-1.5" style={{ flexDirection: lang === 'ar' ? 'row-reverse' : 'row' }}>
-                        <GraduationCap className="w-4 h-4 text-amber-900 shrink-0" />
-                        <span>{lang === 'en' ? "Student Workspace Dev" : "معمل المتابعة الأكاديمية"}</span>
-                      </span>
-                      <ChevronRight className={`w-3.5 h-3.5 text-amber-900 ${lang === 'ar' ? 'rotate-180' : ''}`} />
-                    </button>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex justify-end">
-                    <button
-                      onClick={handleSignOut}
-                      className="text-red-600 hover:text-red-800 font-bold flex items-center gap-1.5 bg-transparent cursor-pointer"
-                      id="btn-sign-out"
-                    >
-                      <LogOut className="w-3.5 h-3.5" /> {labels.signout}
-                    </button>
-                  </div>
-                </div>
-              )}
+          <div className="px-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-xl text-white">📖</span>
+              </div>
+              <span className="text-xl font-display font-bold tracking-tight text-zinc-900">Ilm Nafi</span>
             </div>
-          ) : (
+            
+            <nav className="hidden md:flex items-center gap-8">
+              <a href="#how-it-works" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">How It Works</a>
+              <a href="#features" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">Features</a>
+              <a href="#murajah" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">Murāja'ah</a>
+              <a href="#community" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">Community</a>
+              <a href="https://quran.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">
+                <span>Quran.com</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <a href="#download" className="px-6 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-full hover:bg-teal-600 transition-all shadow-md hover:-translate-y-0.5">
+                Download Now
+              </a>
+            </nav>
+
             <button 
-              onClick={() => { setActiveTab('auth'); }}
-              className="bg-[#004d3d] hover:bg-[#00362b] text-teal-100 px-4 py-2 rounded-xl font-bold text-xs tracking-tight transition shadow-sm shrink-0 border border-[#004d3d]"
-              id="btn-signin-nav"
+              className="md:hidden p-2 text-zinc-600 bg-zinc-100 rounded-full"
+              onClick={() => setMobileMenuOpen(true)}
             >
-              {labels.signin}
+              <Menu />
             </button>
-          )}
+          </div>
+        </motion.header>
+      </div>
 
-          {/* Trigger list and mobile navigation bar */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 lg:hidden focus:outline-none cursor-pointer"
-            id="mobile-nav-toggle"
-          >
-            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
-
-        </div>
-      </nav>
-
-      {/* MOBILE BOTTOM SLIDING SHEET NAVIGATION */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <>
-            {/* Dark blurred interactive Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 lg:hidden"
-              id="mobile-nav-backdrop"
-            />
-            
-            {/* Sliding Bottom Drawer Sheet */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="fixed bottom-0 left-0 right-0 max-h-[55vh] bg-white border-t border-slate-200 shadow-2xl rounded-t-[2.5rem] p-6 pb-12 z-50 flex flex-col lg:hidden overflow-y-auto overscroll-contain"
-              id="mobile-bottom-sheet"
-              style={{ direction: lang === 'ar' ? 'rtl' : 'ltr' }}
-            >
-              {/* Drag indicator handle on top */}
-              <div 
-                className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 shrink-0 cursor-pointer hover:bg-slate-300 transition"
-                onClick={() => setMobileMenuOpen(false)}
-              />
-              
-              <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-3 shrink-0">
-                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none">
-                  {lang === 'en' ? "Academy Navigation Menu" : "قائمة منارة العلم والمنصات"}
-                </p>
-                <button 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 rounded-full cursor-pointer transition"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            className="fixed inset-x-4 top-4 z-[60] bg-white rounded-[2.5rem] shadow-2xl border border-zinc-100 p-6 flex flex-col gap-6 md:hidden overflow-hidden"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center">
+                  <span className="text-xl text-white">📖</span>
+                </div>
+                <span className="text-xl font-display font-bold">Ilm Nafi</span>
               </div>
-
-              <div className="flex flex-col gap-6 pb-20">
-                
-                {/* Learn & Practice */}
-                <div>
-                  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3 px-1">{lang === 'en' ? 'Learn & Practice' : 'التعلم والتطبيق'}</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      { id: 'curriculum', label: labels.curriculum, icon: GraduationCap, color: 'text-amber-800 bg-amber-500/10' },
-                      { id: 'coach', label: labels.coach, icon: Mic, color: 'text-emerald-800 bg-emerald-500/10' },
-                      ...(progress.username ? [{ id: 'dashboard', label: lang === 'en' ? "Dashboard" : "اللوحة الموحدة", icon: GraduationCap, color: 'text-amber-900 bg-amber-500/20' }] : [])
-                    ].map(item => {
-                      const IconComponent = item.icon;
-                      const isActive = activeTab === item.id;
-                      return (
-                        <button key={item.id} onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }} className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isActive ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner' : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700'}`}>
-                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}><IconComponent className="w-4 h-4" /></span>
-                          <span className="text-[11px] font-bold leading-tight truncate text-left">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Libraries */}
-                <div>
-                  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3 px-1">{lang === 'en' ? 'Libraries & Resources' : 'المكتبات والمصادر'}</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      { id: 'quran', label: labels.quran, icon: BookOpen, color: 'text-teal-800 bg-teal-500/10' },
-                      { id: 'encyclopedia', label: lang === 'en' ? 'Encyclopedia & Hadith' : 'الموسوعة والحديث', icon: BookOpen, color: 'text-rose-800 bg-rose-500/10' },
-                      { id: 'daily', label: labels.daily, icon: Clock, color: 'text-blue-800 bg-blue-500/10' },
-                    ].map(item => {
-                      const IconComponent = item.icon;
-                      const isActive = activeTab === item.id;
-                      return (
-                        <button key={item.id} onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }} className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isActive ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner' : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700'}`}>
-                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}><IconComponent className="w-4 h-4" /></span>
-                          <span className="text-[11px] font-bold leading-tight truncate text-left">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Tools & Settings */}
-                <div>
-                  <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3 px-1">{lang === 'en' ? 'Tools & Settings' : 'الأدوات والإعدادات'}</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      { id: 'notifications', label: labels.notifications, icon: Bell, color: 'text-red-800 bg-red-500/10' },
-                      { id: 'settings', label: labels.settings, icon: Settings, color: 'text-slate-800 bg-slate-500/10' },
-                      { id: 'community', label: lang === 'en' ? 'Community' : 'المجتمع', icon: Users, color: 'text-indigo-800 bg-indigo-500/10' },
-                      { id: 'api-docs', label: lang === 'en' ? 'APIs' : 'المبرمجين', icon: Terminal, color: 'text-emerald-800 bg-emerald-500/10' },
-                      { id: 'issue-tracker', label: labels.issueTracker, icon: ShieldAlert, color: 'text-amber-800 bg-amber-550/10' },
-                    ].map(item => {
-                      const IconComponent = item.icon;
-                      const isActive = activeTab === item.id;
-                      return (
-                        <button key={item.id} onClick={() => { setActiveTab(item.id as any); setMobileMenuOpen(false); }} className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${isActive ? 'border-amber-600 bg-amber-50/80 text-amber-955 font-black shadow-inner' : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700'}`}>
-                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}><IconComponent className="w-4 h-4" /></span>
-                          <span className="text-[11px] font-bold leading-tight truncate text-left">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-              </div>
-            </motion.div>
-          </>
+              <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-zinc-100 rounded-full text-zinc-600">
+                <X />
+              </button>
+            </div>
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">How It Works</a>
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Features</a>
+            <a href="#murajah" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Murāja'ah</a>
+            <a href="#community" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Community</a>
+            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Testimonials</a>
+            <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">FAQ</a>
+            <div className="mt-4 pt-6 border-t border-zinc-100">
+              <a href="#download" onClick={() => setMobileMenuOpen(false)} className="flex justify-center py-4 bg-teal-600 text-white text-lg font-bold rounded-2xl">
+                Download the App
+              </a>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+      )}
 
-      {/* SPACE FILLER FOR NAV BAR */}
-      {!['home', 'curriculum', 'quran'].includes(activeTab) && <div className="h-20 sm:h-24 pt-4"></div>}
-
-      {/* RENDER ACTIVE TAB CANVASES */}
-      <main className="flex-grow">
-        <AnimatePresence mode="wait">
+      {/* Hero Section */}
+      <section className="relative pt-40 md:pt-48 pb-20 overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-[800px] bg-gradient-to-b from-teal-50/50 to-transparent -z-10" />
         
-        {/* HOMEPAGE VIEW */}
-        {activeTab === 'home' && (
-          <HomeView lang={lang} setActiveTab={setActiveTab} />
-        )}
-
-        {/* CURRICULUM SCREEN */}
-        {activeTab === 'curriculum' && (
+        <div className="max-w-7xl mx-auto text-center relative z-10 px-4">
           <motion.div
-            key="curriculum"
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.8 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-zinc-200 shadow-sm text-teal-700 text-sm font-semibold mb-8"
           >
-            <CurriculumView 
-              progress={progress} 
-              onCompleteLesson={handleCompleteLesson} 
-              lang={lang}
-            />
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500"></span>
+            </span>
+            Available on iOS & Android
           </motion.div>
-        )}
-
-        {/* AI COACH SCREEN */}
-        {activeTab === 'coach' && (
-          <motion.div
-            key="coach"
-            initial={{ opacity: 0, y: 15 }}
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-6xl md:text-8xl lg:text-[7rem] font-display font-extrabold tracking-tight mb-8 text-zinc-900 leading-[1.05]"
           >
-            <AICoachView 
-              progress={progress} 
-              onAddRecitation={handleAddRecitation} 
-              practiceVerse={practiceVerse}
-              onClearPracticeVerse={() => setPracticeVerse(null)}
-              lang={lang}
-            />
+            <TypewriterText text="The pocket-sized" /> <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-400">Islamic hub.</span>
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-lg md:text-2xl text-zinc-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
+          >
+            Master your recitation with AI, explore the Holy Quran, and join a global community of learners—all from your smartphone.
+          </motion.p>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex flex-col sm:flex-row justify-center items-center gap-4"
+          >
+            <a href="#download" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-zinc-900 text-white px-8 py-5 rounded-full text-lg font-bold hover:bg-zinc-800 transition-all hover:shadow-2xl hover:shadow-zinc-900/20 active:scale-95 group">
+              <AppleIcon />
+              <div className="text-left leading-tight">
+                <div className="text-[10px] uppercase tracking-wider font-semibold opacity-80">Download on the</div>
+                <div>App Store</div>
+              </div>
+            </a>
+            <a href="#download" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-teal-600 text-white px-8 py-5 rounded-full text-lg font-bold hover:bg-teal-500 transition-all hover:shadow-2xl hover:shadow-teal-600/20 active:scale-95">
+              <PlayStoreIcon />
+              <div className="text-left leading-tight">
+                <div className="text-[10px] uppercase tracking-wider font-semibold opacity-80">GET IT ON</div>
+                <div>Google Play</div>
+              </div>
+            </a>
+            <a href="https://quran.com" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-zinc-900 border-2 border-zinc-200 px-8 py-5 rounded-full text-lg font-bold hover:border-teal-500 hover:text-teal-600 transition-all hover:shadow-2xl hover:shadow-zinc-200/50 active:scale-95 group">
+              <Globe2 className="w-6 h-6 text-zinc-400 group-hover:text-teal-500 transition-colors" />
+              <div className="text-left leading-tight">
+                <div className="text-[10px] uppercase tracking-wider font-semibold opacity-80 text-zinc-500">Visit Partner</div>
+                <div>Quran.com</div>
+              </div>
+              <ExternalLink className="w-4 h-4 ml-1 opacity-50 group-hover:opacity-100 transition-opacity" />
+            </a>
           </motion.div>
-        )}
 
-        {/* QURAN EXPLORER SCREEN - kept mounted to allow background audio thread to keep playing across tabs */}
-        <div className={activeTab === 'quran' ? "block" : "hidden"}>
-          <motion.div
-            key="quran"
-            initial={{ opacity: 0, y: 15 }}
-            animate={activeTab === 'quran' ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
-            transition={{ duration: 0.25 }}
+          {/* Three Phones Showcase - Static without scroll transforms */}
+          <div className="mt-24 relative h-[700px] md:h-[800px] w-full max-w-6xl mx-auto">
+            {/* Left Phone */}
+            <motion.div 
+              initial={{ opacity: 0, x: -100, rotate: -20 }}
+              animate={{ opacity: 1, x: 0, rotate: -12 }}
+              transition={{ duration: 1, delay: 0.4, type: "spring" }}
+              className="absolute left-1/2 md:left-[15%] top-24 md:top-32 -translate-x-[110%] md:-translate-x-0 z-10 origin-bottom"
+            >
+              <PhoneFrame>
+                <div className="absolute inset-0 bg-zinc-50 pt-16 px-5 flex flex-col">
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-teal-100 rounded-full mx-auto mb-4 flex items-center justify-center text-teal-600"><Mic size={32} /></div>
+                    <div className="font-display font-bold text-xl">Virtual Murāja'ah</div>
+                    <div className="text-zinc-500 text-sm">Listening to Al-Fatihah</div>
+                  </div>
+                  <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex-1">
+                    <div className="text-right font-arabic text-3xl text-zinc-800 leading-[2.5]">
+                      بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                    </div>
+                    <div className="text-right font-arabic text-3xl text-zinc-800 leading-[2.5] opacity-50">
+                      الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ
+                    </div>
+                  </div>
+                </div>
+              </PhoneFrame>
+            </motion.div>
+
+            {/* Right Phone */}
+            <motion.div 
+              initial={{ opacity: 0, x: 100, rotate: 20 }}
+              animate={{ opacity: 1, x: 0, rotate: 12 }}
+              transition={{ duration: 1, delay: 0.5, type: "spring" }}
+              className="absolute left-1/2 md:right-[15%] md:left-auto top-24 md:top-32 translate-x-[10%] md:translate-x-0 z-10 origin-bottom"
+            >
+              <PhoneFrame>
+                <div className="absolute inset-0 bg-zinc-50 pt-16 px-5">
+                  <div className="font-display font-bold text-2xl mb-6">Community</div>
+                  <div className="space-y-4">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="bg-white p-4 rounded-2xl border border-zinc-100 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-amber-200 to-amber-400 rounded-full shrink-0" />
+                        <div>
+                          <div className="font-bold text-zinc-800">Study Circle {i}</div>
+                          <div className="text-sm text-zinc-500">Shared a new resource</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PhoneFrame>
+            </motion.div>
+
+            {/* Center Phone */}
+            <motion.div 
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.6, type: "spring" }}
+              className="absolute left-1/2 -translate-x-1/2 top-0 z-30"
+            >
+              <PhoneFrame>
+                <div className="absolute inset-0 bg-gradient-to-b from-teal-50 to-white pt-16 px-6">
+                  <div className="flex justify-between items-center mb-8">
+                    <div>
+                      <div className="text-sm text-zinc-500 font-medium">As-salamu alaykum</div>
+                      <div className="text-2xl font-display font-bold text-zinc-800">Abdullah</div>
+                    </div>
+                    <div className="w-12 h-12 bg-white rounded-full shadow-sm border border-zinc-100 flex items-center justify-center text-xl">👋</div>
+                  </div>
+                  
+                  <div className="bg-teal-600 rounded-[2rem] p-6 text-white mb-6 shadow-xl shadow-teal-600/20">
+                    <div className="text-teal-100 text-sm mb-1 font-medium">Daily Goal</div>
+                    <div className="text-3xl font-display font-bold mb-6">Recite Al-Mulk</div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 bg-teal-800 rounded-full h-2">
+                        <div className="bg-amber-400 h-2 rounded-full w-[60%]" />
+                      </div>
+                      <div className="text-sm font-bold">60%</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xl font-display font-bold text-zinc-800 mb-4">Quick Actions</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-zinc-100 flex flex-col items-center justify-center gap-3 aspect-square">
+                      <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center text-amber-500"><Mic size={28} /></div>
+                      <div className="font-bold text-zinc-800">Murāja'ah</div>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-zinc-100 flex flex-col items-center justify-center gap-3 aspect-square">
+                      <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500"><BookOpen size={28} /></div>
+                      <div className="font-bold text-zinc-800">Read Quran</div>
+                    </div>
+                  </div>
+                </div>
+              </PhoneFrame>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Curved Stats Section */}
+      <section className="relative z-40 -mt-16 md:-mt-32 px-4">
+        <div className="bg-teal-900 text-white rounded-[3rem] shadow-2xl max-w-6xl mx-auto py-16 px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-teal-800/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+          <div className="relative z-10">
+            <div className="text-4xl md:text-5xl font-display font-extrabold text-teal-300 mb-2">50K+</div>
+            <div className="text-sm font-semibold text-teal-100/80 uppercase tracking-wider">Active Users</div>
+          </div>
+          <div className="relative z-10">
+            <div className="text-4xl md:text-5xl font-display font-extrabold text-teal-300 mb-2">1M+</div>
+            <div className="text-sm font-semibold text-teal-100/80 uppercase tracking-wider">Ayahs Recited</div>
+          </div>
+          <div className="relative z-10">
+            <div className="text-4xl md:text-5xl font-display font-extrabold text-teal-300 mb-2">4.9/5</div>
+            <div className="text-sm font-semibold text-teal-100/80 uppercase tracking-wider">App Store Rating</div>
+          </div>
+          <div className="relative z-10">
+            <div className="text-4xl md:text-5xl font-display font-extrabold text-teal-300 mb-2">120+</div>
+            <div className="text-sm font-semibold text-teal-100/80 uppercase tracking-wider">Countries</div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="py-32 bg-white px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-sm font-bold text-teal-600 tracking-widest uppercase mb-4">Simple Process</h2>
+            <h3 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6">Start learning in seconds.</h3>
+            <p className="text-xl text-zinc-600 max-w-2xl mx-auto">A seamless onboarding experience designed to get you reading and reciting immediately.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            <div className="hidden md:block absolute top-1/2 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-teal-100 via-teal-500 to-teal-100 -z-10 -translate-y-1/2 opacity-50" />
+            {[
+              { step: "01", title: "Create your profile", desc: "Set your daily goals and choose your preferred recitation style and Qari." },
+              { step: "02", title: "Start reciting", desc: "Use the Virtual Murāja'ah or read along with the interactive Quran text." },
+              { step: "03", title: "Track progress", desc: "Get detailed insights, maintain streaks, and watch your fluency improve." }
+            ].map((s, i) => (
+              <div key={i} className="bg-white p-8 rounded-[2rem] border border-zinc-200 shadow-xl shadow-zinc-200/50 relative z-10 text-center">
+                <div className="w-16 h-16 bg-teal-600 rounded-full flex items-center justify-center text-white font-display font-bold text-2xl mx-auto mb-6 shadow-lg shadow-teal-600/30">
+                  {s.step}
+                </div>
+                <h4 className="text-2xl font-display font-bold mb-4">{s.title}</h4>
+                <p className="text-zinc-600">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features (Bento Grid) */}
+      <section id="features" className="py-32 px-6 bg-zinc-50 border-y border-zinc-200">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-sm font-bold text-teal-600 tracking-widest uppercase mb-4">Powerful Features</h2>
+            <h3 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6 leading-tight">Designed for your spiritual growth.</h3>
+            <p className="text-xl text-zinc-600 leading-relaxed">Everything you need to memorize, recite, and understand the Quran, packed into a beautiful mobile experience.</p>
+          </div>
+
+          <div className="grid md:grid-cols-12 gap-6">
+            {/* Big Bento Item 1 */}
+            <div className="md:col-span-8 bg-zinc-900 text-white p-10 md:p-16 rounded-[3rem] shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-500/20 rounded-full blur-3xl group-hover:bg-teal-500/30 transition-colors duration-700 translate-x-1/3 -translate-y-1/3" />
+              <div className="relative z-10 max-w-lg">
+                <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center mb-8 border border-zinc-700">
+                  <Mic className="w-8 h-8 text-amber-400" />
+                </div>
+                <h4 className="text-3xl md:text-4xl font-display font-bold mb-4">AI-Powered Virtual Murāja'ah</h4>
+                <p className="text-zinc-400 text-lg leading-relaxed mb-8">
+                  Our advanced Arabic speech recognition engine listens to your recitation, highlights words in real-time, and provides immediate feedback on your accuracy and fluency.
+                </p>
+                <button className="flex items-center gap-2 text-teal-400 font-bold hover:text-teal-300 transition-colors">
+                  Explore Murāja'ah <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Small Bento Item 1 */}
+            <div className="md:col-span-4 bg-teal-50 p-10 rounded-[3rem] shadow-sm border border-teal-100 flex flex-col justify-center">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                <BookOpen className="w-7 h-7 text-teal-600" />
+              </div>
+              <h4 className="text-2xl font-display font-bold text-zinc-900 mb-3">Interactive Quran</h4>
+              <p className="text-zinc-600 leading-relaxed">
+                Crystal-clear audio playback, beautifully rendered Uthmani script, and seamless bookmarking.
+              </p>
+            </div>
+
+            {/* Small Bento Item 2 */}
+            <div className="md:col-span-4 bg-amber-50 p-10 rounded-[3rem] shadow-sm border border-amber-100 flex flex-col justify-center">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                <Users className="w-7 h-7 text-amber-600" />
+              </div>
+              <h4 className="text-2xl font-display font-bold text-zinc-900 mb-3">Community Hub</h4>
+              <p className="text-zinc-600 leading-relaxed">
+                Join learning circles, share resources directly from your device, and stay motivated together.
+              </p>
+            </div>
+
+            {/* Big Bento Item 2 */}
+            <div className="md:col-span-8 bg-white p-10 md:p-16 rounded-[3rem] shadow-sm border border-zinc-200 relative overflow-hidden">
+              <div className="absolute right-0 bottom-0 w-64 h-64 bg-slate-100 rounded-tl-full -z-10" />
+              <div className="flex flex-col md:flex-row gap-8 items-center h-full">
+                <div className="flex-1">
+                  <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-md">
+                    <BarChart3 className="w-7 h-7 text-white" />
+                  </div>
+                  <h4 className="text-3xl font-display font-bold text-zinc-900 mb-4">Detailed Analytics</h4>
+                  <p className="text-zinc-600 text-lg leading-relaxed">
+                    Visualize your journey with beautiful charts. Track your reading habits, memorization milestones, and maintain your daily streaks.
+                  </p>
+                </div>
+                <div className="w-full md:w-1/2 h-48 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-end justify-between p-6 overflow-hidden relative">
+                  {/* Mock Chart */}
+                  {[40, 70, 45, 90, 65, 100, 80].map((h, i) => (
+                    <div key={i} className="w-[10%] bg-teal-500 rounded-t-xl" style={{ height: `${h}%` }} />
+                  ))}
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 to-transparent" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* World-Class Reciters */}
+      <section className="py-32 bg-zinc-900 text-white px-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-teal-900/40 via-zinc-900 to-zinc-900 -z-10" />
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center mb-8 border border-zinc-700">
+              <Headphones className="w-8 h-8 text-teal-400" />
+            </div>
+            <h2 className="text-4xl md:text-6xl font-display font-extrabold mb-6 leading-tight"><TypewriterText text="Listen to the world's best." /></h2>
+            <p className="text-xl text-zinc-400 leading-relaxed mb-8">Immerse yourself in the beautiful voices of renowned Qaris from across the globe. High-quality audio playback synced perfectly with the Uthmani script.</p>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {['Mishary Alafasy', 'Abdul Basit', 'Mahmoud Al-Husary', 'Saud Al-Shuraim', 'Maher Al-Muaiqly', 'Yasser Al-Dosari', 'Nasser Al Qatami', 'Bandar Baleela', 'Abu Bakr Al-Shatri', 'Ali Jaber', 'Muhammad Ayyub', 'Abdullah Basfar'].map((q, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-zinc-800/50 p-3 rounded-2xl border border-zinc-700/50 backdrop-blur-sm hover:bg-zinc-800 hover:border-teal-500/50 transition-all cursor-pointer group">
+                    <div className="w-10 h-10 bg-teal-500/20 rounded-full flex items-center justify-center group-hover:bg-teal-500 transition-colors shrink-0">
+                      <Play className="w-4 h-4 text-teal-400 group-hover:text-white transition-colors" />
+                    </div>
+                    <span className="font-display font-bold text-sm md:text-base truncate">{q}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="relative h-[600px] flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-tr from-teal-500/20 to-amber-500/20 rounded-full blur-3xl opacity-50" />
+            
+            {/* Background Mini Player 1 */}
+            <div className="hidden md:block absolute top-20 right-10 md:-right-4 w-48 bg-zinc-800/80 backdrop-blur-xl rounded-[2rem] p-4 border border-zinc-700 shadow-2xl rotate-6 hover:rotate-0 transition-transform z-0">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center"><BookOpen className="w-5 h-5 text-amber-500" /></div>
+                 <div className="min-w-0">
+                   <div className="text-sm font-bold truncate">Surah Yaseen</div>
+                   <div className="text-[10px] text-zinc-400 truncate">Abdul Basit</div>
+                 </div>
+               </div>
+               <div className="h-1 w-full bg-zinc-700 rounded-full overflow-hidden">
+                 <div className="h-full w-2/3 bg-amber-500 rounded-full" />
+               </div>
+            </div>
+
+            {/* Background Mini Player 2 */}
+            <div className="hidden md:block absolute bottom-24 left-10 md:-left-8 w-56 bg-teal-900/80 backdrop-blur-xl rounded-[2rem] p-4 border border-teal-700 shadow-2xl -rotate-6 hover:rotate-0 transition-transform z-20">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-teal-950 rounded-xl flex items-center justify-center"><BookOpen className="w-5 h-5 text-teal-400" /></div>
+                 <div className="min-w-0">
+                   <div className="text-sm font-bold text-white truncate">Surah Al-Mulk</div>
+                   <div className="text-[10px] text-teal-200 truncate">Maher Al-Muaiqly</div>
+                 </div>
+               </div>
+               <div className="flex items-center justify-between gap-3">
+                 <div className="h-1 flex-1 bg-teal-950 rounded-full overflow-hidden">
+                   <div className="h-full w-1/4 bg-teal-400 rounded-full" />
+                 </div>
+                 <Play className="w-4 h-4 text-teal-400" />
+               </div>
+            </div>
+
+            <div className="relative z-10 w-full max-w-sm bg-zinc-950 rounded-[3rem] p-6 border border-zinc-800 shadow-2xl">
+               <div className="aspect-square bg-zinc-900 rounded-[2rem] mb-8 border border-zinc-800 flex items-center justify-center p-8 relative overflow-hidden">
+                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-20" />
+                 <BookOpen className="w-24 h-24 text-teal-500/50" />
+               </div>
+               <div className="text-center mb-8">
+                 <h4 className="font-display font-bold text-2xl">Surah Ar-Rahman</h4>
+                 <p className="text-zinc-500">Mishary Rashid Alafasy</p>
+               </div>
+               <div className="flex items-center justify-between gap-4 mb-4">
+                 <span className="text-xs text-zinc-500">01:24</span>
+                 <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                   <div className="h-full w-1/3 bg-teal-500 rounded-full" />
+                 </div>
+                 <span className="text-xs text-zinc-500">04:15</span>
+               </div>
+               <div className="flex items-center justify-center gap-8">
+                 <Play className="w-16 h-16 text-teal-500 fill-teal-500" />
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Gamification */}
+      <section className="py-32 px-6 bg-zinc-50 overflow-hidden relative border-t border-zinc-200">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row-reverse gap-16 items-center">
+          <div className="flex-1">
+            <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-8 border border-amber-200 shadow-sm">
+              <Trophy className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6 leading-tight">Turn learning into a habit.</h2>
+            <p className="text-xl text-zinc-600 leading-relaxed mb-8">Stay motivated with daily streaks, achievement badges, and milestone celebrations. Our gamified system makes consistent recitation engaging and rewarding.</p>
+            <div className="grid grid-cols-2 gap-4">
+               {[
+                 { title: "7 Day Streak", icon: "🔥", color: "from-orange-400 to-red-500" },
+                 { title: "Juz Amma", icon: "🏆", color: "from-amber-300 to-amber-500" },
+                 { title: "Early Bird", icon: "🌅", color: "from-blue-400 to-indigo-500" },
+                 { title: "100 Ayahs", icon: "⭐", color: "from-teal-400 to-emerald-500" }
+               ].map((b, i) => (
+                 <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-200 flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer">
+                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${b.color} flex items-center justify-center text-xl shadow-inner`}>
+                     {b.icon}
+                   </div>
+                   <span className="font-bold text-zinc-800">{b.title}</span>
+                 </div>
+               ))}
+            </div>
+          </div>
+          <div className="flex-1 relative w-full">
+            <div className="absolute inset-0 bg-teal-200 rounded-full blur-[100px] opacity-40 -z-10" />
+            <div className="bg-white rounded-[3rem] p-8 shadow-2xl border border-zinc-100 relative max-w-md mx-auto">
+               <div className="flex justify-between items-center mb-8">
+                 <h4 className="font-display font-bold text-2xl">Your Journey</h4>
+                 <div className="px-4 py-2 bg-zinc-100 rounded-full font-bold text-zinc-800 text-sm">Level 12</div>
+               </div>
+               <div className="space-y-6">
+                 {[1,2,3].map(i => (
+                   <div key={i} className="flex gap-4">
+                     <div className="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
+                       <CheckCircle className="w-6 h-6 text-teal-600" />
+                     </div>
+                     <div>
+                       <div className="font-bold text-lg text-zinc-900">Completed Surah {i === 1 ? 'Al-Mulk' : i === 2 ? 'Ya-Sin' : 'Al-Kahf'}</div>
+                       <div className="text-zinc-500 text-sm">Perfect pronunciation • +500 XP</div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Offline Mode */}
+      <section className="py-32 px-6 bg-white border-y border-zinc-200">
+        <div className="max-w-7xl mx-auto text-center">
+           <div className="w-20 h-20 bg-zinc-100 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-sm">
+             <WifiOff className="w-10 h-10 text-zinc-900" />
+           </div>
+           <h2 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6">Learn anywhere, anytime.</h2>
+           <p className="text-xl text-zinc-600 max-w-2xl mx-auto mb-12 leading-relaxed">Download your favorite reciters, translations, and tafsir for offline access. No internet connection? No problem.</p>
+           <div className="inline-flex items-center gap-4 bg-zinc-50 px-8 py-4 rounded-full border border-zinc-200 shadow-sm">
+             <ShieldCheck className="w-6 h-6 text-teal-600" />
+             <span className="font-bold text-zinc-800 text-lg">Fully functional offline reading mode</span>
+           </div>
+        </div>
+      </section>
+
+      {/* Community Deep Dive */}
+      <section id="community" className="py-32 px-6 bg-teal-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10 mix-blend-overlay" />
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center relative z-10">
+          <div className="relative h-[600px]">
+             <div className="absolute top-10 right-4 md:right-10 w-64 bg-teal-800 p-6 rounded-[2rem] shadow-2xl border border-teal-700 rotate-6 hover:rotate-0 transition-transform z-20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-amber-500 rounded-full" />
+                  <div>
+                    <div className="font-bold">Ustadh Ali</div>
+                    <div className="text-xs text-teal-200">Shared a resource</div>
+                  </div>
+                </div>
+                <div className="bg-teal-900/50 p-4 rounded-xl">
+                  <BookOpen className="w-6 h-6 mb-2 text-amber-400" />
+                  <div className="font-bold text-sm">Tajweed Rules PDF</div>
+                </div>
+             </div>
+             <div className="absolute bottom-20 left-4 md:left-10 w-72 bg-white text-zinc-900 p-6 rounded-[2rem] shadow-2xl border border-zinc-200 -rotate-6 hover:rotate-0 transition-transform z-10">
+                <div className="font-display font-bold text-xl mb-4">Hifz Circle 2026</div>
+                <div className="flex -space-x-3 mb-4">
+                  {[1,2,3,4].map(i => <div key={i} className={`w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-teal-400 to-teal-600`} />)}
+                  <div className="w-10 h-10 rounded-full border-2 border-white bg-zinc-100 flex items-center justify-center font-bold text-xs">+12</div>
+                </div>
+                <div className="bg-zinc-50 p-3 rounded-xl text-sm font-medium text-zinc-600">
+                  Current Goal: Surah Al-Baqarah
+                </div>
+             </div>
+             <div className="hidden md:block absolute top-1/2 -translate-y-1/2 -left-4 md:-left-8 w-60 bg-zinc-900 p-5 rounded-[2rem] shadow-2xl border border-zinc-800 -rotate-3 hover:rotate-0 transition-transform z-30">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                   <Mic className="w-5 h-5 text-red-400" />
+                 </div>
+                 <div className="text-sm font-bold text-white">Live Recitation</div>
+               </div>
+               <div className="text-xs text-zinc-400 mb-4 leading-relaxed">Brother Yusuf is reciting Surah Yaseen</div>
+               <div className="flex items-center gap-2 bg-zinc-800 w-fit px-3 py-1.5 rounded-full">
+                 <span className="flex h-2 w-2 relative">
+                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                 </span>
+                 <span className="text-[10px] uppercase tracking-wider text-red-400 font-bold">Live Now</span>
+               </div>
+             </div>
+             <div className="hidden md:block absolute top-4 left-1/4 md:left-20 w-56 bg-amber-100 p-5 rounded-[2rem] shadow-2xl border border-amber-200 rotate-12 hover:rotate-0 transition-transform z-0">
+               <div className="flex items-center gap-3 mb-2">
+                 <Trophy className="w-6 h-6 text-amber-600" />
+                 <div className="font-bold text-amber-900 text-sm">Milestone!</div>
+               </div>
+               <div className="text-xs text-amber-800">Sisters Circle completed Juz 30</div>
+             </div>
+          </div>
+          <div>
+            <div className="w-16 h-16 bg-teal-800 rounded-2xl flex items-center justify-center mb-8 border border-teal-700 shadow-sm">
+              <Globe2 className="w-8 h-8 text-amber-400" />
+            </div>
+            <h2 className="text-4xl md:text-6xl font-display font-extrabold mb-6 leading-tight">Connect with the global Ummah.</h2>
+            <p className="text-xl text-teal-100 leading-relaxed mb-8">Join private study circles, share resources directly to cloud storage, and support each other's memorization journey. Learning the Quran is better together.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { title: 'Public Study Groups', desc: 'Join groups globally', icon: <Users className="w-5 h-5 text-amber-400" /> },
+                { title: 'Resource Sharing', desc: 'Docs, audio & notes', icon: <BookOpen className="w-5 h-5 text-amber-400" /> },
+                { title: 'Leaderboards', desc: 'Group milestones', icon: <Trophy className="w-5 h-5 text-amber-400" /> },
+                { title: 'Voice Notes', desc: 'Direct feedback', icon: <Mic className="w-5 h-5 text-amber-400" /> },
+                { title: 'Live Sessions', desc: 'Real-time halaqas', icon: <Globe2 className="w-5 h-5 text-amber-400" /> },
+                { title: 'Global Mentors', desc: 'Find a teacher', icon: <Users className="w-5 h-5 text-amber-400" /> }
+              ].map((f, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-teal-800/50 border border-teal-700 hover:bg-teal-800 transition-colors cursor-pointer group">
+                  <div className="w-10 h-10 rounded-full bg-teal-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    {f.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-teal-50 mb-1">{f.title}</h3>
+                    <p className="text-sm text-teal-200/80">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Redesigned Testimonials */}
+      <section id="testimonials" className="py-32 bg-zinc-50 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-24">
+            <h2 className="text-sm font-bold text-teal-600 tracking-widest uppercase mb-4">Community Love</h2>
+            <h3 className="text-5xl md:text-7xl font-display font-extrabold text-zinc-900 mb-6">Stories of impact.</h3>
+            <p className="text-2xl text-zinc-500 max-w-2xl mx-auto font-medium">Hear how Ilm Nafi is transforming the way people learn and connect with the Quran.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white p-12 rounded-[3rem] shadow-xl shadow-zinc-200/50 border border-zinc-100 relative group">
+              <div className="absolute top-12 right-12 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Quote className="w-24 h-24 text-teal-600" />
+              </div>
+              <div className="flex gap-1 mb-8">
+                {[1,2,3,4,5].map(star => <Star key={star} className="w-6 h-6 fill-amber-500 text-amber-500" />)}
+              </div>
+              <p className="text-zinc-800 text-2xl md:text-3xl font-display font-medium leading-relaxed mb-12 relative z-10">
+                "The Virtual Murāja'ah feature is absolutely groundbreaking. It picks up on my subtle Tajweed mistakes and helps me correct them instantly. It feels like having a personal tutor with me at all times."
+              </p>
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center font-display font-bold text-2xl">A</div>
+                <div>
+                  <div className="font-display font-bold text-xl text-zinc-900">Ahmed Y.</div>
+                  <div className="text-teal-600 font-medium">University Student</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-8">
+              <div className="bg-zinc-900 text-white p-10 rounded-[3rem] shadow-lg relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-colors" />
+                <div className="flex gap-1 mb-6">
+                  {[1,2,3,4,5].map(star => <Star key={star} className="w-5 h-5 fill-amber-500 text-amber-500" />)}
+                </div>
+                <p className="text-zinc-300 text-xl leading-relaxed mb-8 relative z-10">
+                  "As a teacher, the Community Hub makes managing my Hifz class so much easier. I share PDFs and audio clips directly, and track my students' progress."
+                </p>
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-12 h-12 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center font-bold text-xl">F</div>
+                  <div>
+                    <div className="font-display font-bold text-lg">Fatima S.</div>
+                    <div className="text-zinc-400">Islamic Studies Teacher</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-10 rounded-[3rem] shadow-md border border-zinc-200">
+                <div className="flex gap-1 mb-6">
+                  {[1,2,3,4,5].map(star => <Star key={star} className="w-5 h-5 fill-teal-500 text-teal-500" />)}
+                </div>
+                <p className="text-zinc-700 text-xl leading-relaxed mb-8">
+                  "The offline functionality is flawless. I commute for an hour every day, and having my recitations and bookmarks available without internet is a lifesaver."
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-zinc-100 text-zinc-700 rounded-full flex items-center justify-center font-bold text-xl">O</div>
+                  <div>
+                    <div className="font-display font-bold text-lg text-zinc-900">Omar K.</div>
+                    <div className="text-zinc-500">Software Engineer</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-32 px-6 bg-white border-t border-zinc-200">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6">Frequently Asked Questions</h2>
+          </div>
+          
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => (
+              <div key={idx} className="bg-zinc-50 border border-zinc-200 rounded-[2rem] overflow-hidden transition-all">
+                <button 
+                  className="w-full px-8 py-6 text-left flex justify-between items-center font-display font-bold text-xl text-zinc-900"
+                  onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
+                >
+                  {faq.q}
+                  <ChevronRight className={`w-6 h-6 text-teal-600 transition-transform ${activeFaq === idx ? 'rotate-90' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {activeFaq === idx && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-8 pb-6 text-zinc-600 text-lg leading-relaxed">
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Download CTA */}
+      <section id="download" className="py-32 px-6 bg-teal-900 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-teal-800 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-50" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-800 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 opacity-30" />
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <h2 className="text-5xl md:text-7xl font-display font-extrabold mb-8 tracking-tight">Begin your journey today.</h2>
+          <p className="text-xl md:text-2xl text-teal-100/90 mb-16 max-w-2xl mx-auto font-medium leading-relaxed">Join thousands of users enhancing their Islamic knowledge with Ilm Nafi.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-6">
+             <button className="flex items-center justify-center gap-4 bg-white text-zinc-900 px-10 py-6 rounded-full hover:bg-zinc-50 transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-white/20">
+                <AppleIcon />
+                <div className="text-left leading-tight">
+                  <div className="text-[10px] uppercase tracking-widest font-bold opacity-60">Download on the</div>
+                  <div className="font-display font-extrabold text-2xl">App Store</div>
+                </div>
+              </button>
+              <button className="flex items-center justify-center gap-4 bg-zinc-900 text-white px-10 py-6 rounded-full hover:bg-zinc-800 transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-zinc-900/20">
+                <PlayStoreIcon />
+                <div className="text-left leading-tight">
+                  <div className="text-[10px] uppercase tracking-widest font-bold opacity-80">Get it on</div>
+                  <div className="font-display font-extrabold text-2xl">Google Play</div>
+                </div>
+              </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Daily Reflection Section */}
+      <section className="py-24 px-6 bg-zinc-50 border-t border-zinc-200">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="text-teal-600 font-bold uppercase tracking-wider text-sm">Ayah of the Day</span>
+            <h2 className="text-4xl font-display font-bold mt-2"><TypewriterText text="Daily Reflection" /></h2>
+          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-white p-8 md:p-12 rounded-[3rem] shadow-xl shadow-zinc-200/50 border border-zinc-100 relative overflow-hidden"
           >
-            <QuranExplorer 
-              lang={lang} 
-              qiraat={progress.qiraat}
-              tajweedMode={progress.tajweedMode}
-              isAuthenticated={!!progress.email}
-              onSwitchToAuth={() => setActiveTab('auth')}
-              onPracticeAyah={(verse) => {
-                setPracticeVerse(verse);
-                setActiveTab('coach');
-              }}
-              onChangeQiraat={(q) => {
-                setProgress(prev => {
-                  const updated = { ...prev, qiraat: q };
-                  localStorage.setItem('ilm_naafi_qiraat', q);
-                  return updated;
-                });
-              }}
-              onChangeTajweedMode={(m) => {
-                setProgress(prev => {
-                  const updated = { ...prev, tajweedMode: m };
-                  localStorage.setItem('ilm_naafi_tajweed_mode', m ? 'true' : 'false');
-                  return updated;
-                });
-              }}
-            />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-50 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2" />
+            <Quote className="w-12 h-12 text-teal-100 mb-6" />
+            <div className="text-right font-arabic text-4xl md:text-5xl text-zinc-900 leading-[2.5] mb-8">
+              فَإِنَّ مَعَ الْعُسْرِ يُسْرًا 
+            </div>
+            <div className="text-lg md:text-xl text-zinc-600 font-serif italic leading-relaxed mb-6">
+              <TypewriterText text={'"For indeed, with hardship [will be] ease."'} />
+            </div>
+            <div className="text-sm font-bold text-zinc-400 uppercase tracking-widest">
+              Surah Ash-Sharh (94:5)
+            </div>
           </motion.div>
         </div>
+      </section>
 
-        {/* ENCYCLOPEDIA VIEW */}
-        {activeTab === 'encyclopedia' && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.4 }}
-          >
-            <EncyclopediaView lang={lang} />
-          </motion.div>
-        )}
-
-        {/* DAILY SPIRITUAL TOOLS */}
-        {activeTab === 'daily' && (
-          <motion.div
-            key="daily"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <DailyView lang={lang} onDrawerChange={(drawer) => setAdhkarDrawerActive(drawer)} />
-          </motion.div>
-        )}
-
-        {/* OPEN SOURCE COMMUNITY HUB */}
-        {activeTab === 'community' && (
-          <motion.div
-            key="community"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <CommunityHubView 
-              lang={lang}
-            />
-          </motion.div>
-        )}
-
-        {/* STANDALONE STUDENT ID AUTH PAGE (NEW PAGE METHOD) */}
-        {activeTab === 'auth' && (
-          <motion.div
-            key="auth"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <AuthPage 
-              lang={lang} 
-              onSuccess={handleAuthSuccess} 
-              onCancel={() => { setActiveTab('home'); }} 
-            />
-          </motion.div>
-        )}
-
-        {/* STUDENT WORKSPACE DASHBOARD */}
-        {activeTab === 'dashboard' && (
-          <motion.div
-            key="dashboard"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <StudentDashboard 
-              lang={lang}
-              progress={progress}
-              onNavigateToTab={(tab) => { setActiveTab(tab); }}
-              onRemoveBookmark={handleToggleSaveScholarship}
-              onUpdateProgress={setProgress}
-            />
-          </motion.div>
-        )}
-
-        {/* SCHOLARSHIP SEARCH ENGINE */}
-        {activeTab === 'scholarships' && (
-          <motion.div
-            key="scholarships"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <ScholarshipsView 
-              progress={progress}
-              onToggleSaveScholarship={handleToggleSaveScholarship}
-            />
-          </motion.div>
-        )}
-
-        {/* SAVED SCHOLARSHIPS DESK */}
-        {activeTab === 'saved-scholarships' && (
-          <motion.div
-            key="saved-scholarships"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <SavedScholarshipsView 
-              progress={progress}
-              onToggleSaveScholarship={handleToggleSaveScholarship}
-              lang={lang}
-            />
-          </motion.div>
-        )}
-
-        {/* STANDALONE REAL-TIME NOTIFICATIONS HUB */}
-        {activeTab === 'notifications' && (
-          <motion.div
-            key="notifications"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            {progress && progress.email ? (
-              <NotificationsView 
-                lang={lang}
-                progress={progress}
-                onUpdateProgress={setProgress}
-                onNavigateToTab={(tab) => { setActiveTab(tab); }}
-              />
-            ) : (
-              <RenderAuthGateway tabName={lang === 'en' ? "Notifications" : "شاشة الإشعارات والدراسة"} />
-            )}
-          </motion.div>
-        )}
-
-        {/* STANDALONE SETTINGS & SYSTEMS PREFERENCES VIEW */}
-        {activeTab === 'settings' && (
-          <motion.div
-            key="settings"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            {progress && progress.email ? (
-              <SettingsView 
-                lang={lang}
-                progress={progress}
-                setProgress={setProgress}
-                onUpdateUsername={(newName) => {
-                  setProgress(prev => ({
-                    ...prev,
-                    username: newName
-                  }));
-                }}
-              />
-            ) : (
-              <RenderAuthGateway tabName={lang === 'en' ? "Settings" : "قائمة خيارات الضبط العامة"} />
-            )}
-          </motion.div>
-        )}
-
-        {/* STANDALONE API DOCUMENTATION VIEW */}
-        {activeTab === 'api-docs' && (
-          <motion.div
-            key="api-docs"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <ApiDocsView lang={lang} />
-          </motion.div>
-        )}
-
-        {/* INTERACTIVE INTEGRATED ISSUE & FEEDBACK SYSTEM */}
-        {activeTab === 'issue-tracker' && (
-          <motion.div
-            key="issue-tracker"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <IssueTrackerView lang={lang} />
-          </motion.div>
-        )}
-
-        {/* CLASS FORUMS SCREEN */}
-        {activeTab === 'forum' && (
-          <motion.div
-            key="forum"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <ForumView 
-              lang={lang}
-              currentUser={progress.username ? { username: progress.username, email: progress.email } : null}
-              onAuthSuccess={(username, email) => {
-                setProgress(prev => ({ ...prev, username, email }));
-              }}
-              onNavigateToTab={(tab) => {
-                setActiveTab(tab as any);
-              }}
-            />
-          </motion.div>
-        )}
-
-        {/* INTERACTIVE LEGAL & HONOR CHARTERS CODES */}
-        {(activeTab === 'privacy' || activeTab === 'terms' || activeTab === 'academic') && (
-          <motion.div
-            key="legal-docs"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <LegalDocsView 
-              lang={lang}
-              initialDoc={activeTab as 'privacy' | 'terms' | 'academic'}
-              onBackToHome={() => setActiveTab('home')}
-            />
-          </motion.div>
-        )}
-
-        </AnimatePresence>
-      </main>
-
-      {/* FOOTER SECTION */}
-      <footer className="bg-slate-950 text-slate-400 py-12 mt-12 border-t border-slate-800 text-xs font-semibold">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left space-y-1">
-            <p className="font-extrabold text-white tracking-tight text-sm inline-flex items-center gap-1">
-              <span className="w-5 h-5 rounded-md bg-amber-600 text-white flex items-center justify-center text-[11px] font-bold">ع</span>
-              {labels.brand}
-            </p>
-            <p className="text-slate-500 text-[10px] max-w-sm mt-1 leading-normal text-right">
-              {labels.footerText}
-            </p>
+      {/* Footer */}
+      <footer className="bg-zinc-50 py-16 px-6 border-t border-zinc-200">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center shadow-md">
+              <span className="text-white">📖</span>
+            </div>
+            <span className="font-display font-extrabold text-xl text-zinc-900">Ilm Nafi</span>
           </div>
-          <div className="flex gap-6 text-[11px] text-slate-500 font-sans">
-            <button onClick={() => setActiveTab('terms')} className="hover:text-amber-500 transition-colors cursor-pointer bg-transparent border-0 text-slate-500 font-semibold text-xs">Terms of Service</button>
-            <button onClick={() => setActiveTab('academic')} className="hover:text-amber-500 transition-colors cursor-pointer bg-transparent border-0 text-slate-500 font-semibold text-xs">Academic Integrity</button>
-            <button onClick={() => setActiveTab('privacy')} className="hover:text-amber-500 transition-colors cursor-pointer bg-transparent border-0 text-slate-500 font-semibold text-xs">Privacy Policy</button>
+          
+          <div className="flex gap-8 text-sm font-bold text-zinc-500">
+            <a href="#" className="hover:text-teal-600 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-teal-600 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-teal-600 transition-colors">Contact</a>
           </div>
-          <p className="text-slate-600 text-[11px] font-mono leading-none">&copy; 2026 {labels.brand}. {labels.copyright}</p>
+          
+          <div className="text-sm font-medium text-zinc-400 flex items-center gap-1">
+            Made with <Heart className="w-4 h-4 text-rose-500 mx-1" /> for the Ummah
+          </div>
         </div>
       </footer>
-
-      {/* MOBILE BOTTOM NAVIGATION REMOVED PER REQUEST */}
-
-      {/* SCROLL-TO-TOP FLOATING STICKER */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            key="scroll-top"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={scrollToTop}
-            className={`fixed bottom-20 md:bottom-8 ${lang === 'ar' ? 'left-6' : 'right-6'} bg-amber-600 hover:bg-amber-750 text-white p-3 rounded-full shadow-lg z-50 border border-amber-500 transition-all cursor-pointer`}
-            aria-label="Scroll to top"
-          >
-            <ArrowUp className="w-5 h-5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* REAL-TIME NOTIFICATION POPUP PANEL */}
-      <AnimatePresence>
-        {liveToast && (
-          <motion.div
-            key="live-toast"
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.95 }}
-            className={`fixed bottom-6 ${lang === 'ar' ? 'left-6 md:left-12' : 'right-6 md:right-12'} max-w-sm w-[90%] md:w-96 bg-slate-900 border border-emerald-500/35 text-white rounded-2xl p-4.5 shadow-2xl z-[100] flex gap-3.5`}
-          >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shrink-0 text-white">
-              <Bell className="w-4.5 h-4.5 animate-bounce" />
-            </div>
-            <div className="flex-1 min-w-0 font-sans">
-              <div className="flex justify-between items-start gap-2">
-                <span className="text-xs font-black tracking-tight text-emerald-400 block font-sans truncate">
-                  {liveToast.title}
-                </span>
-                <button 
-                  onClick={() => setLiveToast(null)} 
-                  className="text-slate-400 hover:text-white transition-all text-[9px] uppercase font-mono px-2 py-0.5 bg-slate-800 rounded-md shrink-0"
-                >
-                  Clear
-                </button>
-              </div>
-              <p className="text-[10px] text-slate-300 font-sans leading-tight mt-1 text-left">
-                {liveToast.body}
-              </p>
-              <span className="text-[8px] text-slate-500 font-mono block mt-2 text-left">
-                Live Alert Socket • Just Now
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* PERSISTENT GLOBAL MINI PLAYER FOR BACKGROUND QURAN READING */}
-      <AnimatePresence>
-        {globalAudio && activeTab !== 'quran' && (
-          <motion.div
-            key="global-mini-player"
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-            className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 md:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-2xl z-50 p-4 font-sans flex items-center justify-between gap-3"
-            id="global-mini-audio-container"
-          >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-md animate-pulse shrink-0">
-                <Volume2 className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1 text-left">
-                <div className="font-sans text-xs font-bold text-slate-800 dark:text-slate-150 truncate">
-                  {globalAudio.surahName}
-                  {globalAudio.playMode === 'verse_by_verse' && globalAudio.ayahNumber > 0 && (
-                    <span className="ml-1 text-amber-600 dark:text-amber-400 font-mono">
-                      • {lang === 'en' ? 'Verse' : 'آية'} {globalAudio.ayahNumber}
-                    </span>
-                  )}
-                </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                  {globalAudio.reciterName}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={handleMiniToggle}
-                className="p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-md hover:scale-105 transition active:scale-95 cursor-pointer flex items-center justify-center"
-                title={globalAudio.isPlaying ? "Pause" : "Play"}
-              >
-                {globalAudio.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </button>
-
-              <button
-                onClick={handleMiniNext}
-                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-755 text-slate-700 dark:text-slate-300 rounded-full transition active:scale-95 cursor-pointer flex items-center justify-center"
-                title="Play Next Verse"
-              >
-                <SkipForward className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={handleMiniStop}
-                className="p-2 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white rounded-full transition active:scale-95 cursor-pointer flex items-center justify-center"
-                title="Stop Audio"
-              >
-                <Square className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* BEAUTIFUL STUNNING INTERACTIVE ADHAN MODAL OVERLAY */}
-      <AnimatePresence>
-        {showAdhanModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-950/85 backdrop-blur-md p-4 animate-fade-in" id="adhan-modal-overlay">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-lg bg-emerald-950 border border-amber-500/40 rounded-[32px] p-6 text-center relative overflow-hidden shadow-2xl"
-              style={{
-                backgroundImage: 'radial-gradient(circle at top, rgba(16, 185, 129, 0.15), transparent 70%)',
-              }}
-              id="adhan-modal-card"
-            >
-              {/* Decorative top Islamic arch */}
-              <div className="mx-auto w-24 h-12 bg-amber-500/10 border border-amber-500/20 border-b-0 rounded-t-full flex items-end justify-center pb-1">
-                <span className="text-amber-500 text-lg">🕌</span>
-              </div>
-
-              <div className="space-y-1 mt-4">
-                <span className="text-[10px] uppercase tracking-widest font-mono text-amber-500 font-extrabold px-3 py-1 bg-amber-500/10 rounded-full inline-block">
-                  {lang === 'en' ? 'Call to Prayer' : 'أذان الصلاة'}
-                </span>
-                <h2 className="text-2xl font-serif font-semibold text-amber-400 mt-2">
-                  {lang === 'en' ? `${activeAdhanName} Adhan` : `أذان صلاة ${activeAdhanLabelAr}`}
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  {lang === 'en' ? 'Live soul-stirring recitation' : 'النداء الخالد للصلوات المفروضة'}
-                </p>
-              </div>
-
-              {/* Calligraphy illustration placeholder / animated wave */}
-              <div className="my-6 py-8 px-4 bg-emerald-900/30 rounded-2xl border border-emerald-500/10 flex flex-col items-center justify-center space-y-4">
-                <span className="text-4xl font-serif text-emerald-400 tracking-widest leading-relaxed">
-                  حَيَّ عَلَى الصَّلَاةِ
-                </span>
-                
-                {/* Waving Sound Bar Visualizer */}
-                {adhanPlaying ? (
-                  <div className="flex items-end justify-center gap-1.5 h-10 w-32">
-                    <span className="w-1.5 bg-amber-500 rounded-full animate-[ping_1.2s_infinite] h-8" />
-                    <span className="w-1.5 bg-amber-400 rounded-full animate-[ping_0.8s_infinite] h-4" />
-                    <span className="w-1.5 bg-amber-500 rounded-full animate-[ping_1s_infinite] h-10" />
-                    <span className="w-1.5 bg-amber-300 rounded-full animate-[ping_1.4s_infinite] h-6" />
-                    <span className="w-1.5 bg-amber-500 rounded-full animate-[ping_0.9s_infinite] h-8" />
-                  </div>
-                ) : (
-                  <div className="flex items-end justify-center gap-1.5 h-10 w-32 opacity-40">
-                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
-                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
-                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
-                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
-                    <span className="w-1.5 bg-zinc-600 rounded-full h-2" />
-                  </div>
-                )}
-              </div>
-
-              {/* Translation list of Adhan phrases */}
-              <div className="text-left bg-zinc-950/40 rounded-2xl p-4 max-h-[140px] overflow-y-auto text-xs text-zinc-300 space-y-2 border border-zinc-800 scrollbar-thin">
-                <div className="flex justify-between border-b border-zinc-850 pb-1">
-                  <span className="text-amber-500 font-bold">٢x اللَّهُ أَكْبَرُ</span>
-                  <span>Allah is the Greatest (2x)</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-850 pb-1">
-                  <span className="text-emerald-400 font-bold">٢x أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ</span>
-                  <span>I bear witness that there is no deity except Allah (2x)</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-850 pb-1">
-                  <span className="text-emerald-400 font-bold">٢x أَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ اللَّهِ</span>
-                  <span>I bear witness that Muhammad is the Messenger of Allah (2x)</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-850 pb-1">
-                  <span className="text-amber-500 font-bold">٢x حَيَّ عَلَى الصَّلَاةِ</span>
-                  <span>Hasten to prayer (2x)</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-850 pb-1">
-                  <span className="text-amber-500 font-bold">٢x حَيَّ عَلَى الْفَلَاحِ</span>
-                  <span>Hasten to success (2x)</span>
-                </div>
-                {activeAdhanName === 'Fajr' && (
-                  <div className="flex justify-between border-b border-zinc-850 pb-1">
-                    <span className="text-amber-400 font-bold">٢x الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ</span>
-                    <span>Prayer is better than sleep (2x)</span>
-                  </div>
-                )}
-                <div className="flex justify-between pb-1">
-                  <span className="text-amber-500 font-bold">١x لَا إِلَهَ إِلَّا اللَّهُ</span>
-                  <span>There is no deity except Allah (1x)</span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
-                <button
-                  id="adhan-toggle-play-btn"
-                  onClick={() => {
-                    if (adhanAudioRef.current) {
-                      if (adhanPlaying) {
-                        adhanAudioRef.current.pause();
-                        setAdhanPlaying(false);
-                      } else {
-                        adhanAudioRef.current.play().catch(err => console.warn(err));
-                        setAdhanPlaying(true);
-                      }
-                    }
-                  }}
-                  className="w-full sm:w-1/2 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 font-extrabold transition cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md shadow-amber-500/20"
-                >
-                  {adhanPlaying ? (
-                    <>
-                      <Pause className="w-4 h-4" />
-                      <span>{lang === 'en' ? "Mute / Pause" : "إيقاف مؤقت"}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" />
-                      <span>{lang === 'en' ? "Play Recitation" : "تشغيل الأذان"}</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  id="adhan-close-btn"
-                  onClick={() => {
-                    if (adhanAudioRef.current) {
-                      adhanAudioRef.current.pause();
-                    }
-                    setShowAdhanModal(false);
-                    setAdhanPlaying(false);
-                  }}
-                  className="w-full sm:w-1/2 py-3 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 font-bold transition cursor-pointer active:scale-95"
-                >
-                  {lang === 'en' ? "Dismiss & Close" : "إغلاق نافذة الأذان"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      
-
     </div>
-    </>
   );
 }
