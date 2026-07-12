@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, Mic, BookOpen, Users, ChevronRight, Star, Heart, ArrowRight, Play, BarChart3, Activity, Headphones, Trophy, CheckCircle, ShieldCheck, WifiOff, Globe2, Quote, ExternalLink } from 'lucide-react';
+import { Menu, Flame, Award, Sun, X, Mic, BookOpen, Users, ChevronRight, Star, Heart, ArrowRight, Play, BarChart3, Activity, Headphones, Trophy, CheckCircle, ShieldCheck, WifiOff, Globe2, Quote, ExternalLink } from 'lucide-react';
 
 const AppleIcon = () => (
   <svg viewBox="0 0 384 512" fill="currentColor" className="w-6 h-6">
@@ -15,9 +15,9 @@ const PlayStoreIcon = () => (
 );
 
 const PhoneFrame = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={`relative w-[280px] md:w-[320px] h-[600px] md:h-[680px] bg-zinc-950 rounded-[3.5rem] p-3 shadow-2xl border-4 border-zinc-800 transform scale-[0.65] sm:scale-[0.8] md:scale-100 transform-origin-top ${className}`}>
-    <div className="w-full h-full bg-white rounded-[2.75rem] overflow-hidden relative">
-      <div className="absolute top-0 inset-x-0 h-6 bg-zinc-950 rounded-b-[1.5rem] z-30 mx-16" />
+  <div className={`relative w-[260px] md:w-[320px] h-[540px] md:h-[680px] bg-zinc-950 rounded-[3rem] md:rounded-[3.5rem] p-2 md:p-3 shadow-2xl border-4 border-zinc-800 ${className}`}>
+    <div className="w-full h-full bg-white rounded-[2.5rem] md:rounded-[2.75rem] overflow-hidden relative">
+      <div className="absolute top-0 inset-x-0 h-5 md:h-6 bg-zinc-950 rounded-b-[1.25rem] md:rounded-b-[1.5rem] z-30 mx-12 md:mx-16" />
       {children}
     </div>
   </div>
@@ -128,12 +128,13 @@ export default function App() {
                 <X />
               </button>
             </div>
-            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">How It Works</a>
+            <div className="flex flex-col gap-2">
             <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Features</a>
             <a href="#murajah" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Murāja'ah</a>
             <a href="#community" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Community</a>
-            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Testimonials</a>
-            <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">FAQ</a>
+            <a href="https://quran.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-2xl font-display font-bold text-zinc-800 p-2 hover:bg-zinc-50 rounded-2xl">Quran.com <ExternalLink className="w-5 h-5 text-zinc-400" /></a>
+            <a href="#" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 text-2xl font-display font-bold text-teal-600 p-2 hover:bg-teal-50 rounded-2xl">Use Web Version <ArrowRight className="w-5 h-5" /></a>
+            </div>
             <div className="mt-4 pt-6 border-t border-zinc-100">
               <a href="#download" onClick={() => setMobileMenuOpen(false)} className="flex justify-center py-4 bg-teal-600 text-white text-lg font-bold rounded-2xl">
                 Download the App
@@ -213,97 +214,158 @@ export default function App() {
             </a>
           </motion.div>
 
-          {/* Three Phones Showcase - Static without scroll transforms */}
-          <div className="mt-24 relative h-[700px] md:h-[800px] w-full max-w-6xl mx-auto">
-            {/* Left Phone */}
+          {/* Three Phones Showcase - Premium Design */}
+          <div className="mt-16 md:mt-24 relative h-[550px] md:h-[800px] w-full max-w-6xl mx-auto flex justify-center perspective-1000 overflow-hidden md:overflow-visible">
+            
+            {/* Left Phone: Al-Kahf & Live Tracking */}
             <motion.div 
-              initial={{ opacity: 0, x: -100, rotate: -20 }}
-              animate={{ opacity: 1, x: 0, rotate: -12 }}
-              transition={{ duration: 1, delay: 0.4, type: "spring" }}
-              className="absolute left-1/2 md:left-[15%] top-24 md:top-32 -translate-x-[110%] md:-translate-x-0 z-10 origin-bottom"
+              initial={{ opacity: 0, x: -50, rotateZ: -10 }}
+              animate={{ opacity: 1, x: 0, rotateZ: -6 }}
+              transition={{ duration: 1.2, delay: 0.4, type: "spring", bounce: 0.3 }}
+              className="absolute left-1/2 -translate-x-[85%] md:-translate-x-[110%] top-12 md:top-24 z-10 origin-bottom shadow-2xl rounded-[3rem] scale-[0.85] md:scale-100"
             >
               <PhoneFrame>
-                <div className="absolute inset-0 bg-zinc-50 pt-16 px-5 flex flex-col">
-                  <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-teal-100 rounded-full mx-auto mb-4 flex items-center justify-center text-teal-600"><Mic size={32} /></div>
-                    <div className="font-display font-bold text-xl">Virtual Murāja'ah</div>
-                    <div className="text-zinc-500 text-sm">Listening to Al-Fatihah</div>
-                  </div>
-                  <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex-1">
-                    <div className="text-right font-arabic text-3xl text-zinc-800 leading-[2.5]">
-                      بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-                    </div>
-                    <div className="text-right font-arabic text-3xl text-zinc-800 leading-[2.5] opacity-50">
-                      الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ
-                    </div>
-                  </div>
+                <div className="absolute inset-0 bg-zinc-950 pt-14 md:pt-16 px-5 text-white overflow-hidden">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-teal-900 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4" />
+                   <div className="relative z-10 h-full flex flex-col">
+                     <div className="flex justify-between items-center mb-6 md:mb-8">
+                       <div className="font-display font-bold text-lg md:text-xl text-teal-50">Surah Al-Kahf</div>
+                       <div className="text-teal-300 text-xs md:text-sm border border-teal-800 bg-teal-900/50 px-3 py-1 rounded-full">Juz 15</div>
+                     </div>
+                     <div className="text-right font-arabic text-3xl md:text-4xl leading-[2.2] md:leading-[2.5] mb-6 md:mb-8 text-white drop-shadow-md">
+                       ٱلْحَمْدُ لِلَّهِ ٱلَّذِىٓ أَنزَلَ عَلَىٰ عَبْدِهِ ٱلْكِتَـٰبَ وَلَمْ يَجْعَل لَّهُۥ عِوَجَا ۜ
+                     </div>
+                     <div className="bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800 backdrop-blur-md mb-auto">
+                       <div className="text-zinc-300 text-xs md:text-sm leading-relaxed">
+                         All praise is due to Allah, who has sent down upon His Servant the Book and has not made therein any deviance.
+                       </div>
+                     </div>
+                     <div className="mt-6 mb-6">
+                       <div className="flex items-center justify-between gap-4 mb-4">
+                         <div className="text-xs text-zinc-500 font-mono">0:12</div>
+                         <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                           <div className="h-full w-1/3 bg-teal-500 rounded-full shadow-[0_0_10px_rgba(20,184,166,0.8)]" />
+                         </div>
+                         <div className="text-xs text-zinc-500 font-mono">-4:30</div>
+                       </div>
+                       <div className="flex justify-center items-center gap-6">
+                         <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400"><X size={18} /></div>
+                         <div className="w-14 h-14 rounded-full bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-teal-900/50"><Play className="w-6 h-6 ml-1" /></div>
+                         <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-400"><Heart size={18} /></div>
+                       </div>
+                     </div>
+                   </div>
                 </div>
               </PhoneFrame>
             </motion.div>
 
-            {/* Right Phone */}
+            {/* Right Phone: Community & Insights */}
             <motion.div 
-              initial={{ opacity: 0, x: 100, rotate: 20 }}
-              animate={{ opacity: 1, x: 0, rotate: 12 }}
-              transition={{ duration: 1, delay: 0.5, type: "spring" }}
-              className="absolute left-1/2 md:right-[15%] md:left-auto top-24 md:top-32 translate-x-[10%] md:translate-x-0 z-10 origin-bottom"
+              initial={{ opacity: 0, x: 50, rotateZ: 10 }}
+              animate={{ opacity: 1, x: 0, rotateZ: 6 }}
+              transition={{ duration: 1.2, delay: 0.5, type: "spring", bounce: 0.3 }}
+              className="absolute left-1/2 -translate-x-[15%] md:translate-x-[10%] top-12 md:top-24 z-10 origin-bottom shadow-2xl rounded-[3rem] scale-[0.85] md:scale-100"
             >
               <PhoneFrame>
-                <div className="absolute inset-0 bg-zinc-50 pt-16 px-5">
-                  <div className="font-display font-bold text-2xl mb-6">Community</div>
+                <div className="absolute inset-0 bg-zinc-50 pt-14 md:pt-16 px-4">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="font-display font-bold text-lg md:text-xl text-zinc-900">Global Halaqas</div>
+                    <div className="w-8 h-8 rounded-full bg-white shadow-sm border border-zinc-200 flex items-center justify-center text-amber-500"><Globe2 size={16} /></div>
+                  </div>
                   <div className="space-y-4">
-                    {[1,2,3,4].map(i => (
-                      <div key={i} className="bg-white p-4 rounded-2xl border border-zinc-100 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-amber-200 to-amber-400 rounded-full shrink-0" />
-                        <div>
-                          <div className="font-bold text-zinc-800">Study Circle {i}</div>
-                          <div className="text-sm text-zinc-500">Shared a new resource</div>
+                    <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600"><Users size={16} /></div>
+                          <div>
+                            <div className="font-bold text-sm text-zinc-900">Hifz Circle</div>
+                            <div className="text-zinc-500 text-xs">Advanced Memorization</div>
+                          </div>
                         </div>
                       </div>
-                    ))}
+                      <div className="bg-zinc-50 rounded-xl p-3 text-xs text-zinc-600 border border-zinc-100">
+                        <span className="font-semibold text-teal-600">Update:</span> Brother Omar just completed Surah Ya-Sin! 🎉
+                      </div>
+                    </div>
+                    
+                    <div className="bg-amber-500 p-4 rounded-2xl shadow-md text-white relative overflow-hidden">
+                      <div className="absolute right-0 top-0 w-32 h-32 bg-amber-400 rounded-full blur-2xl opacity-50 -translate-y-1/2 translate-x-1/2" />
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-amber-400/50 flex items-center justify-center"><Mic size={16} /></div>
+                          <div>
+                            <div className="font-bold text-sm">Tajweed Masterclass</div>
+                            <div className="text-amber-100 text-xs">Shaykh Amin</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-semibold bg-amber-600/30 p-2 rounded-xl">
+                          <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-white animate-pulse" /> LIVE NOW</span>
+                          <span>1,240 watching</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><BookOpen size={16} /></div>
+                        <div>
+                          <div className="font-bold text-sm text-zinc-900">Tafsir Al-Jalalayn</div>
+                          <div className="text-zinc-500 text-xs">New notes added for Al-Kahf</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </PhoneFrame>
             </motion.div>
 
-            {/* Center Phone */}
+            {/* Center Phone: Virtual Muraja'ah */}
             <motion.div 
-              initial={{ opacity: 0, y: 100 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.6, type: "spring" }}
-              className="absolute left-1/2 -translate-x-1/2 top-0 z-30"
+              initial={{ opacity: 0, y: 100, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 1.2, delay: 0.6, type: "spring", bounce: 0.4 }}
+              className="absolute left-1/2 -translate-x-1/2 top-0 z-30 shadow-[0_30px_60px_rgba(0,0,0,0.4)] rounded-[3rem]"
             >
-              <PhoneFrame>
-                <div className="absolute inset-0 bg-gradient-to-b from-teal-50 to-white pt-16 px-6">
-                  <div className="flex justify-between items-center mb-8">
-                    <div>
-                      <div className="text-sm text-zinc-500 font-medium">As-salamu alaykum</div>
-                      <div className="text-2xl font-display font-bold text-zinc-800">Abdullah</div>
+              <PhoneFrame className="border-zinc-300">
+                <div className="absolute inset-0 bg-white pt-14 md:pt-16 px-4 flex flex-col">
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 md:w-16 md:h-16 bg-teal-50 rounded-full mx-auto mb-3 flex items-center justify-center text-teal-500 relative">
+                      <div className="absolute inset-0 rounded-full border border-teal-200 animate-ping opacity-50" />
+                      <Mic size={24} />
                     </div>
-                    <div className="w-12 h-12 bg-white rounded-full shadow-sm border border-zinc-100 flex items-center justify-center text-xl">👋</div>
+                    <div className="font-display font-bold text-lg md:text-xl text-zinc-900">Live AI Analysis</div>
+                    <div className="text-teal-600 text-xs md:text-sm font-semibold">Listening to Al-Fatihah...</div>
                   </div>
                   
-                  <div className="bg-teal-600 rounded-[2rem] p-6 text-white mb-6 shadow-xl shadow-teal-600/20">
-                    <div className="text-teal-100 text-sm mb-1 font-medium">Daily Goal</div>
-                    <div className="text-3xl font-display font-bold mb-6">Recite Al-Mulk</div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 bg-teal-800 rounded-full h-2">
-                        <div className="bg-amber-400 h-2 rounded-full w-[60%]" />
+                  <div className="bg-zinc-50 p-5 md:p-6 rounded-3xl border border-zinc-100 flex-1 relative overflow-hidden">
+                    <div className="space-y-6 md:space-y-8 mt-2">
+                      <div className="text-right font-arabic text-3xl md:text-4xl text-zinc-800 leading-[2.2] md:leading-[2.5]">
+                        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                       </div>
-                      <div className="text-sm font-bold">60%</div>
+                      <div className="text-right font-arabic text-3xl md:text-4xl text-zinc-800 leading-[2.2] md:leading-[2.5] relative">
+                        <span className="text-teal-500 bg-teal-50 rounded-lg px-1">الْحَمْدُ</span> لِلَّهِ رَبِّ الْعَالَمِينَ
+                      </div>
+                      <div className="text-right font-arabic text-3xl md:text-4xl text-zinc-300 leading-[2.2] md:leading-[2.5] blur-[1px]">
+                        الرَّحْمَٰنِ الرَّحِيمِ
+                      </div>
+                    </div>
+                    
+                    {/* Live Waveform Mock */}
+                    <div className="absolute bottom-6 inset-x-6 h-12 flex items-center justify-center gap-1 opacity-50">
+                       {[40, 70, 45, 90, 65, 100, 80, 50, 85, 40, 60, 30].map((h, i) => (
+                         <div key={i} className="w-1.5 bg-teal-400 rounded-full" style={{ height: `${h}%` }} />
+                       ))}
                     </div>
                   </div>
                   
-                  <div className="text-xl font-display font-bold text-zinc-800 mb-4">Quick Actions</div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-zinc-100 flex flex-col items-center justify-center gap-3 aspect-square">
-                      <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center text-amber-500"><Mic size={28} /></div>
-                      <div className="font-bold text-zinc-800">Murāja'ah</div>
+                  {/* Floating Action Bar */}
+                  <div className="absolute bottom-6 inset-x-6 bg-zinc-900 rounded-full p-2 flex items-center justify-between shadow-2xl">
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center"><X size={16} className="text-zinc-400" /></div>
+                    <div className="text-xs font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      Recording
                     </div>
-                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-zinc-100 flex flex-col items-center justify-center gap-3 aspect-square">
-                      <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500"><BookOpen size={28} /></div>
-                      <div className="font-bold text-zinc-800">Read Quran</div>
-                    </div>
+                    <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center"><CheckCircle size={16} className="text-white" /></div>
                   </div>
                 </div>
               </PhoneFrame>
@@ -372,7 +434,7 @@ export default function App() {
             </h2>
             <p className="text-lg md:text-xl text-zinc-500 max-w-3xl mx-auto leading-relaxed">Everything you need to study the Deen, powered by advanced technology that understands the context of Qur'an, Hadith, and scholarly lectures.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {[
   {"title":"Live Qur'an Reference Detection","desc":"Automatically identifies Surah and Ayah during a lecture and displays text, translation, and Tafsir."},
   {"title":"Live Hadith Detection","desc":"Detects Hadith in real-time, displaying source, narrator, grading, and translation."},
@@ -383,12 +445,12 @@ export default function App() {
   {"title":"AI-Powered Q&A Search","desc":"Ask questions and get relevant lectures, verses, and authenticated Hadith."},
   {"title":"Unified Knowledge Graph","desc":"The core intelligence linking Qur'an, Hadith, lectures, and Murāja'ah together."}
 ].map((f, i) => (
-              <div key={i} className="bg-zinc-50 p-6 rounded-3xl border border-zinc-200 hover:border-teal-500/50 hover:bg-white hover:shadow-xl hover:shadow-teal-900/5 transition-all group flex flex-col items-start text-left">
-                <div className="w-12 h-12 rounded-2xl bg-teal-100/50 flex items-center justify-center mb-5 group-hover:bg-teal-500 transition-colors shrink-0">
-                  <Star className="w-6 h-6 text-teal-600 group-hover:text-white transition-colors" />
+              <div key={i} className="bg-zinc-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-200 hover:border-teal-500/50 hover:bg-white hover:shadow-xl hover:shadow-teal-900/5 transition-all group flex flex-col items-start text-left">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-teal-100/50 flex items-center justify-center mb-3 sm:mb-5 group-hover:bg-teal-500 transition-colors shrink-0">
+                  <Star className="w-4 h-4 sm:w-6 sm:h-6 text-teal-600 group-hover:text-white transition-colors" />
                 </div>
-                <h3 className="font-bold text-zinc-900 mb-3 leading-tight">{f.title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-sm sm:text-base text-zinc-900 mb-1.5 sm:mb-3 leading-tight">{f.title}</h3>
+                <p className="text-[11px] sm:text-sm text-zinc-500 leading-relaxed line-clamp-3 sm:line-clamp-none">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -493,23 +555,23 @@ export default function App() {
       </section>
 
       {/* Gamification */}
-      <section className="py-32 px-6 bg-zinc-50 overflow-hidden relative border-t border-zinc-200">
+      <section className="py-24 md:py-32 px-6 bg-zinc-50 overflow-hidden relative border-t border-zinc-200">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row-reverse gap-16 items-center">
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mb-8 border border-amber-200 shadow-sm">
               <Trophy className="w-8 h-8 text-amber-600" />
             </div>
-            <h2 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6 leading-tight">Turn learning into a habit.</h2>
-            <p className="text-xl text-zinc-600 leading-relaxed mb-8">Stay motivated with daily streaks, achievement badges, and milestone celebrations. Our gamified system makes consistent recitation engaging and rewarding.</p>
-            <div className="grid grid-cols-2 gap-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-extrabold text-zinc-900 mb-6 leading-tight">Turn learning into a habit.</h2>
+            <p className="text-lg md:text-xl text-zinc-600 leading-relaxed mb-8">Stay motivated with daily streaks, achievement badges, and milestone celebrations. Our gamified system makes consistent recitation engaging and rewarding.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                {[
-                 { title: "7 Day Streak", icon: "🔥", color: "from-orange-400 to-red-500" },
-                 { title: "Juz Amma", icon: "🏆", color: "from-amber-300 to-amber-500" },
-                 { title: "Early Bird", icon: "🌅", color: "from-blue-400 to-indigo-500" },
-                 { title: "100 Ayahs", icon: "⭐", color: "from-teal-400 to-emerald-500" }
+                 { title: "7 Day Streak", icon: <Flame className="w-6 h-6 text-orange-500" />, color: "from-orange-100 to-orange-50", borderColor: "border-orange-200" },
+                 { title: "Juz Amma", icon: <Award className="w-6 h-6 text-amber-500" />, color: "from-amber-100 to-amber-50", borderColor: "border-amber-200" },
+                 { title: "Early Bird", icon: <Sun className="w-6 h-6 text-blue-500" />, color: "from-blue-100 to-blue-50", borderColor: "border-blue-200" },
+                 { title: "100 Ayahs", icon: <Star className="w-6 h-6 text-teal-500" />, color: "from-teal-100 to-teal-50", borderColor: "border-teal-200" }
                ].map((b, i) => (
                  <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-200 flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer">
-                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${b.color} flex items-center justify-center text-xl shadow-inner`}>
+                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${b.color} border ${b.borderColor} flex items-center justify-center shadow-inner shrink-0`}>
                      {b.icon}
                    </div>
                    <span className="font-bold text-zinc-800">{b.title}</span>
@@ -517,228 +579,32 @@ export default function App() {
                ))}
             </div>
           </div>
-          <div className="flex-1 relative w-full">
-            <div className="absolute inset-0 bg-teal-200 rounded-full blur-[100px] opacity-40 -z-10" />
-            <div className="bg-white rounded-[3rem] p-8 shadow-2xl border border-zinc-100 relative max-w-md mx-auto">
-               <div className="flex justify-between items-center mb-8">
-                 <h4 className="font-display font-bold text-2xl">Your Journey</h4>
-                 <div className="px-4 py-2 bg-zinc-100 rounded-full font-bold text-zinc-800 text-sm">Level 12</div>
-               </div>
-               <div className="space-y-6">
-                 {[1,2,3].map(i => (
-                   <div key={i} className="flex gap-4">
-                     <div className="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
-                       <CheckCircle className="w-6 h-6 text-teal-600" />
-                     </div>
-                     <div>
-                       <div className="font-bold text-lg text-zinc-900">Completed Surah {i === 1 ? 'Al-Mulk' : i === 2 ? 'Ya-Sin' : 'Al-Kahf'}</div>
-                       <div className="text-zinc-500 text-sm">Perfect pronunciation • +500 XP</div>
-                     </div>
-                   </div>
-                 ))}
-               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Offline Mode */}
-      <section className="py-32 px-6 bg-white border-y border-zinc-200">
-        <div className="max-w-7xl mx-auto text-center">
-           <div className="w-20 h-20 bg-zinc-100 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-sm">
-             <WifiOff className="w-10 h-10 text-zinc-900" />
-           </div>
-           <h2 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6">Learn anywhere, anytime.</h2>
-           <p className="text-xl text-zinc-600 max-w-2xl mx-auto mb-12 leading-relaxed">Download your favorite reciters, translations, and tafsir for offline access. No internet connection? No problem.</p>
-           <div className="inline-flex items-center gap-4 bg-zinc-50 px-8 py-4 rounded-full border border-zinc-200 shadow-sm">
-             <ShieldCheck className="w-6 h-6 text-teal-600" />
-             <span className="font-bold text-zinc-800 text-lg">Fully functional offline reading mode</span>
-           </div>
-        </div>
-      </section>
-
-      {/* Community Deep Dive */}
-      <section id="community" className="py-32 px-6 bg-teal-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10 mix-blend-overlay" />
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center relative z-10">
-          <div className="relative h-[600px]">
-             <div className="absolute top-10 right-4 md:right-10 w-64 bg-teal-800 p-6 rounded-[2rem] shadow-2xl border border-teal-700 rotate-6 hover:rotate-0 transition-transform z-20">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-amber-500 rounded-full" />
-                  <div>
-                    <div className="font-bold">Ustadh Ali</div>
-                    <div className="text-xs text-teal-200">Shared a resource</div>
+          <div className="flex-1 relative w-full h-[400px] md:h-[500px]">
+            {/* Detailed Analytics Chart */}
+            <div className="absolute inset-0 bg-white rounded-[3rem] p-6 md:p-10 border border-zinc-200 shadow-xl flex flex-col justify-end">
+                <div className="absolute top-6 md:top-10 left-6 md:left-10">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-teal-400" />
+                    </div>
+                    <div className="font-bold text-lg md:text-xl text-zinc-900">Activity</div>
                   </div>
+                  <div className="text-sm text-zinc-500">Weekly recitation minutes</div>
                 </div>
-                <div className="bg-teal-900/50 p-4 rounded-xl">
-                  <BookOpen className="w-6 h-6 mb-2 text-amber-400" />
-                  <div className="font-bold text-sm">Tajweed Rules PDF</div>
-                </div>
-             </div>
-             <div className="absolute bottom-20 left-4 md:left-10 w-72 bg-white text-zinc-900 p-6 rounded-[2rem] shadow-2xl border border-zinc-200 -rotate-6 hover:rotate-0 transition-transform z-10">
-                <div className="font-display font-bold text-xl mb-4">Hifz Circle 2026</div>
-                <div className="flex -space-x-3 mb-4">
-                  {[1,2,3,4].map(i => <div key={i} className={`w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-teal-400 to-teal-600`} />)}
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-zinc-100 flex items-center justify-center font-bold text-xs">+12</div>
-                </div>
-                <div className="bg-zinc-50 p-3 rounded-xl text-sm font-medium text-zinc-600">
-                  Current Goal: Surah Al-Baqarah
-                </div>
-             </div>
-             <div className="hidden md:block absolute top-1/2 -translate-y-1/2 -left-4 md:-left-8 w-60 bg-zinc-900 p-5 rounded-[2rem] shadow-2xl border border-zinc-800 -rotate-3 hover:rotate-0 transition-transform z-30">
-               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                   <Mic className="w-5 h-5 text-red-400" />
-                 </div>
-                 <div className="text-sm font-bold text-white">Live Recitation</div>
-               </div>
-               <div className="text-xs text-zinc-400 mb-4 leading-relaxed">Brother Yusuf is reciting Surah Yaseen</div>
-               <div className="flex items-center gap-2 bg-zinc-800 w-fit px-3 py-1.5 rounded-full">
-                 <span className="flex h-2 w-2 relative">
-                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                 </span>
-                 <span className="text-[10px] uppercase tracking-wider text-red-400 font-bold">Live Now</span>
-               </div>
-             </div>
-             <div className="hidden md:block absolute top-4 left-1/4 md:left-20 w-56 bg-amber-100 p-5 rounded-[2rem] shadow-2xl border border-amber-200 rotate-12 hover:rotate-0 transition-transform z-0">
-               <div className="flex items-center gap-3 mb-2">
-                 <Trophy className="w-6 h-6 text-amber-600" />
-                 <div className="font-bold text-amber-900 text-sm">Milestone!</div>
-               </div>
-               <div className="text-xs text-amber-800">Sisters Circle completed Juz 30</div>
-             </div>
-          </div>
-          <div>
-            <div className="w-16 h-16 bg-teal-800 rounded-2xl flex items-center justify-center mb-8 border border-teal-700 shadow-sm">
-              <Globe2 className="w-8 h-8 text-amber-400" />
-            </div>
-            <h2 className="text-4xl md:text-6xl font-display font-extrabold mb-6 leading-tight">Connect with the global Ummah.</h2>
-            <p className="text-xl text-teal-100 leading-relaxed mb-8">Join private study circles, share resources directly to cloud storage, and support each other's memorization journey. Learning the Quran is better together.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { title: 'Public Study Groups', desc: 'Join groups globally', icon: <Users className="w-5 h-5 text-amber-400" /> },
-                { title: 'Resource Sharing', desc: 'Docs, audio & notes', icon: <BookOpen className="w-5 h-5 text-amber-400" /> },
-                { title: 'Leaderboards', desc: 'Group milestones', icon: <Trophy className="w-5 h-5 text-amber-400" /> },
-                { title: 'Voice Notes', desc: 'Direct feedback', icon: <Mic className="w-5 h-5 text-amber-400" /> },
-                { title: 'Live Sessions', desc: 'Real-time halaqas', icon: <Globe2 className="w-5 h-5 text-amber-400" /> },
-                { title: 'Global Mentors', desc: 'Find a teacher', icon: <Users className="w-5 h-5 text-amber-400" /> }
-              ].map((f, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-teal-800/50 border border-teal-700 hover:bg-teal-800 transition-colors cursor-pointer group">
-                  <div className="w-10 h-10 rounded-full bg-teal-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    {f.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-teal-50 mb-1">{f.title}</h3>
-                    <p className="text-sm text-teal-200/80">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Redesigned Testimonials */}
-      <section id="testimonials" className="py-32 bg-zinc-50 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24">
-            <h2 className="text-sm font-bold text-teal-600 tracking-widest uppercase mb-4">Community Love</h2>
-            <h3 className="text-5xl md:text-7xl font-display font-extrabold text-zinc-900 mb-6">Stories of impact.</h3>
-            <p className="text-2xl text-zinc-500 max-w-2xl mx-auto font-medium">Hear how Ilm Nafi is transforming the way people learn and connect with the Quran.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white p-12 rounded-[3rem] shadow-xl shadow-zinc-200/50 border border-zinc-100 relative group">
-              <div className="absolute top-12 right-12 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Quote className="w-24 h-24 text-teal-600" />
-              </div>
-              <div className="flex gap-1 mb-8">
-                {[1,2,3,4,5].map(star => <Star key={star} className="w-6 h-6 fill-amber-500 text-amber-500" />)}
-              </div>
-              <p className="text-zinc-800 text-2xl md:text-3xl font-display font-medium leading-relaxed mb-12 relative z-10">
-                "The Virtual Murāja'ah feature is absolutely groundbreaking. It picks up on my subtle Tajweed mistakes and helps me correct them instantly. It feels like having a personal tutor with me at all times."
-              </p>
-              <div className="flex items-center gap-5">
-                <div className="w-16 h-16 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center font-display font-bold text-2xl">A</div>
-                <div>
-                  <div className="font-display font-bold text-xl text-zinc-900">Ahmed Y.</div>
-                  <div className="text-teal-600 font-medium">University Student</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-8">
-              <div className="bg-zinc-900 text-white p-10 rounded-[3rem] shadow-lg relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-colors" />
-                <div className="flex gap-1 mb-6">
-                  {[1,2,3,4,5].map(star => <Star key={star} className="w-5 h-5 fill-amber-500 text-amber-500" />)}
-                </div>
-                <p className="text-zinc-300 text-xl leading-relaxed mb-8 relative z-10">
-                  "As a teacher, the Community Hub makes managing my Hifz class so much easier. I share PDFs and audio clips directly, and track my students' progress."
-                </p>
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-12 h-12 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center font-bold text-xl">F</div>
-                  <div>
-                    <div className="font-display font-bold text-lg">Fatima S.</div>
-                    <div className="text-zinc-400">Islamic Studies Teacher</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-10 rounded-[3rem] shadow-md border border-zinc-200">
-                <div className="flex gap-1 mb-6">
-                  {[1,2,3,4,5].map(star => <Star key={star} className="w-5 h-5 fill-teal-500 text-teal-500" />)}
-                </div>
-                <p className="text-zinc-700 text-xl leading-relaxed mb-8">
-                  "The offline functionality is flawless. I commute for an hour every day, and having my recitations and bookmarks available without internet is a lifesaver."
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-zinc-100 text-zinc-700 rounded-full flex items-center justify-center font-bold text-xl">O</div>
-                  <div>
-                    <div className="font-display font-bold text-lg text-zinc-900">Omar K.</div>
-                    <div className="text-zinc-500">Software Engineer</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="py-32 px-6 bg-white border-t border-zinc-200">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6">Frequently Asked Questions</h2>
-          </div>
-          
-          <div className="space-y-4">
-            {faqs.map((faq, idx) => (
-              <div key={idx} className="bg-zinc-50 border border-zinc-200 rounded-[2rem] overflow-hidden transition-all">
-                <button 
-                  className="w-full px-8 py-6 text-left flex justify-between items-center font-display font-bold text-xl text-zinc-900"
-                  onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                >
-                  {faq.q}
-                  <ChevronRight className={`w-6 h-6 text-teal-600 transition-transform ${activeFaq === idx ? 'rotate-90' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {activeFaq === idx && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-8 pb-6 text-zinc-600 text-lg leading-relaxed">
-                        {faq.a}
+                <div className="flex items-end justify-between gap-2 md:gap-4 h-48 md:h-64 mt-auto">
+                  {[40, 70, 45, 90, 65, 100, 80].map((h, i) => (
+                    <div key={i} className="w-full relative group h-full flex flex-col justify-end">
+                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                        {h} mins
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
+                      <div className="w-full bg-teal-500 rounded-t-xl hover:bg-teal-400 transition-colors" style={{ height: `${h}%` }} />
+                      <div className="text-center mt-3 text-xs md:text-sm text-zinc-400 font-medium">
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+            </div>
           </div>
         </div>
       </section>
