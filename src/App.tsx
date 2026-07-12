@@ -15,7 +15,7 @@ const PlayStoreIcon = () => (
 );
 
 const PhoneFrame = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <div className={`relative w-[280px] md:w-[320px] h-[600px] md:h-[680px] bg-zinc-950 rounded-[3.5rem] p-3 shadow-2xl border-4 border-zinc-800 ${className}`}>
+  <div className={`relative w-[280px] md:w-[320px] h-[600px] md:h-[680px] bg-zinc-950 rounded-[3.5rem] p-3 shadow-2xl border-4 border-zinc-800 transform scale-[0.65] sm:scale-[0.8] md:scale-100 transform-origin-top ${className}`}>
     <div className="w-full h-full bg-white rounded-[2.75rem] overflow-hidden relative">
       <div className="absolute top-0 inset-x-0 h-6 bg-zinc-950 rounded-b-[1.5rem] z-30 mx-16" />
       {children}
@@ -81,8 +81,7 @@ export default function App() {
               <span className="text-xl font-display font-bold tracking-tight text-zinc-900">Ilm Nafi</span>
             </div>
             
-            <nav className="hidden md:flex items-center gap-8">
-              <a href="#how-it-works" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">How It Works</a>
+            <nav className="hidden md:flex items-center gap-6 lg:gap-8">
               <a href="#features" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">Features</a>
               <a href="#murajah" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">Murāja'ah</a>
               <a href="#community" className="text-sm font-semibold text-zinc-600 hover:text-teal-600 transition-colors">Community</a>
@@ -90,7 +89,11 @@ export default function App() {
                 <span>Quran.com</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
-              <a href="#download" className="px-6 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-full hover:bg-teal-600 transition-all shadow-md hover:-translate-y-0.5">
+              <a href="#" className="flex items-center gap-1.5 text-sm font-semibold text-teal-600 hover:text-teal-700 transition-colors">
+                <span>Use Web Version</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+              <a href="#download" className="px-5 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-full hover:bg-teal-600 transition-all shadow-md hover:-translate-y-0.5">
                 Download Now
               </a>
             </nav>
@@ -359,81 +362,38 @@ export default function App() {
         </div>
       </section>
 
-      {/* Features (Bento Grid) */}
-      <section id="features" className="py-32 px-6 bg-zinc-50 border-y border-zinc-200">
+{/* Comprehensive Features Section */}
+      <section id="features" className="py-24 px-6 bg-white border-t border-zinc-100">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-sm font-bold text-teal-600 tracking-widest uppercase mb-4">Powerful Features</h2>
-            <h3 className="text-4xl md:text-6xl font-display font-extrabold text-zinc-900 mb-6 leading-tight">Designed for your spiritual growth.</h3>
-            <p className="text-xl text-zinc-600 leading-relaxed">Everything you need to memorize, recite, and understand the Quran, packed into a beautiful mobile experience.</p>
+          <div className="text-center mb-16">
+            <span className="text-teal-600 font-bold uppercase tracking-wider text-sm mb-3 block">Comprehensive Toolkit</span>
+            <h2 className="text-4xl md:text-5xl font-display font-extrabold mb-6">
+               <TypewriterText text="Next-generation Islamic learning." />
+            </h2>
+            <p className="text-lg md:text-xl text-zinc-500 max-w-3xl mx-auto leading-relaxed">Everything you need to study the Deen, powered by advanced technology that understands the context of Qur'an, Hadith, and scholarly lectures.</p>
           </div>
-
-          <div className="grid md:grid-cols-12 gap-6">
-            {/* Big Bento Item 1 */}
-            <div className="md:col-span-8 bg-zinc-900 text-white p-10 md:p-16 rounded-[3rem] shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-500/20 rounded-full blur-3xl group-hover:bg-teal-500/30 transition-colors duration-700 translate-x-1/3 -translate-y-1/3" />
-              <div className="relative z-10 max-w-lg">
-                <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center mb-8 border border-zinc-700">
-                  <Mic className="w-8 h-8 text-amber-400" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[
+  {"title":"Live Qur'an Reference Detection","desc":"Automatically identifies Surah and Ayah during a lecture and displays text, translation, and Tafsir."},
+  {"title":"Live Hadith Detection","desc":"Detects Hadith in real-time, displaying source, narrator, grading, and translation."},
+  {"title":"Live Mushaf Following","desc":"Mushaf auto-scrolls and highlights the exact word being recited in real time."},
+  {"title":"Real-Time Tajweed Visualization","desc":"Highlights rules like Ikhfa and Qalqalah exactly when they occur in recitation."},
+  {"title":"Semantic Islamic Search","desc":"Search naturally (e.g., 'Verses about forgiveness') instead of just keywords."},
+  {"title":"Smart Lecture Recommendations","desc":"Suggests lectures based on Murāja'ah performance and study history."},
+  {"title":"AI-Powered Q&A Search","desc":"Ask questions and get relevant lectures, verses, and authenticated Hadith."},
+  {"title":"Unified Knowledge Graph","desc":"The core intelligence linking Qur'an, Hadith, lectures, and Murāja'ah together."}
+].map((f, i) => (
+              <div key={i} className="bg-zinc-50 p-6 rounded-3xl border border-zinc-200 hover:border-teal-500/50 hover:bg-white hover:shadow-xl hover:shadow-teal-900/5 transition-all group flex flex-col items-start text-left">
+                <div className="w-12 h-12 rounded-2xl bg-teal-100/50 flex items-center justify-center mb-5 group-hover:bg-teal-500 transition-colors shrink-0">
+                  <Star className="w-6 h-6 text-teal-600 group-hover:text-white transition-colors" />
                 </div>
-                <h4 className="text-3xl md:text-4xl font-display font-bold mb-4">AI-Powered Virtual Murāja'ah</h4>
-                <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-                  Our advanced Arabic speech recognition engine listens to your recitation, highlights words in real-time, and provides immediate feedback on your accuracy and fluency.
-                </p>
-                <button className="flex items-center gap-2 text-teal-400 font-bold hover:text-teal-300 transition-colors">
-                  Explore Murāja'ah <ArrowRight className="w-5 h-5" />
-                </button>
+                <h3 className="font-bold text-zinc-900 mb-3 leading-tight">{f.title}</h3>
+                <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
               </div>
-            </div>
-
-            {/* Small Bento Item 1 */}
-            <div className="md:col-span-4 bg-teal-50 p-10 rounded-[3rem] shadow-sm border border-teal-100 flex flex-col justify-center">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                <BookOpen className="w-7 h-7 text-teal-600" />
-              </div>
-              <h4 className="text-2xl font-display font-bold text-zinc-900 mb-3">Interactive Quran</h4>
-              <p className="text-zinc-600 leading-relaxed">
-                Crystal-clear audio playback, beautifully rendered Uthmani script, and seamless bookmarking.
-              </p>
-            </div>
-
-            {/* Small Bento Item 2 */}
-            <div className="md:col-span-4 bg-amber-50 p-10 rounded-[3rem] shadow-sm border border-amber-100 flex flex-col justify-center">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                <Users className="w-7 h-7 text-amber-600" />
-              </div>
-              <h4 className="text-2xl font-display font-bold text-zinc-900 mb-3">Community Hub</h4>
-              <p className="text-zinc-600 leading-relaxed">
-                Join learning circles, share resources directly from your device, and stay motivated together.
-              </p>
-            </div>
-
-            {/* Big Bento Item 2 */}
-            <div className="md:col-span-8 bg-white p-10 md:p-16 rounded-[3rem] shadow-sm border border-zinc-200 relative overflow-hidden">
-              <div className="absolute right-0 bottom-0 w-64 h-64 bg-slate-100 rounded-tl-full -z-10" />
-              <div className="flex flex-col md:flex-row gap-8 items-center h-full">
-                <div className="flex-1">
-                  <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-md">
-                    <BarChart3 className="w-7 h-7 text-white" />
-                  </div>
-                  <h4 className="text-3xl font-display font-bold text-zinc-900 mb-4">Detailed Analytics</h4>
-                  <p className="text-zinc-600 text-lg leading-relaxed">
-                    Visualize your journey with beautiful charts. Track your reading habits, memorization milestones, and maintain your daily streaks.
-                  </p>
-                </div>
-                <div className="w-full md:w-1/2 h-48 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-end justify-between p-6 overflow-hidden relative">
-                  {/* Mock Chart */}
-                  {[40, 70, 45, 90, 65, 100, 80].map((h, i) => (
-                    <div key={i} className="w-[10%] bg-teal-500 rounded-t-xl" style={{ height: `${h}%` }} />
-                  ))}
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 to-transparent" />
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
-
       {/* World-Class Reciters */}
       <section className="py-32 bg-zinc-900 text-white px-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-teal-900/40 via-zinc-900 to-zinc-900 -z-10" />
@@ -445,13 +405,13 @@ export default function App() {
             <h2 className="text-4xl md:text-6xl font-display font-extrabold mb-6 leading-tight"><TypewriterText text="Listen to the world's best." /></h2>
             <p className="text-xl text-zinc-400 leading-relaxed mb-8">Immerse yourself in the beautiful voices of renowned Qaris from across the globe. High-quality audio playback synced perfectly with the Uthmani script.</p>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                 {['Mishary Alafasy', 'Abdul Basit', 'Mahmoud Al-Husary', 'Saud Al-Shuraim', 'Maher Al-Muaiqly', 'Yasser Al-Dosari', 'Nasser Al Qatami', 'Bandar Baleela', 'Abu Bakr Al-Shatri', 'Ali Jaber', 'Muhammad Ayyub', 'Abdullah Basfar'].map((q, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-zinc-800/50 p-3 rounded-2xl border border-zinc-700/50 backdrop-blur-sm hover:bg-zinc-800 hover:border-teal-500/50 transition-all cursor-pointer group">
-                    <div className="w-10 h-10 bg-teal-500/20 rounded-full flex items-center justify-center group-hover:bg-teal-500 transition-colors shrink-0">
-                      <Play className="w-4 h-4 text-teal-400 group-hover:text-white transition-colors" />
+                  <div key={i} className="flex flex-col items-center text-center gap-2 bg-zinc-800/50 p-3 rounded-2xl border border-zinc-700/50 backdrop-blur-sm hover:bg-zinc-800 hover:border-teal-500/50 transition-all cursor-pointer group">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-teal-500/20 rounded-full flex items-center justify-center group-hover:bg-teal-500 transition-colors shrink-0">
+                      <Play className="w-3 h-3 sm:w-4 sm:h-4 text-teal-400 group-hover:text-white transition-colors" />
                     </div>
-                    <span className="font-display font-bold text-sm md:text-base truncate">{q}</span>
+                    <span className="font-display font-bold text-[10px] sm:text-xs leading-tight">{q}</span>
                   </div>
                 ))}
               </div>
@@ -486,6 +446,23 @@ export default function App() {
                <div className="flex items-center justify-between gap-3">
                  <div className="h-1 flex-1 bg-teal-950 rounded-full overflow-hidden">
                    <div className="h-full w-1/4 bg-teal-400 rounded-full" />
+                 </div>
+                 <Play className="w-4 h-4 text-teal-400" />
+               </div>
+            </div>
+
+            {/* Background Mini Player 3 */}
+            <div className="hidden md:block absolute top-1/2 -right-8 w-52 bg-zinc-900/80 backdrop-blur-xl rounded-[2rem] p-4 border border-zinc-700 shadow-2xl rotate-3 hover:rotate-0 transition-transform z-10">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-teal-900/50 rounded-xl flex items-center justify-center"><BookOpen className="w-5 h-5 text-teal-400" /></div>
+                 <div className="min-w-0">
+                   <div className="text-sm font-bold text-white truncate">Surah Ar-Rahman</div>
+                   <div className="text-[10px] text-teal-200 truncate">Mishary Rashid Alafasy</div>
+                 </div>
+               </div>
+               <div className="flex items-center justify-between gap-3">
+                 <div className="h-1 flex-1 bg-zinc-800 rounded-full overflow-hidden">
+                   <div className="h-full w-1/2 bg-teal-400 rounded-full" />
                  </div>
                  <Play className="w-4 h-4 text-teal-400" />
                </div>
