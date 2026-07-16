@@ -1,34 +1,34 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
-import TeacherScreen from '../screens/TeacherScreen';
-import CommunityScreen from '../screens/CommunityScreen';
-import QuranScreen from '../screens/QuranScreen';
+import MainShell from '../screens/MainShell';
+import AuthScreen from '../screens/AuthScreen';
+import ScholarshipScreen from '../screens/ScholarshipScreen';
+import AdhkarScreen from '../screens/AdhkarScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator initialRouteName="Main">
       <Stack.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options={{ title: 'Ilm Nafi' }}
+        name="Main" 
+        component={MainShell} 
+        options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="Teacher" 
-        component={TeacherScreen} 
-        options={{ title: 'Virtual Murāja\'ah' }}
+        name="Auth" 
+        component={AuthScreen} 
+        options={{ headerShown: false, animation: 'slide_from_bottom' }}
       />
       <Stack.Screen 
-        name="Community" 
-        component={CommunityScreen} 
-        options={{ title: 'Community Hub' }}
+        name="Scholarship" 
+        component={ScholarshipScreen} 
+        options={{ headerShown: false, animation: 'slide_from_right' }}
       />
       <Stack.Screen 
-        name="Quran" 
-        component={QuranScreen} 
-        options={{ title: 'Holy Quran' }}
+        name="Adhkar" 
+        component={AdhkarScreen} 
+        options={{ headerShown: false, animation: 'slide_from_right' }}
       />
     </Stack.Navigator>
   );
